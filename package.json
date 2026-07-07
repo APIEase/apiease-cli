@@ -1,6 +1,6 @@
 {
   "name": "apiease",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Node client and thin CLI wrapper for creating APIEase requests.",
   "repository": {
     "type": "git",
