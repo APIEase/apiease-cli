@@ -3,10 +3,12 @@ import { CrudResourceDefinitionCollection } from '../crud/CrudResourceDefinition
 const CREATE_COMMAND_NAME = 'create';
 const DELETE_COMMAND_NAME = 'delete';
 const INIT_COMMAND_NAME = 'init';
+const PULL_COMMAND_NAME = 'pull';
 const READ_COMMAND_NAME = 'read';
 const UPGRADE_COMMAND_NAME = 'upgrade';
 const UPDATE_COMMAND_NAME = 'update';
 const VERSION_FLAG = '--version';
+const HELP_FLAG = '--help';
 
 class TopLevelCliCommandRouter {
   constructor({
@@ -22,6 +24,7 @@ class TopLevelCliCommandRouter {
     updateRequestCommand,
     deleteRequestCommand,
     initProjectCommand,
+    pullProjectCommand,
     upgradeProjectCommand,
     versionCommand,
   }) {
@@ -34,8 +37,16 @@ class TopLevelCliCommandRouter {
       return this.buildSuccessResult(versionCommand);
     }
 
+    if (commandName === HELP_FLAG) {
+      return { ok: true, help: true };
+    }
+
     if (commandName === INIT_COMMAND_NAME) {
       return this.buildSuccessResult(initProjectCommand);
+    }
+
+    if (commandName === PULL_COMMAND_NAME) {
+      return this.buildSuccessResult(pullProjectCommand);
     }
 
     if (commandName === UPGRADE_COMMAND_NAME) {
@@ -71,10 +82,12 @@ class TopLevelCliCommandRouter {
       `  read ${supportedResourceToken}     Read a resource by identifier.`,
       `  update ${supportedResourceToken}   Update a resource by identifier from a definition file.`,
       `  delete ${supportedResourceToken}   Delete a resource by identifier.`,
-      '  init                              Initialize a new APIEase project.',
+      '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+      '  pull                              Pull verified Project API resources.',
       '  upgrade                           Upgrade an existing APIEase project.',
       '',
       'Options:',
+      '  --help                            Show this help.',
       '  --version                         Print the installed apiease CLI version.',
     ].join('\n');
   }

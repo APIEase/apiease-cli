@@ -93,6 +93,32 @@ describe('apiease-cli', () => {
       assert.deepEqual(receivedCommandArguments, [commandArguments]);
     });
 
+    it('should delegate pull command arguments to PullProjectCommand and return its exit code', async () => {
+      // Arrange
+      const { runCli } = await import(entrypointModuleUrl);
+      const commandArguments = ['pull', '--force'];
+      const receivedCommandArguments = [];
+      const pullProjectCommand = {
+        async run(incomingCommandArguments) {
+          receivedCommandArguments.push(incomingCommandArguments);
+          return 0;
+        },
+      };
+
+      // Act
+      const exitCode = await runCli({
+        commandArguments,
+        createRequestCommand: createUnexpectedCommand('create'),
+        pullProjectCommand,
+        stdout: createWritableStream([]),
+        stderr: createWritableStream([]),
+      });
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.deepEqual(receivedCommandArguments, [commandArguments]);
+    });
+
     it('should delegate read command arguments to ReadRequestCommand and return its exit code', async () => {
       // Arrange
       const { runCli } = await import(entrypointModuleUrl);
@@ -346,6 +372,55 @@ describe('apiease-cli', () => {
       assert.equal(stdoutChunks.join(''), `${packageJson.version}\n`);
     });
 
+    it('should return zero and write public help to stdout when the help flag is provided', async () => {
+      // Arrange
+      const { runCli } = await import(entrypointModuleUrl);
+      const stdoutChunks = [];
+      const stderrChunks = [];
+
+      // Act
+      const exitCode = await runCli({
+        commandArguments: ['--help'],
+        stdout: createWritableStream(stdoutChunks),
+        stderr: createWritableStream(stderrChunks),
+      });
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.match(stdoutChunks.join(''), /pull\s+Pull verified Project API resources\./);
+      assert.doesNotMatch(stdoutChunks.join(''), /\btest\b/);
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should build init and pull with one shared Project API dependency graph', async () => {
+      // Arrange
+      const { buildProjectCommands } = await import(entrypointModuleUrl);
+
+      // Act
+      const { initProjectCommand, pullProjectCommand } = buildProjectCommands({
+        stdout: createWritableStream([]),
+        stderr: createWritableStream([]),
+      });
+
+      // Assert
+      assert.equal(
+        initProjectCommand.personalProjectAuthenticationAdapter,
+        pullProjectCommand.personalProjectAuthenticationAdapter,
+      );
+      assert.equal(
+        initProjectCommand.projectSynchronizationService,
+        pullProjectCommand.projectSynchronizationService,
+      );
+      assert.equal(
+        initProjectCommand.projectGitCheckoutService,
+        pullProjectCommand.projectGitCheckoutService,
+      );
+      assert.equal(
+        initProjectCommand.projectCommandResultService,
+        pullProjectCommand.projectCommandResultService,
+      );
+    });
+
     it('should return one and write top-level usage output when the command is missing', async () => {
       // Arrange
       const { runCli } = await import(entrypointModuleUrl);
@@ -370,10 +445,12 @@ describe('apiease-cli', () => {
         '  read <request|widget|variable|function>     Read a resource by identifier.',
         '  update <request|widget|variable|function>   Update a resource by identifier from a definition file.',
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
-        '  init                              Initialize a new APIEase project.',
+        '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+        '  pull                              Pull verified Project API resources.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
       ].join('\n'));
@@ -403,10 +480,12 @@ describe('apiease-cli', () => {
         '  read <request|widget|variable|function>     Read a resource by identifier.',
         '  update <request|widget|variable|function>   Update a resource by identifier from a definition file.',
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
-        '  init                              Initialize a new APIEase project.',
+        '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+        '  pull                              Pull verified Project API resources.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
       ].join('\n'));
@@ -436,10 +515,12 @@ describe('apiease-cli', () => {
         '  read <request|widget|variable|function>     Read a resource by identifier.',
         '  update <request|widget|variable|function>   Update a resource by identifier from a definition file.',
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
-        '  init                              Initialize a new APIEase project.',
+        '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+        '  pull                              Pull verified Project API resources.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
       ].join('\n'));
@@ -469,10 +550,12 @@ describe('apiease-cli', () => {
         '  read <request|widget|variable|function>     Read a resource by identifier.',
         '  update <request|widget|variable|function>   Update a resource by identifier from a definition file.',
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
-        '  init                              Initialize a new APIEase project.',
+        '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+        '  pull                              Pull verified Project API resources.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
       ].join('\n'));
@@ -502,10 +585,12 @@ describe('apiease-cli', () => {
         '  read <request|widget|variable|function>     Read a resource by identifier.',
         '  update <request|widget|variable|function>   Update a resource by identifier from a definition file.',
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
-        '  init                              Initialize a new APIEase project.',
+        '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+        '  pull                              Pull verified Project API resources.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
       ].join('\n'));

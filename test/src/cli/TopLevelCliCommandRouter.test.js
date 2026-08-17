@@ -231,6 +231,46 @@ describe('TopLevelCliCommandRouter', () => {
       });
     });
 
+    it('should resolve pull without requiring a resource argument', () => {
+      // Arrange
+      const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
+      const pullProjectCommand = { name: 'pull' };
+
+      // Act
+      const result = topLevelCliCommandRouter.resolveCommand({
+        commandArguments: ['pull', '--force'],
+        createRequestCommand: { name: 'create' },
+        readRequestCommand: { name: 'read' },
+        updateRequestCommand: { name: 'update' },
+        deleteRequestCommand: { name: 'delete' },
+        initProjectCommand: { name: 'init' },
+        pullProjectCommand,
+        upgradeProjectCommand: { name: 'upgrade' },
+      });
+
+      // Assert
+      assert.deepEqual(result, {
+        ok: true,
+        command: pullProjectCommand,
+      });
+    });
+
+    it('should resolve the help flag as successful top-level help', () => {
+      // Arrange
+      const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
+
+      // Act
+      const result = topLevelCliCommandRouter.resolveCommand({
+        commandArguments: ['--help'],
+      });
+
+      // Assert
+      assert.deepEqual(result, {
+        ok: true,
+        help: true,
+      });
+    });
+
     it('should resolve the version flag without requiring a resource argument', () => {
       // Arrange
       const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
@@ -257,7 +297,7 @@ describe('TopLevelCliCommandRouter', () => {
   });
 
   describe('buildUsageText', () => {
-    it('should describe the supported verb plus resource command shape for crud operations', () => {
+    it('should describe every implemented public command without advertising a test command', () => {
       // Arrange
       const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
 
@@ -273,13 +313,17 @@ describe('TopLevelCliCommandRouter', () => {
         '  read <request|widget|variable|function>     Read a resource by identifier.',
         '  update <request|widget|variable|function>   Update a resource by identifier from a definition file.',
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
-        '  init                              Initialize a new APIEase project.',
+        '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
+        '  pull                              Pull verified Project API resources.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
       ].join('\n'));
       assert.doesNotMatch(usageText, /apiease-cli/);
+      assert.doesNotMatch(usageText, /\btest\b/);
+      assert.match(usageText, /init \[project-name\] \[--from-existing-resources\]/);
     });
   });
 });

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { CreateRequestCommand } from '../src/cli/CreateRequestCommand.js';
 import { DeleteRequestCommand } from '../src/cli/DeleteRequestCommand.js';
 import { InitProjectCommand } from '../src/cli/InitProjectCommand.js';
+import { PullProjectCommand } from '../src/cli/PullProjectCommand.js';
 import { ReadRequestCommand } from '../src/cli/ReadRequestCommand.js';
 import { UpgradeProjectCommand } from '../src/cli/UpgradeProjectCommand.js';
 import { UpdateRequestCommand } from '../src/cli/UpdateRequestCommand.js';
@@ -17,6 +18,11 @@ import { ApiEaseCreateRequestContractValidator } from '../src/client/ApiEaseCrea
 import { ApiEaseDeleteRequestClient } from '../src/client/ApiEaseDeleteRequestClient.js';
 import { ApiEaseReadRequestClient } from '../src/client/ApiEaseReadRequestClient.js';
 import { ApiEaseUpdateRequestClient } from '../src/client/ApiEaseUpdateRequestClient.js';
+import { ApiEaseProjectApiClient } from '../src/client/ApiEaseProjectApiClient.js';
+import { PersonalProjectAuthenticationAdapter } from '../src/auth/PersonalProjectAuthenticationAdapter.js';
+import { ProjectCommandResultService } from '../src/cli/ProjectCommandResultService.js';
+import { ProjectGitCheckoutService } from '../src/project/ProjectGitCheckoutService.js';
+import { ProjectSynchronizationService } from '../src/project/ProjectSynchronizationService.js';
 
 const JSON_FLAG = '--json';
 const DEFAULT_FAILURE_STATUS = 500;
@@ -73,12 +79,32 @@ function buildDeleteRequestCommand({ stdout = process.stdout, stderr = process.s
   });
 }
 
-function buildInitProjectCommand({ stdout = process.stdout, stderr = process.stderr } = {}) {
-  return new InitProjectCommand({
+function buildProjectCommands({ stdout = process.stdout, stderr = process.stderr } = {}) {
+  const personalProjectAuthenticationAdapter = new PersonalProjectAuthenticationAdapter();
+  const apiEaseProjectApiClient = new ApiEaseProjectApiClient({
+    projectAuthenticationAdapter: personalProjectAuthenticationAdapter,
+  });
+  const projectSynchronizationService = new ProjectSynchronizationService({
+    apiEaseProjectApiClient,
+  });
+  const projectGitCheckoutService = new ProjectGitCheckoutService();
+  const projectCommandResultService = new ProjectCommandResultService({ stdout, stderr });
+  const sharedDependencies = {
+    personalProjectAuthenticationAdapter,
+    projectGitCheckoutService,
+    projectSynchronizationService,
+    projectCommandResultService,
+  };
+
+  const initProjectCommand = new InitProjectCommand({
     cliVersion: CLI_VERSION,
+    ...sharedDependencies,
     stdout,
     stderr,
   });
+  const pullProjectCommand = new PullProjectCommand(sharedDependencies);
+
+  return { initProjectCommand, pullProjectCommand };
 }
 
 function buildUpgradeProjectCommand({ stdout = process.stdout, stderr = process.stderr } = {}) {
@@ -106,6 +132,7 @@ async function runCli({
   updateRequestCommand,
   deleteRequestCommand,
   initProjectCommand,
+  pullProjectCommand,
   upgradeProjectCommand,
   versionCommand,
   topLevelCliCommandRouter = buildTopLevelCliCommandRouter(),
@@ -116,7 +143,16 @@ async function runCli({
   readRequestCommand ??= buildReadRequestCommand({ stdout, stderr });
   updateRequestCommand ??= buildUpdateRequestCommand({ stdout, stderr });
   deleteRequestCommand ??= buildDeleteRequestCommand({ stdout, stderr });
-  initProjectCommand ??= buildInitProjectCommand({ stdout, stderr });
+  const commandName = commandArguments[0];
+  const requiresProjectCommands = (
+    (commandName === 'init' && !initProjectCommand)
+    || (commandName === 'pull' && !pullProjectCommand)
+  );
+  if (requiresProjectCommands) {
+    const projectCommands = buildProjectCommands({ stdout, stderr });
+    initProjectCommand ??= projectCommands.initProjectCommand;
+    pullProjectCommand ??= projectCommands.pullProjectCommand;
+  }
   upgradeProjectCommand ??= buildUpgradeProjectCommand({ stdout, stderr });
   versionCommand ??= buildVersionCommand({ stdout });
 
@@ -127,12 +163,18 @@ async function runCli({
     updateRequestCommand,
     deleteRequestCommand,
     initProjectCommand,
+    pullProjectCommand,
     upgradeProjectCommand,
     versionCommand,
   });
   if (!commandResult.ok) {
     stderr.write(`${commandResult.message}\n${topLevelCliCommandRouter.buildUsageText()}\n`);
     return 1;
+  }
+
+  if (commandResult.help) {
+    stdout.write(`${topLevelCliCommandRouter.buildUsageText()}\n`);
+    return 0;
   }
 
   try {
@@ -196,4 +238,4 @@ function isExecutedAsEntrypoint() {
   return path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 }
 
-export { buildCreateRequestCommand, runCli };
+export { buildCreateRequestCommand, buildProjectCommands, runCli };
