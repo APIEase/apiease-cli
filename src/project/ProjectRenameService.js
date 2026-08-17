@@ -7,7 +7,7 @@ import {
 import { ProjectLocalStateService } from './ProjectLocalStateService.js';
 import { ProjectManagedPathResolver } from './ProjectManagedPathResolver.js';
 
-const HANDLE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const RESOURCE_HANDLE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
 class ProjectRenameService {
   constructor({
@@ -65,7 +65,7 @@ class ProjectRenameService {
     if (!Object.hasOwn(RESOURCE_SOURCE_DIRECTORIES, resourceType)) {
       throwServiceError('PROJECT_RENAME_RESOURCE_TYPE_INVALID');
     }
-    if (![currentHandle, renamedHandle].every(handle => HANDLE_PATTERN.test(handle))) {
+    if (![currentHandle, renamedHandle].every(handle => RESOURCE_HANDLE_PATTERN.test(handle))) {
       throwServiceError('PROJECT_RENAME_HANDLE_INVALID');
     }
     if (currentHandle === renamedHandle) throwServiceError('PROJECT_RENAME_HANDLE_UNCHANGED');
@@ -217,4 +217,4 @@ function throwServiceError(code, diagnostics = [{ code }]) {
   throw error;
 }
 
-export { ProjectRenameService };
+export { ProjectRenameService, RESOURCE_HANDLE_PATTERN };
