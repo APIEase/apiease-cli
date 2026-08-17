@@ -22,6 +22,11 @@ describe('ApiEaseCommandConfigurationResolver', () => {
             throw new Error('home configuration should not be resolved');
           },
         },
+        processEnvironment: {
+          APIEASE_API_KEY: 'process-api-key',
+          APIEASE_BASE_URL: 'https://apiease.example.com/from-process',
+          APIEASE_SHOP_DOMAIN: 'process-shop.myshopify.com',
+        },
       });
 
       // Act
@@ -41,7 +46,7 @@ describe('ApiEaseCommandConfigurationResolver', () => {
       assert.equal(resolveEnvironmentVariablesCallCount, 0);
     });
 
-    it('should resolve the base url and shop domain from home env variables when those values are omitted', async () => {
+    it('should resolve each value with flag then process environment then selected home file precedence', async () => {
       // Arrange
       const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);
       let resolveEnvironmentVariablesCallCount = 0;
@@ -60,6 +65,10 @@ describe('ApiEaseCommandConfigurationResolver', () => {
             };
           },
         },
+        processEnvironment: {
+          APIEASE_API_KEY: 'process-api-key',
+          APIEASE_BASE_URL: 'https://apiease.example.com/from-process',
+        },
       });
 
       // Act
@@ -70,14 +79,45 @@ describe('ApiEaseCommandConfigurationResolver', () => {
       // Assert
       assert.deepEqual(result, {
         ok: true,
-        apiBaseUrl: 'https://apiease.example.com/from-home',
+        apiBaseUrl: 'https://apiease.example.com/from-process',
         apiKey: 'explicit-api-key',
         shopDomain: 'home-shop.myshopify.com',
       });
       assert.equal(resolveEnvironmentVariablesCallCount, 1);
     });
 
-    it('should return the home api key missing failure when the api key is omitted and not defined in the home env file', async () => {
+    it('should skip unreadable home configuration when the process environment supplies every value', async () => {
+      // Arrange
+      const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);
+      let resolveEnvironmentVariablesCallCount = 0;
+      const apiEaseCommandConfigurationResolver = new ApiEaseCommandConfigurationResolver({
+        apiEaseHomeConfigurationResolver: {
+          async resolveEnvironmentVariables() {
+            resolveEnvironmentVariablesCallCount += 1;
+            throw new Error('home configuration should not be resolved');
+          },
+        },
+        processEnvironment: {
+          APIEASE_API_KEY: 'process-api-key',
+          APIEASE_BASE_URL: 'https://apiease.example.com/from-process',
+          APIEASE_SHOP_DOMAIN: 'process-shop.myshopify.com',
+        },
+      });
+
+      // Act
+      const result = await apiEaseCommandConfigurationResolver.resolveConfiguration();
+
+      // Assert
+      assert.deepEqual(result, {
+        ok: true,
+        apiBaseUrl: 'https://apiease.example.com/from-process',
+        apiKey: 'process-api-key',
+        shopDomain: 'process-shop.myshopify.com',
+      });
+      assert.equal(resolveEnvironmentVariablesCallCount, 0);
+    });
+
+    it('should return a stable secret-safe configuration failure when the api key is missing', async () => {
       // Arrange
       const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);
       const apiEaseCommandConfigurationResolver = new ApiEaseCommandConfigurationResolver({
@@ -92,17 +132,8 @@ describe('ApiEaseCommandConfigurationResolver', () => {
               },
             };
           },
-
-          buildApiKeyMissingFailureResult(environmentVariablesFilePath) {
-            return {
-              ok: false,
-              errorCode: 'APIEASE_HOME_API_KEY_MISSING',
-              message: `APIEASE_API_KEY was not found in environment file: ${environmentVariablesFilePath}`,
-              filePath: environmentVariablesFilePath,
-              fieldErrors: [],
-            };
-          },
         },
+        processEnvironment: {},
       });
 
       // Act
@@ -111,11 +142,65 @@ describe('ApiEaseCommandConfigurationResolver', () => {
       // Assert
       assert.deepEqual(result, {
         ok: false,
-        errorCode: 'APIEASE_HOME_API_KEY_MISSING',
-        message: 'APIEASE_API_KEY was not found in environment file: /tmp/home/.apiease/.env.staging',
-        filePath: '/tmp/home/.apiease/.env.staging',
-        fieldErrors: [],
+        errorCode: 'APIEASE_COMMAND_CONFIGURATION_MISSING',
+        message: 'Required APIEase configuration is missing.',
+        fieldErrors: [{
+          path: 'apiKey',
+          code: 'REQUIRED',
+          message: 'API key is required.',
+        }],
       });
     });
+
+    for (const missingConfiguration of [
+      {
+        environmentVariableName: 'APIEASE_BASE_URL',
+        path: 'apiBaseUrl',
+        message: 'API base URL is required.',
+      },
+      {
+        environmentVariableName: 'APIEASE_SHOP_DOMAIN',
+        path: 'shopDomain',
+        message: 'Shop domain is required.',
+      },
+    ]) {
+      it(`should return a stable configuration failure when ${missingConfiguration.path} is missing`, async () => {
+        // Arrange
+        const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);
+        const environmentVariables = {
+          APIEASE_API_KEY: 'home-api-key',
+          APIEASE_BASE_URL: 'https://apiease.example.com/from-home',
+          APIEASE_SHOP_DOMAIN: 'home-shop.myshopify.com',
+        };
+        delete environmentVariables[missingConfiguration.environmentVariableName];
+        const apiEaseCommandConfigurationResolver = new ApiEaseCommandConfigurationResolver({
+          apiEaseHomeConfigurationResolver: {
+            async resolveEnvironmentVariables() {
+              return {
+                ok: true,
+                environmentVariablesFilePath: '/tmp/home/.apiease/.env.staging',
+                environmentVariables,
+              };
+            },
+          },
+          processEnvironment: {},
+        });
+
+        // Act
+        const result = await apiEaseCommandConfigurationResolver.resolveConfiguration();
+
+        // Assert
+        assert.deepEqual(result, {
+          ok: false,
+          errorCode: 'APIEASE_COMMAND_CONFIGURATION_MISSING',
+          message: 'Required APIEase configuration is missing.',
+          fieldErrors: [{
+            path: missingConfiguration.path,
+            code: 'REQUIRED',
+            message: missingConfiguration.message,
+          }],
+        });
+      });
+    }
   });
 });

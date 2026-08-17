@@ -105,6 +105,7 @@ class UpdateRequestCommand {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
+      requiredConfigurationFieldPaths: ['apiKey'],
     });
     if (!configurationResult.ok) {
       return configurationResult;
