@@ -1,0 +1,302 @@
+{
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "fixtures": [
+    {
+      "name": "stale-resource",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/apply",
+      "httpStatus": 409,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "RESOURCE_VERSION_CONFLICT",
+        "error": {
+          "code": "RESOURCE_VERSION_CONFLICT",
+          "message": "A resource changed after the candidate was read.",
+          "diagnostics": [
+            {
+              "code": "RESOURCE_VERSION_CONFLICT",
+              "path": "resources/requests/inventory-sync.json",
+              "resourceType": "request",
+              "handle": "inventory-sync",
+              "operationIndex": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "stale-baseline",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/apply",
+      "httpStatus": 409,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_BASELINE_CONFLICT",
+        "error": {
+          "code": "PROJECT_BASELINE_CONFLICT",
+          "message": "The project baseline is stale.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "idempotency-conflict",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/apply",
+      "httpStatus": 409,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_IDEMPOTENCY_CONFLICT",
+        "error": {
+          "code": "PROJECT_IDEMPOTENCY_CONFLICT",
+          "message": "The operation key was already used for different project apply input.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "worker-authority-fail-closed",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/apply",
+      "httpStatus": 403,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_WORKER_AUTHORITY_UNAVAILABLE",
+        "error": {
+          "code": "PROJECT_WORKER_AUTHORITY_UNAVAILABLE",
+          "message": "Worker authority is unavailable for this project operation.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "path-traversal",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/validate",
+      "httpStatus": 422,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "error": {
+          "code": "PROJECT_CANDIDATE_INVALID",
+          "message": "The candidate project is invalid.",
+          "diagnostics": [
+            {
+              "code": "UNSAFE_MANAGED_PATH",
+              "path": "resources/requests/../outside.json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "duplicate-managed-path",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/validate",
+      "httpStatus": 422,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "error": {
+          "code": "PROJECT_CANDIDATE_INVALID",
+          "message": "The candidate project is invalid.",
+          "diagnostics": [
+            {
+              "code": "DUPLICATE_MANAGED_PATH",
+              "path": "resources/widgets/stock-banner.json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "malformed-content-encoding",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/validate",
+      "httpStatus": 422,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "error": {
+          "code": "PROJECT_CANDIDATE_INVALID",
+          "message": "The candidate project is invalid.",
+          "diagnostics": [
+            {
+              "code": "MANAGED_FILE_ENCODING_UNSUPPORTED",
+              "path": "resources/functions/format-order.json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "artifact-file-count-bound",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/bootstrap",
+      "httpStatus": 413,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_FILE_COUNT_EXCEEDED",
+        "error": {
+          "code": "PROJECT_FILE_COUNT_EXCEEDED",
+          "message": "The verified project projection exceeds the file-count limit.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "artifact-file-size-bound",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/bootstrap",
+      "httpStatus": 413,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_FILE_SIZE_EXCEEDED",
+        "error": {
+          "code": "PROJECT_FILE_SIZE_EXCEEDED",
+          "message": "The verified project projection exceeds the per-file size limit.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "artifact-aggregate-size-bound",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/bootstrap",
+      "httpStatus": 413,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_AGGREGATE_SIZE_EXCEEDED",
+        "error": {
+          "code": "PROJECT_AGGREGATE_SIZE_EXCEEDED",
+          "message": "The verified project projection exceeds the aggregate size limit.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "missing-resource-dependency",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/validate",
+      "httpStatus": 422,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_DEPENDENCY_INVALID",
+        "error": {
+          "code": "PROJECT_DEPENDENCY_INVALID",
+          "message": "The candidate project has an invalid resource dependency.",
+          "diagnostics": [
+            {
+              "code": "PROJECT_RESOURCE_DEPENDENCY_MISSING",
+              "path": "resources/requests/inventory-sync.json",
+              "resourceType": "request",
+              "handle": "inventory-sync"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "protected-input-invalid",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/validate",
+      "httpStatus": 422,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_SECURE_INPUT_INVALID",
+        "error": {
+          "code": "PROJECT_SECURE_INPUT_INVALID",
+          "message": "The candidate project has an invalid protected-input instruction.",
+          "diagnostics": [
+            {
+              "code": "PROJECT_PROTECTED_INPUT_INVALID",
+              "resourceType": "request",
+              "handle": "inventory-sync",
+              "fieldPath": "parameters.header.value"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "managed-file-digest-mismatch",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/validate",
+      "httpStatus": 422,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "error": {
+          "code": "PROJECT_CANDIDATE_INVALID",
+          "message": "The candidate project is invalid.",
+          "diagnostics": [
+            {
+              "code": "MANAGED_FILE_DIGEST_MISMATCH",
+              "path": "resources/variables/api-origin.json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "artifact-verification-conflict",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/bootstrap",
+      "httpStatus": 409,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_PROJECTION_CONFLICT",
+        "error": {
+          "code": "PROJECT_PROJECTION_CONFLICT",
+          "message": "The verified project projection changed during bootstrap.",
+          "diagnostics": []
+        }
+      }
+    },
+    {
+      "name": "artifact-verification-unavailable",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/bootstrap",
+      "httpStatus": 503,
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_PROJECTION_UNAVAILABLE",
+        "error": {
+          "code": "PROJECT_PROJECTION_UNAVAILABLE",
+          "message": "The verified project projection is temporarily unavailable.",
+          "diagnostics": []
+        }
+      }
+    }
+  ]
+}

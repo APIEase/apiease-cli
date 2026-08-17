@@ -1,0 +1,165 @@
+{
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "fixtures": [
+    {
+      "name": "bootstrap-pending",
+      "schemaDefinition": "projectBootstrapPendingResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_BOOTSTRAP_PENDING",
+        "result": {
+          "project": {
+            "projectId": "project_pending",
+            "lifecycle": "activation-pending",
+            "repositoryVerified": false,
+            "synchronized": false
+          },
+          "retryAfterMilliseconds": 5000
+        }
+      }
+    },
+    {
+      "name": "bootstrap-synchronized",
+      "schemaDefinition": "projectBootstrapSynchronizedResponse",
+      "fileByteLengths": [
+        {
+          "path": ".apiease/project.json",
+          "byteLength": 307
+        },
+        {
+          "path": "resources/variables/api-origin.json",
+          "byteLength": 160
+        }
+      ],
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_BOOTSTRAP_SYNCHRONIZED",
+        "result": {
+          "artifactEnvelopeVersion": 1,
+          "projectApiVersion": 1,
+          "candidateFormatVersion": 1,
+          "template": {
+            "owner": "APIEase",
+            "repository": "apiease-template",
+            "ref": "main"
+          },
+          "manifest": {
+            "projectId": "project_01",
+            "sourceMainCommit": "0123456789abcdef0123456789abcdef01234567",
+            "liveRevision": 42,
+            "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea",
+            "fileCount": 2,
+            "resourceFileCount": 1,
+            "totalBytes": 467,
+            "limits": {
+              "maximumFileCount": 1000,
+              "maximumFileBytes": 1000000,
+              "maximumAggregateBytes": 25000000
+            },
+            "resources": [
+              {
+                "path": "resources/variables/api-origin.json",
+                "resourceType": "variable",
+                "resourceId": "variable_01",
+                "handle": "api-origin",
+                "resourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ]
+          },
+          "files": [
+            {
+              "path": ".apiease/project.json",
+              "encoding": "utf-8",
+              "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_01\",\n  \"normalizedShopDomain\": \"example.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"1111111111111111111111111111111111111111\"\n  }\n}\n",
+              "digest": "sha256:7e5623b7a777a56f3cede2498558fab8bc2441badb2298378252a2d6cad82e2a"
+            },
+            {
+              "path": "resources/variables/api-origin.json",
+              "encoding": "utf-8",
+              "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"api-origin\",\"name\":\"API Origin\",\"resourceType\":\"variable\",\"sensitive\":false,\"value\":\"https://example.invalid\"}\n",
+              "digest": "sha256:d4c660145a22630d0a3ec3cfe5f0ea5e3d81c9aade1923bfe59c8f564df6acff"
+            }
+          ],
+          "localState": {
+            "localStateVersion": 1,
+            "projectId": "project_01",
+            "baseline": {
+              "liveRevision": 42,
+              "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea"
+            },
+            "sourceMainCommit": "0123456789abcdef0123456789abcdef01234567",
+            "resources": [
+              {
+                "path": "resources/variables/api-origin.json",
+                "resourceType": "variable",
+                "resourceId": "variable_01",
+                "handle": "api-origin",
+                "resourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "bootstrap-synchronized-no-resources",
+      "schemaDefinition": "projectBootstrapSynchronizedNoResourcesResponse",
+      "fileByteLengths": [
+        {
+          "path": ".apiease/project.json",
+          "byteLength": 316
+        }
+      ],
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES",
+        "result": {
+          "artifactEnvelopeVersion": 1,
+          "projectApiVersion": 1,
+          "candidateFormatVersion": 1,
+          "template": {
+            "owner": "APIEase",
+            "repository": "apiease-template",
+            "ref": "main"
+          },
+          "manifest": {
+            "projectId": "project_empty",
+            "sourceMainCommit": "89abcdef0123456789abcdef0123456789abcdef",
+            "liveRevision": 0,
+            "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9",
+            "fileCount": 1,
+            "resourceFileCount": 0,
+            "totalBytes": 316,
+            "limits": {
+              "maximumFileCount": 1000,
+              "maximumFileBytes": 1000000,
+              "maximumAggregateBytes": 25000000
+            },
+            "resources": []
+          },
+          "files": [
+            {
+              "path": ".apiease/project.json",
+              "encoding": "utf-8",
+              "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_empty\",\n  \"normalizedShopDomain\": \"empty-fixture.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"2222222222222222222222222222222222222222\"\n  }\n}\n",
+              "digest": "sha256:063b1a489adbd58d236e530c7b9213836beac117287610ad04abb4cc0d2d273d"
+            }
+          ],
+          "localState": {
+            "localStateVersion": 1,
+            "projectId": "project_empty",
+            "baseline": {
+              "liveRevision": 0,
+              "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9"
+            },
+            "sourceMainCommit": "89abcdef0123456789abcdef0123456789abcdef",
+            "resources": []
+          }
+        }
+      }
+    }
+  ]
+}

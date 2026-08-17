@@ -96,6 +96,25 @@ describe('package manifest', () => {
       // Assert
       await assert.rejects(fs.access(reservePackageJsonPath));
     });
+
+    it('should publish the vendored Apex Project contract assets', async () => {
+      // Arrange
+      const packageJson = await readPackageJson();
+
+      // Assert
+      assert.equal(packageJson.files.includes('contracts'), true);
+    });
+  });
+
+  describe('dependencies', () => {
+    it('should install the approved Ajv runtime schema engine version', async () => {
+      // Arrange
+      const packageJson = await readPackageJson();
+
+      // Assert
+      assert.equal(packageJson.dependencies.ajv, '8.17.1');
+      assert.equal('ajv-formats' in packageJson.dependencies, false);
+    });
   });
 
   describe('scripts', () => {

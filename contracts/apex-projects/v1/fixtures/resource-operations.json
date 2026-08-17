@@ -1,0 +1,571 @@
+{
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "resourceTypes": [
+    {
+      "resourceType": "request",
+      "fixtures": [
+        {
+          "name": "request-read",
+          "schemaDefinition": "resourceReadResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_READ",
+            "result": {
+              "resourceType": "request",
+              "resource": {
+                "id": "request-fixture-id",
+                "resourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "handle": "synthetic-request",
+                "name": "Synthetic request",
+                "type": "http",
+                "method": "GET",
+                "address": "https://fixture.invalid/items",
+                "liquid": "{{ response.body }}",
+                "nextRequest": "synthetic-next-request",
+                "parameters": [
+                  {
+                    "type": "query",
+                    "name": "page",
+                    "sensitive": false,
+                    "value": "1"
+                  }
+                ],
+                "triggers": []
+              }
+            }
+          }
+        },
+        {
+          "name": "request-create-if-absent",
+          "schemaDefinition": "resourceCreateRequest",
+          "document": {
+            "contractVersion": 1,
+            "operation": "create-if-absent",
+            "resource": {
+              "handle": "synthetic-request",
+              "name": "Synthetic request",
+              "type": "http",
+              "method": "GET",
+              "address": "https://fixture.invalid/items",
+              "parameters": [],
+              "triggers": []
+            }
+          }
+        },
+        {
+          "name": "request-update",
+          "schemaDefinition": "resourceUpdateRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "resource": {
+              "id": "request-fixture-id",
+              "handle": "synthetic-request",
+              "name": "Updated synthetic request",
+              "type": "http",
+              "method": "POST",
+              "address": "https://fixture.invalid/items",
+              "parameters": [],
+              "triggers": []
+            }
+          }
+        },
+        {
+          "name": "request-delete",
+          "schemaDefinition": "resourceDeleteRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          }
+        },
+        {
+          "name": "request-no-change",
+          "schemaDefinition": "resourceMutationResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_NO_CHANGE",
+            "result": {
+              "resourceType": "request",
+              "resource": {
+                "id": "request-fixture-id",
+                "resourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                "handle": "synthetic-request",
+                "name": "Synthetic request",
+                "type": "http",
+                "method": "GET",
+                "address": "https://fixture.invalid/items",
+                "liquid": "{{ response.body }}",
+                "nextRequest": "synthetic-next-request",
+                "parameters": [],
+                "triggers": []
+              },
+              "resourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "liveRevision": 10
+            }
+          }
+        },
+        {
+          "name": "request-create-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_ALREADY_EXISTS",
+            "error": {
+              "code": "RESOURCE_ALREADY_EXISTS",
+              "message": "The resource already exists.",
+              "details": [
+                {
+                  "resourceType": "request",
+                  "id": "request-fixture-id",
+                  "handle": "synthetic-request"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "request-stale-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_VERSION_CONFLICT",
+            "error": {
+              "code": "RESOURCE_VERSION_CONFLICT",
+              "message": "The resource has changed since it was read.",
+              "details": [
+                {
+                  "resourceType": "request",
+                  "id": "request-fixture-id",
+                  "handle": "synthetic-request",
+                  "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                  "currentResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "widget",
+      "fixtures": [
+        {
+          "name": "widget-read",
+          "schemaDefinition": "resourceReadResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_READ",
+            "result": {
+              "resourceType": "widget",
+              "resource": {
+                "id": "widget-fixture-id",
+                "resourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+                "handle": "synthetic-widget",
+                "name": "Synthetic widget",
+                "liquid": "<div>Fixture</div>",
+                "javascript": "",
+                "externalJavascriptUrls": ["https://fixture.invalid/widget.js"],
+                "disableJavascript": false
+              }
+            }
+          }
+        },
+        {
+          "name": "widget-create-if-absent",
+          "schemaDefinition": "resourceCreateRequest",
+          "document": {
+            "contractVersion": 1,
+            "operation": "create-if-absent",
+            "resource": {
+              "handle": "synthetic-widget",
+              "name": "Synthetic widget",
+              "liquid": "<div>Fixture</div>",
+              "javascript": "",
+              "externalJavascriptUrls": [],
+              "disableJavascript": true
+            }
+          }
+        },
+        {
+          "name": "widget-update",
+          "schemaDefinition": "resourceUpdateRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+            "resource": {
+              "handle": "synthetic-widget",
+              "name": "Updated synthetic widget",
+              "liquid": "<div>Updated fixture</div>",
+              "javascript": "",
+              "externalJavascriptUrls": [],
+              "disableJavascript": true
+            }
+          }
+        },
+        {
+          "name": "widget-delete",
+          "schemaDefinition": "resourceDeleteRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+          }
+        },
+        {
+          "name": "widget-no-change",
+          "schemaDefinition": "resourceMutationResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_NO_CHANGE",
+            "result": {
+              "resourceType": "widget",
+              "resource": {
+                "id": "widget-fixture-id",
+                "resourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+                "handle": "synthetic-widget",
+                "name": "Synthetic widget",
+                "liquid": "<div>Fixture</div>",
+                "javascript": "",
+                "externalJavascriptUrls": [],
+                "disableJavascript": true
+              },
+              "resourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+              "liveRevision": 11
+            }
+          }
+        },
+        {
+          "name": "widget-create-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_ALREADY_EXISTS",
+            "error": {
+              "code": "RESOURCE_ALREADY_EXISTS",
+              "message": "The resource already exists.",
+              "details": [
+                {
+                  "resourceType": "widget",
+                  "id": "widget-fixture-id",
+                  "handle": "synthetic-widget"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "widget-stale-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_VERSION_CONFLICT",
+            "error": {
+              "code": "RESOURCE_VERSION_CONFLICT",
+              "message": "The resource has changed since it was read.",
+              "details": [
+                {
+                  "resourceType": "widget",
+                  "id": "widget-fixture-id",
+                  "handle": "synthetic-widget",
+                  "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+                  "currentResourceVersion": "rv1_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "variable",
+      "fixtures": [
+        {
+          "name": "variable-read",
+          "schemaDefinition": "resourceReadResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_READ",
+            "result": {
+              "resourceType": "variable",
+              "resource": {
+                "id": "variable-fixture-id",
+                "resourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+                "handle": "synthetic-variable",
+                "name": "Synthetic variable",
+                "sensitive": true,
+                "value": {"mode": "preserve"},
+                "createdAt": null,
+                "updatedAt": null
+              }
+            }
+          }
+        },
+        {
+          "name": "variable-create-if-absent",
+          "schemaDefinition": "resourceCreateRequest",
+          "document": {
+            "contractVersion": 1,
+            "operation": "create-if-absent",
+            "resource": {
+              "handle": "synthetic-variable",
+              "name": "Synthetic variable",
+              "sensitive": false,
+              "value": "fixture-value"
+            }
+          }
+        },
+        {
+          "name": "variable-update",
+          "schemaDefinition": "resourceUpdateRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+            "resource": {
+              "handle": "synthetic-variable",
+              "name": "Updated synthetic variable",
+              "sensitive": false,
+              "value": "updated-fixture-value"
+            }
+          }
+        },
+        {
+          "name": "variable-delete",
+          "schemaDefinition": "resourceDeleteRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+          }
+        },
+        {
+          "name": "variable-no-change",
+          "schemaDefinition": "resourceMutationResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_NO_CHANGE",
+            "result": {
+              "resourceType": "variable",
+              "resource": {
+                "id": "variable-fixture-id",
+                "resourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+                "handle": "synthetic-variable",
+                "name": "Synthetic variable",
+                "sensitive": true,
+                "value": {"mode": "preserve"},
+                "createdAt": null,
+                "updatedAt": null
+              },
+              "resourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+              "liveRevision": 12
+            }
+          }
+        },
+        {
+          "name": "variable-create-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_ALREADY_EXISTS",
+            "error": {
+              "code": "RESOURCE_ALREADY_EXISTS",
+              "message": "The resource already exists.",
+              "details": [
+                {
+                  "resourceType": "variable",
+                  "id": "variable-fixture-id",
+                  "handle": "synthetic-variable"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "variable-stale-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_VERSION_CONFLICT",
+            "error": {
+              "code": "RESOURCE_VERSION_CONFLICT",
+              "message": "The resource has changed since it was read.",
+              "details": [
+                {
+                  "resourceType": "variable",
+                  "id": "variable-fixture-id",
+                  "handle": "synthetic-variable",
+                  "expectedResourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+                  "currentResourceVersion": "rv1_FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "resourceType": "function",
+      "fixtures": [
+        {
+          "name": "function-read",
+          "schemaDefinition": "resourceReadResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_READ",
+            "result": {
+              "resourceType": "function",
+              "resource": {
+                "id": "function-fixture-id",
+                "resourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                "handle": "synthetic-function",
+                "name": "Synthetic function",
+                "description": "Returns synthetic fixture output.",
+                "type": "liquid",
+                "liquid": "{{ input }}",
+                "parameters": [
+                  {
+                    "name": "input",
+                    "description": "Synthetic input.",
+                    "type": "string"
+                  }
+                ],
+                "createdAt": null,
+                "updatedAt": null
+              }
+            }
+          }
+        },
+        {
+          "name": "function-create-if-absent",
+          "schemaDefinition": "resourceCreateRequest",
+          "document": {
+            "contractVersion": 1,
+            "operation": "create-if-absent",
+            "resource": {
+              "handle": "synthetic-function",
+              "name": "Synthetic function",
+              "description": "Returns synthetic fixture output.",
+              "type": "liquid",
+              "liquid": "{{ input }}",
+              "parameters": [
+                {
+                  "name": "input",
+                  "description": "Synthetic input.",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "function-update",
+          "schemaDefinition": "resourceUpdateRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+            "resource": {
+              "handle": "synthetic-function",
+              "name": "Updated synthetic function",
+              "description": "Returns updated synthetic fixture output.",
+              "type": "liquid",
+              "liquid": "{{ input | upcase }}",
+              "parameters": [
+                {
+                  "name": "input",
+                  "description": "Synthetic input.",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "function-delete",
+          "schemaDefinition": "resourceDeleteRequest",
+          "document": {
+            "contractVersion": 1,
+            "expectedResourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+          }
+        },
+        {
+          "name": "function-no-change",
+          "schemaDefinition": "resourceMutationResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": true,
+            "outcome": "RESOURCE_NO_CHANGE",
+            "result": {
+              "resourceType": "function",
+              "resource": {
+                "id": "function-fixture-id",
+                "resourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                "handle": "synthetic-function",
+                "name": "Synthetic function",
+                "description": "Returns synthetic fixture output.",
+                "type": "liquid",
+                "liquid": "{{ input }}",
+                "parameters": [],
+                "createdAt": null,
+                "updatedAt": null
+              },
+              "resourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+              "liveRevision": 13
+            }
+          }
+        },
+        {
+          "name": "function-create-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_ALREADY_EXISTS",
+            "error": {
+              "code": "RESOURCE_ALREADY_EXISTS",
+              "message": "The resource already exists.",
+              "details": [
+                {
+                  "resourceType": "function",
+                  "id": "function-fixture-id",
+                  "handle": "synthetic-function"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "function-stale-conflict",
+          "schemaDefinition": "resourceErrorResponse",
+          "document": {
+            "contractVersion": 1,
+            "ok": false,
+            "outcome": "RESOURCE_VERSION_CONFLICT",
+            "error": {
+              "code": "RESOURCE_VERSION_CONFLICT",
+              "message": "The resource has changed since it was read.",
+              "details": [
+                {
+                  "resourceType": "function",
+                  "id": "function-fixture-id",
+                  "handle": "synthetic-function",
+                  "expectedResourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG",
+                  "currentResourceVersion": "rv1_HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
