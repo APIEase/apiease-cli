@@ -726,6 +726,292 @@ describe('InitProjectCommand', () => {
       );
       assert.equal(stderrChunks.join(''), '');
     });
+
+    it('should clone and synchronize existing resources with explicit configuration', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const workingDirectoryPath = '/workspace';
+      const authenticationContext = Object.freeze(Object.create(null));
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+        authenticationContext,
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        'my-project',
+        '--from-existing-resources',
+        '--base-url',
+        'https://apiease.example.com',
+        '--shop-domain',
+        'example.myshopify.com',
+        '--api-key',
+        'private-api-key',
+        '--json',
+      ], { currentWorkingDirectoryPath: workingDirectoryPath });
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.deepEqual(calls, [
+        ['resolveRequestConfiguration', {
+          explicitApiBaseUrl: 'https://apiease.example.com',
+          explicitApiKey: 'private-api-key',
+          explicitShopDomain: 'example.myshopify.com',
+        }],
+        ['clonePublicTemplate', {
+          destinationDirectoryPath: path.resolve(workingDirectoryPath, 'my-project'),
+        }],
+        ['initializeProject', {
+          projectDirectoryPath: '/cloned/project',
+          projectApiInvocation: {
+            apiBaseUrl: 'https://apiease.example.com',
+            authenticationContext,
+            request: { contractVersion: 1, wakeProjection: true },
+          },
+        }],
+      ]);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')), {
+        cliResultVersion: 1,
+        command: 'init',
+        state: 'success',
+        outcome: 'PROJECT_BOOTSTRAP_SYNCHRONIZED',
+        result: {
+          projectDirectoryPath: '/cloned/project',
+          publishedPaths: ['.apiease/project.json'],
+          removedPaths: ['resources/requests/sample.json'],
+          warnings: [],
+        },
+        diagnostics: [],
+        requiredSecureValues: [],
+      });
+      assert.equal(stdoutChunks.join('').includes('private-api-key'), false);
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should default existing-resource initialization to the current directory', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const workingDirectoryPath = '/workspace/current';
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+      ], { currentWorkingDirectoryPath: workingDirectoryPath });
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.deepEqual(calls[1], [
+        'clonePublicTemplate',
+        { destinationDirectoryPath: path.resolve(workingDirectoryPath) },
+      ]);
+      assert.equal(stdoutChunks.join(''), 'init: success (PROJECT_BOOTSTRAP_SYNCHRONIZED)\n');
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should return normalized usage failure for invalid existing-resource arguments', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+        '--unsupported',
+        '--json',
+      ]);
+
+      // Assert
+      assert.equal(exitCode, 2);
+      assert.deepEqual(calls, []);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')), {
+        cliResultVersion: 1,
+        command: 'init',
+        state: 'failure',
+        error: { code: 'PROJECT_INIT_USAGE_INVALID', category: 'usage' },
+        diagnostics: [{ code: 'PROJECT_INIT_ARGUMENT_INVALID' }],
+        requiredSecureValues: [],
+      });
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should return normalized configuration failure before cloning', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+        requestConfiguration: {
+          ok: false,
+          errorCode: 'APIEASE_COMMAND_CONFIGURATION_MISSING',
+          fieldErrors: [{ path: 'apiKey', code: 'REQUIRED', message: 'API key is required.' }],
+        },
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+        '--json',
+      ]);
+
+      // Assert
+      assert.equal(exitCode, 2);
+      assert.deepEqual(calls, [['resolveRequestConfiguration', {
+        explicitApiBaseUrl: undefined,
+        explicitApiKey: undefined,
+        explicitShopDomain: undefined,
+      }]]);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')).error, {
+        code: 'APIEASE_COMMAND_CONFIGURATION_MISSING',
+        category: 'configuration',
+      });
+      assert.equal(stdoutChunks.join('').includes('API key is required.'), false);
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should return local-integrity failure for an unsuitable clone destination', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const cloneError = Object.assign(new Error('unsafe clone details'), {
+        code: 'PROJECT_CLONE_DESTINATION_NOT_EMPTY',
+        diagnostics: [{ code: 'PROJECT_CLONE_DESTINATION_NOT_EMPTY' }],
+        failureType: 'local-integrity',
+      });
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+        cloneError,
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+        '--json',
+      ]);
+
+      // Assert
+      assert.equal(exitCode, 6);
+      assert.equal(calls.some(([methodName]) => methodName === 'initializeProject'), false);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')).error, {
+        code: 'PROJECT_CLONE_DESTINATION_NOT_EMPTY',
+        category: 'local-integrity',
+      });
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should preserve an authoritative bootstrap service failure', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const synchronizationResult = {
+        bootstrapResponse: {
+          status: 503,
+          ok: false,
+          outcome: 'SERVICE_UNAVAILABLE',
+          error: {
+            code: 'SERVICE_UNAVAILABLE',
+            diagnostics: [{ code: 'PROJECT_TRANSPORT_RETRIES_EXHAUSTED' }],
+          },
+        },
+        publication: null,
+        warnings: [],
+      };
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+        synchronizationResult,
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+        '--json',
+      ]);
+
+      // Assert
+      assert.equal(exitCode, 7);
+      const envelope = JSON.parse(stdoutChunks.join(''));
+      assert.equal(envelope.outcome, 'SERVICE_UNAVAILABLE');
+      assert.deepEqual(envelope.error, { code: 'SERVICE_UNAVAILABLE', category: 'service' });
+      assert.deepEqual(envelope.diagnostics, [{ code: 'PROJECT_TRANSPORT_RETRIES_EXHAUSTED' }]);
+      assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should return contract failure when bootstrap artifact verification fails', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const synchronizationError = Object.assign(new Error('artifact bytes must remain private'), {
+        code: 'PROJECT_BOOTSTRAP_ARTIFACT_FILE_DIGEST_MISMATCH',
+      });
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+        synchronizationError,
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+        '--json',
+      ]);
+
+      // Assert
+      assert.equal(exitCode, 4);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')).error, {
+        code: 'PROJECT_BOOTSTRAP_ARTIFACT_FILE_DIGEST_MISMATCH',
+        category: 'contract',
+      });
+      assert.equal(stdoutChunks.join('').includes('artifact bytes must remain private'), false);
+      assert.equal(stderrChunks.join(''), '');
+    });
   });
 });
 
@@ -735,4 +1021,57 @@ function createWritableStream(chunks) {
       chunks.push(chunk);
     },
   };
+}
+
+function buildExistingResourcesCommand({
+  InitProjectCommand,
+  calls,
+  stdoutChunks,
+  stderrChunks,
+  authenticationContext = Object.freeze(Object.create(null)),
+  requestConfiguration = {
+    ok: true,
+    apiBaseUrl: 'https://apiease.example.com',
+    authenticationContext,
+  },
+  cloneError,
+  synchronizationError,
+  synchronizationResult = {
+    bootstrapResponse: {
+      status: 200,
+      ok: true,
+      outcome: 'PROJECT_BOOTSTRAP_SYNCHRONIZED',
+      result: {},
+    },
+    publication: {
+      publishedPaths: ['.apiease/project.json'],
+      removedPaths: ['resources/requests/sample.json'],
+    },
+    warnings: [],
+  },
+}) {
+  return new InitProjectCommand({
+    personalProjectAuthenticationAdapter: {
+      async resolveRequestConfiguration(invocation) {
+        calls.push(['resolveRequestConfiguration', invocation]);
+        return requestConfiguration;
+      },
+    },
+    projectGitCheckoutService: {
+      async clonePublicTemplate(invocation) {
+        calls.push(['clonePublicTemplate', invocation]);
+        if (cloneError) throw cloneError;
+        return { repositoryTopLevelPath: '/cloned/project' };
+      },
+    },
+    projectSynchronizationService: {
+      async initializeProject(invocation) {
+        calls.push(['initializeProject', invocation]);
+        if (synchronizationError) throw synchronizationError;
+        return synchronizationResult;
+      },
+    },
+    stdout: createWritableStream(stdoutChunks),
+    stderr: createWritableStream(stderrChunks),
+  });
 }
