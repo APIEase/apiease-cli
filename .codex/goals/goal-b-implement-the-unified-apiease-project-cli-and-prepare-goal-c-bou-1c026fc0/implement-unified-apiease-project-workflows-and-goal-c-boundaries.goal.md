@@ -402,3 +402,12 @@ Goal B is complete when:
 24. The Goal C APIEase requirements in this statement are preserved as explicit blockers/follow-on work and are not silently approximated in the CLI.
 
 Commit message: `Implement unified APIEase project workflows.`
+
+
+## Approved goal decomposition exceptions
+
+exception1: The goal requires runtime execution of the vendored JSON Schema 2020-12 bundle, but this dependency-free CLI has no established schema engine; choosing a third-party validator or creating a custom schema engine introduces an unauthorized long-lived dependency and maintenance boundary.
+solution1: Explicitly approve Ajv 8.17.1 as the shipping runtime schema engine, matching the authoritative APIEase application, with ajv-formats added only if the finalized contract uses format validation.
+
+exception2: Immutable identity cannot be preserved across manual resource renames from the authorized version-1 inputs: canonical files forbid IDs, local state retains only the old path and handle, and no rename-intent or command contract maps a new path to that binding; inference would violate fail-closed missing-file semantics.
+solution2: Authorize an exact rename mechanism, preferably an `apiease rename <resource-type> <old-handle> <new-handle>` command that atomically moves the canonical file and updates the existing ignored local-state binding path while retaining its immutable ID, original handle, expected version, and baseline until committed apply.
