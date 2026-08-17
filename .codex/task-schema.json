@@ -40,8 +40,23 @@
         "pending-approval",
         "approved",
         "building",
-        "complete"
+        "failed",
+        "complete",
+        "aborted"
       ]
+    },
+    "taskType": {
+      "type": "string",
+      "enum": [
+        "implementation",
+        "metadata",
+        "user-checkup"
+      ],
+      "default": "implementation"
+    },
+    "verificationPrompt": {
+      "type": "string",
+      "minLength": 1
     },
     "priority": {
       "type": "string",
@@ -96,6 +111,14 @@
         "type": "string"
       }
     },
+    "architecturalDecisions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
     "codexSettings": {
       "type": "object",
       "additionalProperties": false,
@@ -110,9 +133,10 @@
             "feature_per_task"
           ]
         },
-        "maxRuns": {
+        "maxRetries": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 0,
+          "default": 3
         }
       }
     },
@@ -123,11 +147,32 @@
         "summary": {
           "type": "string"
         },
-        "notes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "validation": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "summary"],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["passed", "failed", "not-run"]
+                },
+                "summary": {"type": "string"}
+              }
+            }
+          ]
+        },
+        "changeKind": {
+          "type": "string",
+          "enum": ["implementation", "metadata-only", "none"]
+        },
+        "noCodeJustification": {
+          "oneOf": [
+            {"type": "null"},
+            {"type": "string"}
+          ]
         },
         "completedAt": {
           "anyOf": [
@@ -139,8 +184,45 @@
               "type": "null"
             }
           ]
+        },
+        "failures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["attempt", "failedAt", "code", "reason", "retryable", "validation"],
+            "properties": {
+              "attempt": {"type": "integer", "minimum": 1},
+              "failedAt": {"type": "string", "format": "date-time"},
+              "code": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1},
+              "retryable": {"type": "boolean"},
+              "validation": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["status", "summary"],
+                "properties": {
+                  "status": {"type": "string", "enum": ["passed", "failed", "not-run"]},
+                  "summary": {"type": "string"}
+                }
+              }
+            }
+          }
         }
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "taskType": {"const": "user-checkup"}
+        },
+        "required": ["taskType"]
+      },
+      "then": {
+        "required": ["verificationPrompt"]
+      }
+    }
+  ]
 }

@@ -1,0 +1,2 @@
+# Processing claims are transient local automation state.
+*.processing.*

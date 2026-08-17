@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "outcome",
+    "summary",
+    "validation",
+    "changeKind",
+    "failure",
+    "noCodeJustification"
+  ],
+  "properties": {
+    "outcome": {
+      "type": "string",
+      "enum": ["complete", "failed"]
+    },
+    "summary": {
+      "type": "string"
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "summary"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "not-run"]
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
+    "changeKind": {
+      "type": "string",
+      "enum": ["implementation", "metadata-only", "none"]
+    },
+    "failure": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["code", "reason", "retryable"],
+      "properties": {
+        "code": {"type": "string"},
+        "reason": {"type": "string"},
+        "retryable": {"type": "boolean"}
+      }
+    },
+    "noCodeJustification": {
+      "type": ["string", "null"]
+    }
+  }
+}
