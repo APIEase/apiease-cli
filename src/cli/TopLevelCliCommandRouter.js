@@ -2,11 +2,14 @@ import { CrudResourceDefinitionCollection } from '../crud/CrudResourceDefinition
 
 const CREATE_COMMAND_NAME = 'create';
 const DELETE_COMMAND_NAME = 'delete';
+const APPLY_COMMAND_NAME = 'apply';
 const INIT_COMMAND_NAME = 'init';
 const PULL_COMMAND_NAME = 'pull';
 const READ_COMMAND_NAME = 'read';
+const RENAME_COMMAND_NAME = 'rename';
 const UPGRADE_COMMAND_NAME = 'upgrade';
 const UPDATE_COMMAND_NAME = 'update';
+const VALIDATE_COMMAND_NAME = 'validate';
 const VERSION_FLAG = '--version';
 const HELP_FLAG = '--help';
 
@@ -25,6 +28,9 @@ class TopLevelCliCommandRouter {
     deleteRequestCommand,
     initProjectCommand,
     pullProjectCommand,
+    validateProjectCommand,
+    applyProjectCommand,
+    renameProjectResourceCommand,
     upgradeProjectCommand,
     versionCommand,
   }) {
@@ -47,6 +53,18 @@ class TopLevelCliCommandRouter {
 
     if (commandName === PULL_COMMAND_NAME) {
       return this.buildSuccessResult(pullProjectCommand);
+    }
+
+    if (commandName === VALIDATE_COMMAND_NAME) {
+      return this.buildSuccessResult(validateProjectCommand);
+    }
+
+    if (commandName === APPLY_COMMAND_NAME) {
+      return this.buildSuccessResult(applyProjectCommand);
+    }
+
+    if (commandName === RENAME_COMMAND_NAME) {
+      return this.buildSuccessResult(renameProjectResourceCommand);
     }
 
     if (commandName === UPGRADE_COMMAND_NAME) {
@@ -84,9 +102,16 @@ class TopLevelCliCommandRouter {
       `  delete ${supportedResourceToken}   Delete a resource by identifier.`,
       '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
       '  pull                              Pull verified Project API resources.',
+      '  validate                          Validate the complete project without execution.',
+      '  apply                             Validate, plan, and immediately apply the project.',
+      '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
       '  upgrade                           Upgrade an existing APIEase project.',
       '',
       'Options:',
+      '  --base-url <url>                  APIEase base URL.',
+      '  --shop-domain <shop-domain>       Shopify shop domain.',
+      '  --api-key <api-key>               APIEase API key.',
+      '  --json                            Emit one JSON result document.',
       '  --help                            Show this help.',
       '  --version                         Print the installed apiease CLI version.',
     ].join('\n');

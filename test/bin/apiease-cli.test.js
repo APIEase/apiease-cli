@@ -119,6 +119,47 @@ describe('apiease-cli', () => {
       assert.deepEqual(receivedCommandArguments, [commandArguments]);
     });
 
+    it('should delegate validate apply and rename through the unified executable', async () => {
+      // Arrange
+      const { runCli } = await import(entrypointModuleUrl);
+      const invocations = [];
+      const buildCommand = commandName => ({
+        async run(incomingCommandArguments) {
+          invocations.push({ commandName, commandArguments: incomingCommandArguments });
+          return 0;
+        },
+      });
+      const sharedArguments = {
+        createRequestCommand: createUnexpectedCommand('create'),
+        validateProjectCommand: buildCommand('validate'),
+        applyProjectCommand: buildCommand('apply'),
+        renameProjectResourceCommand: buildCommand('rename'),
+        stdout: createWritableStream([]),
+        stderr: createWritableStream([]),
+      };
+
+      // Act
+      const exitCodes = await Promise.all([
+        runCli({ ...sharedArguments, commandArguments: ['validate', '--json'] }),
+        runCli({ ...sharedArguments, commandArguments: ['apply', '--json'] }),
+        runCli({
+          ...sharedArguments,
+          commandArguments: ['rename', 'request', 'old-handle', 'new-handle'],
+        }),
+      ]);
+
+      // Assert
+      assert.deepEqual(exitCodes, [0, 0, 0]);
+      assert.deepEqual(invocations, [
+        { commandName: 'validate', commandArguments: ['validate', '--json'] },
+        { commandName: 'apply', commandArguments: ['apply', '--json'] },
+        {
+          commandName: 'rename',
+          commandArguments: ['rename', 'request', 'old-handle', 'new-handle'],
+        },
+      ]);
+    });
+
     it('should delegate read command arguments to ReadRequestCommand and return its exit code', async () => {
       // Arrange
       const { runCli } = await import(entrypointModuleUrl);
@@ -392,15 +433,22 @@ describe('apiease-cli', () => {
       assert.equal(stderrChunks.join(''), '');
     });
 
-    it('should build init and pull with one shared Project API dependency graph', async () => {
+    it('should build every project command with one shared Project API dependency graph', async () => {
       // Arrange
       const { buildProjectCommands } = await import(entrypointModuleUrl);
 
       // Act
-      const { initProjectCommand, pullProjectCommand } = buildProjectCommands({
+      const projectCommands = buildProjectCommands({
         stdout: createWritableStream([]),
         stderr: createWritableStream([]),
       });
+      const {
+        initProjectCommand,
+        pullProjectCommand,
+        validateProjectCommand,
+        applyProjectCommand,
+        renameProjectResourceCommand,
+      } = projectCommands;
 
       // Assert
       assert.equal(
@@ -418,6 +466,30 @@ describe('apiease-cli', () => {
       assert.equal(
         initProjectCommand.projectCommandResultService,
         pullProjectCommand.projectCommandResultService,
+      );
+      assert.equal(
+        validateProjectCommand.personalProjectAuthenticationAdapter,
+        initProjectCommand.personalProjectAuthenticationAdapter,
+      );
+      assert.equal(
+        applyProjectCommand.personalProjectAuthenticationAdapter,
+        initProjectCommand.personalProjectAuthenticationAdapter,
+      );
+      assert.equal(
+        validateProjectCommand.projectValidationService.apiEaseProjectApiClient,
+        initProjectCommand.projectSynchronizationService.apiEaseProjectApiClient,
+      );
+      assert.equal(
+        applyProjectCommand.projectApplyService.projectCandidateBuilder,
+        validateProjectCommand.projectValidationService.projectCandidateBuilder,
+      );
+      assert.equal(
+        renameProjectResourceCommand.projectRenameService.projectLocalStateService,
+        applyProjectCommand.projectApplyService.projectLocalStateService,
+      );
+      assert.equal(
+        renameProjectResourceCommand.projectCommandResultService,
+        initProjectCommand.projectCommandResultService,
       );
     });
 
@@ -447,9 +519,16 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  validate                          Validate the complete project without execution.',
+        '  apply                             Validate, plan, and immediately apply the project.',
+        '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --base-url <url>                  APIEase base URL.',
+        '  --shop-domain <shop-domain>       Shopify shop domain.',
+        '  --api-key <api-key>               APIEase API key.',
+        '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
@@ -482,9 +561,16 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  validate                          Validate the complete project without execution.',
+        '  apply                             Validate, plan, and immediately apply the project.',
+        '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --base-url <url>                  APIEase base URL.',
+        '  --shop-domain <shop-domain>       Shopify shop domain.',
+        '  --api-key <api-key>               APIEase API key.',
+        '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
@@ -517,9 +603,16 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  validate                          Validate the complete project without execution.',
+        '  apply                             Validate, plan, and immediately apply the project.',
+        '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --base-url <url>                  APIEase base URL.',
+        '  --shop-domain <shop-domain>       Shopify shop domain.',
+        '  --api-key <api-key>               APIEase API key.',
+        '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
@@ -552,9 +645,16 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  validate                          Validate the complete project without execution.',
+        '  apply                             Validate, plan, and immediately apply the project.',
+        '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --base-url <url>                  APIEase base URL.',
+        '  --shop-domain <shop-domain>       Shopify shop domain.',
+        '  --api-key <api-key>               APIEase API key.',
+        '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',
@@ -587,9 +687,16 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  validate                          Validate the complete project without execution.',
+        '  apply                             Validate, plan, and immediately apply the project.',
+        '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --base-url <url>                  APIEase base URL.',
+        '  --shop-domain <shop-domain>       Shopify shop domain.',
+        '  --api-key <api-key>               APIEase API key.',
+        '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
         '',

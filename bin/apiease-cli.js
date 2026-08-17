@@ -8,8 +8,11 @@ import { DeleteRequestCommand } from '../src/cli/DeleteRequestCommand.js';
 import { InitProjectCommand } from '../src/cli/InitProjectCommand.js';
 import { PullProjectCommand } from '../src/cli/PullProjectCommand.js';
 import { ReadRequestCommand } from '../src/cli/ReadRequestCommand.js';
+import { ApplyProjectCommand } from '../src/cli/ApplyProjectCommand.js';
+import { RenameProjectResourceCommand } from '../src/cli/RenameProjectResourceCommand.js';
 import { UpgradeProjectCommand } from '../src/cli/UpgradeProjectCommand.js';
 import { UpdateRequestCommand } from '../src/cli/UpdateRequestCommand.js';
+import { ValidateProjectCommand } from '../src/cli/ValidateProjectCommand.js';
 import { VersionCommand } from '../src/cli/VersionCommand.js';
 import { RequestDefinitionFileLoader } from '../src/cli/RequestDefinitionFileLoader.js';
 import { TopLevelCliCommandRouter } from '../src/cli/TopLevelCliCommandRouter.js';
@@ -21,8 +24,21 @@ import { ApiEaseUpdateRequestClient } from '../src/client/ApiEaseUpdateRequestCl
 import { ApiEaseProjectApiClient } from '../src/client/ApiEaseProjectApiClient.js';
 import { PersonalProjectAuthenticationAdapter } from '../src/auth/PersonalProjectAuthenticationAdapter.js';
 import { ProjectCommandResultService } from '../src/cli/ProjectCommandResultService.js';
+import { ProjectApplyRequestPolicy } from '../src/project/ProjectApplyRequestPolicy.js';
+import { ProjectApplyService } from '../src/project/ProjectApplyService.js';
+import { ProjectBootstrapArtifactService } from '../src/project/ProjectBootstrapArtifactService.js';
+import { ProjectCandidateBuilder } from '../src/project/ProjectCandidateBuilder.js';
+import { ProjectCanonicalArtifactService } from '../src/project/ProjectCanonicalArtifactService.js';
+import { ProjectContractService } from '../src/project/ProjectContractService.js';
+import { ProjectDeletionIntentService } from '../src/project/ProjectDeletionIntentService.js';
 import { ProjectGitCheckoutService } from '../src/project/ProjectGitCheckoutService.js';
+import { ProjectLocalStateService } from '../src/project/ProjectLocalStateService.js';
+import { ProjectManagedNamespaceService } from '../src/project/ProjectManagedNamespaceService.js';
+import { ProjectManagedPublicationService } from '../src/project/ProjectManagedPublicationService.js';
+import { ProjectRenameService } from '../src/project/ProjectRenameService.js';
+import { ProjectSecureInputService } from '../src/project/ProjectSecureInputService.js';
 import { ProjectSynchronizationService } from '../src/project/ProjectSynchronizationService.js';
+import { ProjectValidationService } from '../src/project/ProjectValidationService.js';
 
 const JSON_FLAG = '--json';
 const DEFAULT_FAILURE_STATUS = 500;
@@ -80,14 +96,46 @@ function buildDeleteRequestCommand({ stdout = process.stdout, stderr = process.s
 }
 
 function buildProjectCommands({ stdout = process.stdout, stderr = process.stderr } = {}) {
+  const projectContractService = new ProjectContractService();
+  const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
   const personalProjectAuthenticationAdapter = new PersonalProjectAuthenticationAdapter();
   const apiEaseProjectApiClient = new ApiEaseProjectApiClient({
+    projectContractService,
     projectAuthenticationAdapter: personalProjectAuthenticationAdapter,
+  });
+  const projectLocalStateService = new ProjectLocalStateService({ projectContractService });
+  const projectManagedNamespaceService = new ProjectManagedNamespaceService({
+    projectCanonicalArtifactService,
+  });
+  const projectDeletionIntentService = new ProjectDeletionIntentService({
+    projectCanonicalArtifactService,
+    projectContractService,
+  });
+  const projectGitCheckoutService = new ProjectGitCheckoutService({ projectLocalStateService });
+  const projectCandidateBuilder = new ProjectCandidateBuilder({
+    projectCanonicalArtifactService,
+    projectContractService,
+    projectDeletionIntentService,
+    projectGitCheckoutService,
+    projectManagedNamespaceService,
+    projectSecureInputService: new ProjectSecureInputService(),
+  });
+  const projectValidationService = new ProjectValidationService({
+    apiEaseProjectApiClient,
+    projectCandidateBuilder,
   });
   const projectSynchronizationService = new ProjectSynchronizationService({
     apiEaseProjectApiClient,
+    projectBootstrapArtifactService: new ProjectBootstrapArtifactService({
+      projectCanonicalArtifactService,
+      projectContractService,
+    }),
+    projectLocalStateService,
+    projectManagedNamespaceService,
+    projectManagedPublicationService: new ProjectManagedPublicationService({
+      projectCanonicalArtifactService,
+    }),
   });
-  const projectGitCheckoutService = new ProjectGitCheckoutService();
   const projectCommandResultService = new ProjectCommandResultService({ stdout, stderr });
   const sharedDependencies = {
     personalProjectAuthenticationAdapter,
@@ -103,8 +151,41 @@ function buildProjectCommands({ stdout = process.stdout, stderr = process.stderr
     stderr,
   });
   const pullProjectCommand = new PullProjectCommand(sharedDependencies);
+  const validateProjectCommand = new ValidateProjectCommand({
+    personalProjectAuthenticationAdapter,
+    projectValidationService,
+    projectCommandResultService,
+  });
+  const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
+    personalProjectAuthenticationAdapter,
+  });
+  const applyProjectCommand = new ApplyProjectCommand({
+    personalProjectAuthenticationAdapter,
+    projectApplyService: new ProjectApplyService({
+      projectApplyRequestPolicy,
+      projectCandidateBuilder,
+      apiEaseProjectApiClient,
+      projectValidationService,
+      projectLocalStateService,
+      projectDeletionIntentService,
+    }),
+    projectCommandResultService,
+  });
+  const renameProjectResourceCommand = new RenameProjectResourceCommand({
+    projectRenameService: new ProjectRenameService({
+      projectCanonicalArtifactService,
+      projectLocalStateService,
+    }),
+    projectCommandResultService,
+  });
 
-  return { initProjectCommand, pullProjectCommand };
+  return {
+    initProjectCommand,
+    pullProjectCommand,
+    validateProjectCommand,
+    applyProjectCommand,
+    renameProjectResourceCommand,
+  };
 }
 
 function buildUpgradeProjectCommand({ stdout = process.stdout, stderr = process.stderr } = {}) {
@@ -133,6 +214,9 @@ async function runCli({
   deleteRequestCommand,
   initProjectCommand,
   pullProjectCommand,
+  validateProjectCommand,
+  applyProjectCommand,
+  renameProjectResourceCommand,
   upgradeProjectCommand,
   versionCommand,
   topLevelCliCommandRouter = buildTopLevelCliCommandRouter(),
@@ -147,11 +231,17 @@ async function runCli({
   const requiresProjectCommands = (
     (commandName === 'init' && !initProjectCommand)
     || (commandName === 'pull' && !pullProjectCommand)
+    || (commandName === 'validate' && !validateProjectCommand)
+    || (commandName === 'apply' && !applyProjectCommand)
+    || (commandName === 'rename' && !renameProjectResourceCommand)
   );
   if (requiresProjectCommands) {
     const projectCommands = buildProjectCommands({ stdout, stderr });
     initProjectCommand ??= projectCommands.initProjectCommand;
     pullProjectCommand ??= projectCommands.pullProjectCommand;
+    validateProjectCommand ??= projectCommands.validateProjectCommand;
+    applyProjectCommand ??= projectCommands.applyProjectCommand;
+    renameProjectResourceCommand ??= projectCommands.renameProjectResourceCommand;
   }
   upgradeProjectCommand ??= buildUpgradeProjectCommand({ stdout, stderr });
   versionCommand ??= buildVersionCommand({ stdout });
@@ -164,6 +254,9 @@ async function runCli({
     deleteRequestCommand,
     initProjectCommand,
     pullProjectCommand,
+    validateProjectCommand,
+    applyProjectCommand,
+    renameProjectResourceCommand,
     upgradeProjectCommand,
     versionCommand,
   });

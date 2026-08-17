@@ -255,6 +255,37 @@ describe('TopLevelCliCommandRouter', () => {
       });
     });
 
+    it('should resolve validate apply and rename without CRUD resource validation', () => {
+      // Arrange
+      const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
+      const validateProjectCommand = { name: 'validate' };
+      const applyProjectCommand = { name: 'apply' };
+      const renameProjectResourceCommand = { name: 'rename' };
+
+      // Act
+      const results = [
+        topLevelCliCommandRouter.resolveCommand({
+          commandArguments: ['validate', '--json'],
+          validateProjectCommand,
+        }),
+        topLevelCliCommandRouter.resolveCommand({
+          commandArguments: ['apply', '--json'],
+          applyProjectCommand,
+        }),
+        topLevelCliCommandRouter.resolveCommand({
+          commandArguments: ['rename', 'request', 'old-handle', 'new-handle'],
+          renameProjectResourceCommand,
+        }),
+      ];
+
+      // Assert
+      assert.deepEqual(results, [
+        { ok: true, command: validateProjectCommand },
+        { ok: true, command: applyProjectCommand },
+        { ok: true, command: renameProjectResourceCommand },
+      ]);
+    });
+
     it('should resolve the help flag as successful top-level help', () => {
       // Arrange
       const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
@@ -315,14 +346,22 @@ describe('TopLevelCliCommandRouter', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  validate                          Validate the complete project without execution.',
+        '  apply                             Validate, plan, and immediately apply the project.',
+        '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
         'Options:',
+        '  --base-url <url>                  APIEase base URL.',
+        '  --shop-domain <shop-domain>       Shopify shop domain.',
+        '  --api-key <api-key>               APIEase API key.',
+        '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
       ].join('\n'));
       assert.doesNotMatch(usageText, /apiease-cli/);
       assert.doesNotMatch(usageText, /\btest\b/);
+      assert.doesNotMatch(usageText, /--require-approval/);
       assert.match(usageText, /init \[project-name\] \[--from-existing-resources\]/);
     });
   });
