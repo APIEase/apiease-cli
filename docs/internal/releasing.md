@@ -55,6 +55,14 @@ npm install --prefix "$smoke_directory" "./$package_file"
 
 The clean-prefix commands above are the required manual installed-artifact smoke check. The full suite must also include the repository's installed-package smoke coverage. Together they must prove the packaged executable starts under Node 20, exposes the intended public command tree, loads all shipping runtime modules and vendored contracts, and keeps JSON/noninteractive behavior independent of the source checkout.
 
+Run the standalone automated workflow as the final installed-artifact gate:
+
+```bash
+npm run smoke:installed
+```
+
+This workflow packs from the repository path, installs into a temporary clean prefix, and invokes the installed executable from an unrelated working directory with no usable home directory. It also verifies the public exports, public help, vendored contract files, and noninteractive Project API command loading.
+
 Do not use live `init --from-existing-resources`, `pull`, `validate`, or `apply` as an unaudited smoke test: they require real shop authority and can read or mutate scoped project state. If an authenticated release candidate is tested, use an approved test shop and record the exact non-production verification separately.
 
 ## 5. Publish Conditionally

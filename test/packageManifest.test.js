@@ -9,6 +9,17 @@ const projectDirectoryPath = path.resolve(currentDirectoryPath, '..');
 
 describe('package manifest', () => {
   describe('metadata', () => {
+    it('should use the approved unified Project CLI release version', async () => {
+      // Arrange
+      const packageJson = await readPackageJson();
+      const packageLockJson = await readPackageLockJson();
+
+      // Assert
+      assert.equal(packageJson.version, '0.2.0');
+      assert.equal(packageLockJson.version, '0.2.0');
+      assert.equal(packageLockJson.packages[''].version, '0.2.0');
+    });
+
     it('should configure the apiease package as an ES module', async () => {
       // Arrange
       const packageJson = await readPackageJson();
@@ -68,6 +79,24 @@ describe('package manifest', () => {
       // Assert
       assert.equal(typeof packageRootModule.ApiEaseUpdateRequestClient, 'function');
     });
+
+    it('should expose only the intentional Project API client and authentication abstractions', async () => {
+      // Arrange
+      const packageRootUrl = pathToFileURL(path.join(projectDirectoryPath, 'src', 'index.js')).href;
+
+      // Act
+      const packageRootModule = await import(packageRootUrl);
+
+      // Assert
+      assert.deepEqual(Object.keys(packageRootModule).sort(), [
+        'ApiEaseCreateRequestClient',
+        'ApiEaseProjectApiClient',
+        'ApiEaseReadRequestClient',
+        'ApiEaseUpdateRequestClient',
+        'PersonalProjectAuthenticationAdapter',
+        'ProjectAuthenticationAdapter',
+      ]);
+    });
   });
 
   describe('bin', () => {
@@ -118,6 +147,14 @@ describe('package manifest', () => {
   });
 
   describe('scripts', () => {
+    it('should expose the installed-package smoke workflow', async () => {
+      // Arrange
+      const packageJson = await readPackageJson();
+
+      // Assert
+      assert.equal(packageJson.scripts['smoke:installed'], 'node scripts/smokeInstalledPackage.js');
+    });
+
     it('should expose the local knowledge base pull command', async () => {
       // Arrange
       const packageJson = await readPackageJson();
@@ -136,4 +173,11 @@ async function readPackageJson() {
   const packageJsonContent = await fs.readFile(packageJsonPath, 'utf8');
 
   return JSON.parse(packageJsonContent);
+}
+
+async function readPackageLockJson() {
+  const packageLockJsonPath = path.join(projectDirectoryPath, 'package-lock.json');
+  const packageLockJsonContent = await fs.readFile(packageLockJsonPath, 'utf8');
+
+  return JSON.parse(packageLockJsonContent);
 }
