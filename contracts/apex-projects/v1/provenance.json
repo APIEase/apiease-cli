@@ -1,13 +1,15 @@
 {
   "provenanceVersion": 1,
   "sourceRepository": "https://github.com/APIEase/apiease.git",
-  "sourceCommit": "abb7d828e5c4129a8417f82521e26f6a082506af",
+  "sourceCommit": "15c418360e47b6f2281dedbee0c390e38b617f94",
   "sourceDirectory": "contracts/apex-projects/v1",
   "files": {
-    "apiease-project-contract.schema.json": "ef44f065eb68d4cd0c9d841ddfff702b99906e39ae46a52629df933b07f36288",
+    "apiease-project-contract.schema.json": "bbd425a4f21df5fa8edcbd6bbde55eab698df3387d37efed22587dcc6931aebd",
     "fixtures/bootstrap-synchronized.json": "64586799cd65b1c222beb3b4d7af9220b49024ace79b0d285d76aa519555ede2",
     "fixtures/project-failures.json": "8a9dc6db0650a1ecb42b4bc6759aaff924b23dd8ccb18ce61d76a171df30859b",
-    "fixtures/project-workflow-success.json": "d1ada864cec7233f40e7adfbc1308359e39a015bd10ac9944fe677591cf962d4",
+    "fixtures/project-proposal-failures.json": "8ed27188db17f38fc2e5352064f6ad982a5b8681550d559655fad6adafa4f70f",
+    "fixtures/project-proposal-workflow.json": "256dd00a29706741341a0df80936be724036c6756decce0b422cba6b7dca6ff4",
+    "fixtures/project-workflow-success.json": "721310bc64068e570843b5a1599b8d3b17daa01c7eb45e41364871f69fee4c29",
     "fixtures/resource-operations.json": "f4c0d297513a421bdf90ca6e72547add369879ef8ca2f6e3a8feea01b0027627"
   }
 }

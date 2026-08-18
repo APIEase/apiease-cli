@@ -7,6 +7,13 @@ import {
   ProjectApplyRequestPolicy,
 } from '../../../src/project/ProjectApplyRequestPolicy.js';
 
+const proposalCheckpoint = Object.freeze({
+  designSessionId: 'design_session_01',
+  proposalId: 'proposal_01',
+  branchName: 'apiease/proposals/project_01/design_session_01',
+  commit: '1111111111111111111111111111111111111111',
+});
+
 describe('ProjectApplyRequestPolicy', () => {
   describe('selectRequestPolicy', () => {
     it('should select personal authority without adding an approval wire field', () => {
@@ -29,7 +36,32 @@ describe('ProjectApplyRequestPolicy', () => {
       assert.equal(Object.hasOwn(requestPolicy.applyRequestFields, 'requireApproval'), false);
     });
 
-    it('should fail approval-required selection before accessing personal authority', () => {
+    it('should select worker authority only from an exact injected worker context', () => {
+      // Arrange
+      const workerProjectAuthenticationAdapter = { readAuthorityMode: () => 'worker' };
+      const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
+        personalProjectAuthenticationAdapter: {},
+        workerProjectContext: {
+          projectAuthenticationAdapter: workerProjectAuthenticationAdapter,
+          proposalCheckpoint,
+        },
+      });
+
+      // Act
+      const requestPolicy = projectApplyRequestPolicy.selectRequestPolicy({
+        requireApproval: true,
+      });
+
+      // Assert
+      assert.deepEqual(requestPolicy, {
+        ok: true,
+        authorityMode: 'worker',
+        projectAuthenticationAdapter: workerProjectAuthenticationAdapter,
+        applyRequestFields: { requireApproval: true, proposalCheckpoint },
+      });
+    });
+
+    it('should fail approval-required selection without an exact worker context', () => {
       // Arrange
       let personalAuthorityAccessed = false;
       const personalProjectAuthenticationAdapter = {
@@ -63,6 +95,45 @@ describe('ProjectApplyRequestPolicy', () => {
       });
       assert.equal(personalAuthorityAccessed, false);
       assert.equal(exitCode, PROJECT_CLI_EXIT_CODES.authenticationOrAuthorization);
+    });
+
+    it('should reject a worker context containing additional authority fields', () => {
+      // Arrange
+      const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
+        personalProjectAuthenticationAdapter: {},
+        workerProjectContext: {
+          projectAuthenticationAdapter: { readAuthorityMode: () => 'worker' },
+          proposalCheckpoint,
+          apiKey: 'must-not-be-accepted',
+        },
+      });
+
+      // Act
+      const requestPolicy = projectApplyRequestPolicy.selectRequestPolicy({
+        requireApproval: true,
+      });
+
+      // Assert
+      assert.equal(requestPolicy.error.code, PROJECT_WORKER_AUTHORITY_UNAVAILABLE_ERROR_CODE);
+    });
+
+    it('should fail closed for malformed exact worker context fields', () => {
+      // Arrange
+      const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
+        personalProjectAuthenticationAdapter: {},
+        workerProjectContext: {
+          projectAuthenticationAdapter: undefined,
+          proposalCheckpoint: {},
+        },
+      });
+
+      // Act
+      const requestPolicy = projectApplyRequestPolicy.selectRequestPolicy({
+        requireApproval: true,
+      });
+
+      // Assert
+      assert.equal(requestPolicy.error.code, PROJECT_WORKER_AUTHORITY_UNAVAILABLE_ERROR_CODE);
     });
   });
 

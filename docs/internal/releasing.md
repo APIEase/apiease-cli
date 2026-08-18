@@ -92,3 +92,25 @@ npm publish "./$package_file" --access public
 ```
 
 After publication, verify the registry version and install it into another clean temporary prefix before creating the release tag or announcement. Never republish a changed artifact under the same version.
+
+## Current Release Candidate
+
+The Goal C release candidate retains version `0.2.0`. That version is still the
+authorized unreleased pre-1.0 version, and the worker authentication,
+approval-required submission, and deferred-secure-input additions remain within
+its intended release scope.
+
+- APIEase contract source commit: `15c418360e47b6f2281dedbee0c390e38b617f94`
+- package artifact: `apiease-0.2.0.tgz`
+- package SHA-256: `24b8ec478cf13472a9551d1853eef5dc4b0f00fd970b31023e075ce0065cc140`
+- package integrity: `sha512-DQhQlFDeNs0BP5M5GQwaqr3EVNYmEZClJ5+QYPYrwumUY+wtDlOWwWVKH2fk64VZpwx+zt0CPwJxEO0ERGchcQ==`
+- publication status on 2026-08-18: not published
+- external blocker: npm identity and version checks cannot reach
+  `registry.npmjs.org` because DNS resolution returns `ENOTFOUND`; npm authority
+  and target-version availability therefore cannot be verified in this
+  environment.
+
+The worker image build stages this same local package, verifies its calculated
+SHA-256 through `APIEASE_CLI_SHA256`, and verifies the installed version through
+`APIEASE_CLI_VERSION`. Repack and update the recorded artifact hashes if any
+shipping file changes before publication or image construction.

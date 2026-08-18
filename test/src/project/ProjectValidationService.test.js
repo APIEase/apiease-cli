@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE,
   PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE,
   ProjectValidationService,
 } from '../../../src/project/ProjectValidationService.js';
@@ -105,6 +106,29 @@ describe('ProjectValidationService', () => {
 
       // Assert
       assert.deepEqual(validationResult.guidance, [PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE]);
+    });
+
+    it('should direct deferred secure-value configuration to the authenticated APIEase UI', async () => {
+      // Arrange
+      const candidateBuildResult = buildCandidateBuildResult();
+      candidateBuildResult.requiredSecureValues = [{
+        resourceType: 'variable',
+        handle: 'new-token',
+        fieldPath: 'value',
+      }];
+      const projectValidationService = buildValidationService({ candidateBuildResult });
+
+      // Act
+      const validationResult = await projectValidationService.validateCandidate({
+        candidateBuildResult,
+        projectApiInvocation: buildProjectApiInvocation(),
+      });
+
+      // Assert
+      assert.deepEqual(validationResult.guidance, [
+        PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE,
+        PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE,
+      ]);
     });
   });
 

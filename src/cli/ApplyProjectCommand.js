@@ -98,11 +98,14 @@ class ApplyProjectCommand {
   }
 
   buildConfigurationOptions(parseResult) {
-    return {
+    const configurationOptions = {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
     };
+    return parseResult.requireApproval && Object.values(configurationOptions).every(
+      optionValue => optionValue === undefined,
+    ) ? {} : configurationOptions;
   }
 
   resolveProjectApplyService() {
@@ -135,6 +138,7 @@ class ApplyProjectCommand {
   buildApplyResult(applyResult) {
     const result = { plan: applyResult.plan };
     if (applyResult.receipt) result.receipt = applyResult.receipt;
+    if (applyResult.proposal) result.proposal = applyResult.proposal;
     return result;
   }
 

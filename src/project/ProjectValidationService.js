@@ -3,6 +3,8 @@ import { ProjectCandidateBuilder } from './ProjectCandidateBuilder.js';
 const MAXIMUM_PROJECT_VALIDATION_ITEMS = 100;
 const PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE =
   'Validation did not execute resources or verify external runtime behavior.';
+const PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE =
+  'Configure every deferred secure value in the authenticated APIEase UI before runtime use.';
 const SAFE_DIAGNOSTIC_FIELDS = Object.freeze([
   'code',
   'path',
@@ -62,8 +64,14 @@ class ProjectValidationService {
       error: validationResponse.ok ? null : validationResponse.error,
       diagnostics,
       requiredSecureValues,
-      guidance: [PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE],
+      guidance: this.buildGuidance(requiredSecureValues),
     };
+  }
+
+  buildGuidance(requiredSecureValues) {
+    return requiredSecureValues.length > 0
+      ? [PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE, PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE]
+      : [PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE];
   }
 
   normalizeDiagnostics(validationResponse) {
@@ -121,6 +129,7 @@ function buildValidationError(code) {
 
 export {
   MAXIMUM_PROJECT_VALIDATION_ITEMS,
+  PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE,
   PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE,
   ProjectValidationService,
 };

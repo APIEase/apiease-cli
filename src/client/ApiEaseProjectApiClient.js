@@ -1,10 +1,26 @@
 import { ProjectContractService } from '../project/ProjectContractService.js';
+import {
+  WORKER_PROJECT_CAPABILITY_ACTIONS,
+} from '../auth/WorkerProjectAuthenticationAdapter.js';
 
 const PROJECT_API_ENDPOINTS = Object.freeze({
   apply: '/api/v1/projects/apply',
   bootstrap: '/api/v1/projects/bootstrap',
+  checkpointPublish: '/api/v1/projects/checkpoints/publish',
+  checkpointRetrieve: '/api/v1/projects/checkpoints/retrieve',
   plan: '/api/v1/projects/plan',
+  proposalSubmit: '/api/v1/projects/apply',
+  pull: '/api/v1/projects/bootstrap',
   validate: '/api/v1/projects/validate',
+});
+const PROJECT_API_ACTION_BY_OPERATION = Object.freeze({
+  bootstrap: WORKER_PROJECT_CAPABILITY_ACTIONS.bootstrap,
+  checkpointPublish: WORKER_PROJECT_CAPABILITY_ACTIONS.checkpointPublish,
+  checkpointRetrieve: WORKER_PROJECT_CAPABILITY_ACTIONS.checkpointRetrieve,
+  plan: WORKER_PROJECT_CAPABILITY_ACTIONS.plan,
+  proposalSubmit: WORKER_PROJECT_CAPABILITY_ACTIONS.proposalSubmit,
+  pull: WORKER_PROJECT_CAPABILITY_ACTIONS.pull,
+  validate: WORKER_PROJECT_CAPABILITY_ACTIONS.validate,
 });
 const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   PROJECT_APPLIED: 200,
@@ -13,8 +29,12 @@ const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   PROJECT_BOOTSTRAP_PENDING: 202,
   PROJECT_BOOTSTRAP_SYNCHRONIZED: 200,
   PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES: 200,
+  PROJECT_CHECKPOINT_PUBLISHED: 200,
+  PROJECT_CHECKPOINT_RETRIEVED: 200,
   PROJECT_PLAN_NO_CHANGE: 200,
   PROJECT_PLAN_READY: 200,
+  PROJECT_PROPOSAL_ACCEPTED: 202,
+  PROJECT_PROPOSAL_REJECTED: 200,
   PROJECT_VALID: 200,
   INVALID_JSON: 400,
   CONTRACT_INVALID: 400,
@@ -29,6 +49,10 @@ const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   RESOURCE_VERSION_CONFLICT: 409,
   PROJECT_BASELINE_CONFLICT: 409,
   PROJECT_IDEMPOTENCY_CONFLICT: 409,
+  PROJECT_CHECKPOINT_CONFLICT: 409,
+  PROJECT_PROPOSAL_CANCELLED: 409,
+  PROJECT_PROPOSAL_STALE: 409,
+  PROJECT_PROPOSAL_SUPERSEDED: 409,
   PROJECT_PROJECTION_CONFLICT: 409,
   PAYLOAD_TOO_LARGE: 413,
   PROJECT_FILE_COUNT_EXCEEDED: 413,
@@ -39,9 +63,20 @@ const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   PROJECT_CANDIDATE_INVALID: 422,
   PROJECT_DEPENDENCY_INVALID: 422,
   PROJECT_SECURE_INPUT_INVALID: 422,
+  PROJECT_CHECKPOINT_INVALID: 422,
   RATE_LIMITED: 429,
   PROJECT_PROJECTION_UNAVAILABLE: 503,
   SERVICE_UNAVAILABLE: 503,
+  WORKER_CAPABILITY_ACTION_FORBIDDEN: 403,
+  WORKER_CAPABILITY_CANCELLED: 403,
+  WORKER_CAPABILITY_CONTEXT_MISMATCH: 403,
+  WORKER_CAPABILITY_EXPIRED: 401,
+  WORKER_CAPABILITY_INVALID_SIGNATURE: 401,
+  WORKER_CAPABILITY_MALFORMED: 401,
+  WORKER_CAPABILITY_NOT_YET_VALID: 401,
+  WORKER_CAPABILITY_REPLAY: 403,
+  WORKER_CAPABILITY_REVOKED: 403,
+  WORKER_CAPABILITY_STALE_FENCE: 403,
 });
 const DEFAULT_PROJECT_API_RETRY_SETTINGS = Object.freeze({
   maximumRetries: 3,
@@ -56,9 +91,25 @@ const DEFAULT_PROJECT_API_OPERATION_LIMITS = Object.freeze({
     requestTimeoutMilliseconds: 120000,
     overallDeadlineMilliseconds: 900000,
   }),
+  checkpointPublish: Object.freeze({
+    requestTimeoutMilliseconds: 120000,
+    overallDeadlineMilliseconds: 600000,
+  }),
+  checkpointRetrieve: Object.freeze({
+    requestTimeoutMilliseconds: 120000,
+    overallDeadlineMilliseconds: 600000,
+  }),
   plan: Object.freeze({
     requestTimeoutMilliseconds: 60000,
     overallDeadlineMilliseconds: 300000,
+  }),
+  proposalSubmit: Object.freeze({
+    requestTimeoutMilliseconds: 120000,
+    overallDeadlineMilliseconds: 600000,
+  }),
+  pull: Object.freeze({
+    requestTimeoutMilliseconds: 120000,
+    overallDeadlineMilliseconds: 900000,
   }),
   validate: Object.freeze({
     requestTimeoutMilliseconds: 60000,
@@ -92,6 +143,10 @@ class ApiEaseProjectApiClient {
     return await this.executeProjectRequest('bootstrap', invocation);
   }
 
+  async pullProject(invocation) {
+    return await this.executeProjectRequest('pull', invocation);
+  }
+
   async validateProject(invocation) {
     return await this.executeProjectRequest('validate', invocation);
   }
@@ -104,6 +159,18 @@ class ApiEaseProjectApiClient {
     return await this.executeProjectRequest('apply', invocation);
   }
 
+  async publishProjectCheckpoint(invocation) {
+    return await this.executeProjectRequest('checkpointPublish', invocation);
+  }
+
+  async retrieveProjectCheckpoint(invocation) {
+    return await this.executeProjectRequest('checkpointRetrieve', invocation);
+  }
+
+  async submitProjectProposal(invocation) {
+    return await this.executeProjectRequest('proposalSubmit', invocation);
+  }
+
   async executeProjectRequest(operationName, { apiBaseUrl, authenticationContext, request }) {
     const endpoint = PROJECT_API_ENDPOINTS[operationName];
     const requestValidation = this.validateRequest(endpoint, request);
@@ -112,7 +179,7 @@ class ApiEaseProjectApiClient {
     }
 
     const serializedBody = JSON.stringify(request);
-    const headers = this.buildRequestHeaders(authenticationContext);
+    const headers = await this.buildPersonalRequestHeaders(authenticationContext);
     const deadline = this.clock.now()
       + this.operationLimits[operationName].overallDeadlineMilliseconds;
 
@@ -122,6 +189,8 @@ class ApiEaseProjectApiClient {
       url: this.buildEndpointUrl(apiBaseUrl, endpoint),
       serializedBody,
       headers,
+      authenticationContext,
+      authenticationAction: PROJECT_API_ACTION_BY_OPERATION[operationName],
       deadline,
     });
   }
@@ -135,8 +204,30 @@ class ApiEaseProjectApiClient {
   }
 
   buildRequestHeaders(authenticationContext) {
+    return this.buildHeadersWithJsonContentType(
+      this.projectAuthenticationAdapter.buildRequestHeaders(authenticationContext),
+    );
+  }
+
+  async buildPersonalRequestHeaders(authenticationContext) {
+    if (this.projectAuthenticationAdapter.readAuthorityMode() === 'worker') {
+      return null;
+    }
+    return this.buildRequestHeaders(authenticationContext);
+  }
+
+  async buildAttemptRequestHeaders(requestContext) {
+    if (requestContext.headers) return requestContext.headers;
+    const authenticationHeaders = await this.projectAuthenticationAdapter.buildRequestHeaders(
+      requestContext.authenticationContext,
+      { action: requestContext.authenticationAction },
+    );
+    return this.buildHeadersWithJsonContentType(authenticationHeaders);
+  }
+
+  buildHeadersWithJsonContentType(authenticationHeaders) {
     return {
-      ...this.projectAuthenticationAdapter.buildRequestHeaders(authenticationContext),
+      ...authenticationHeaders,
       'content-type': 'application/json',
     };
   }
@@ -191,9 +282,10 @@ class ApiEaseProjectApiClient {
     );
 
     try {
+      const headers = await this.buildAttemptRequestHeaders(requestContext);
       const response = await this.fetchImplementation(requestContext.url, {
         method: 'POST',
-        headers: requestContext.headers,
+        headers,
         body: requestContext.serializedBody,
         signal: this.abortTimeoutImplementation(timeoutMilliseconds),
       });

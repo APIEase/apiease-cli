@@ -5,18 +5,27 @@ import { ProjectApplyRequestPolicy } from './ProjectApplyRequestPolicy.js';
 import { ProjectCandidateBuilder } from './ProjectCandidateBuilder.js';
 import { ProjectDeletionIntentService } from './ProjectDeletionIntentService.js';
 import { ProjectLocalStateService } from './ProjectLocalStateService.js';
-import { ProjectValidationService } from './ProjectValidationService.js';
+import {
+  PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE,
+  ProjectValidationService,
+} from './ProjectValidationService.js';
 
 const PROJECT_APPLY_RUNTIME_VERIFICATION_GUIDANCE =
   'Server validation and atomic persistence succeeded, but runtime behavior is not verified. A person must verify affected live resources through established APIEase execution paths.';
-const PROJECT_APPLY_SECURE_VALUE_GUIDANCE =
-  'Configure every listed deferred secure value in the APIEase UI before runtime use.';
+const PROJECT_APPLY_SECURE_VALUE_GUIDANCE = PROJECT_REQUIRED_SECURE_VALUES_GUIDANCE;
 const PROJECT_APPLY_CONFLICT_GUIDANCE =
   'Preserve the intended source and deletion files, complete a verified pull, then deliberately reapply the changes with a new logical operation key.';
 const EXPECTED_PROJECT_PLAN_OUTCOMES = new Set([
   'PROJECT_PLAN_NO_CHANGE',
   'PROJECT_PLAN_READY',
 ]);
+const PROJECT_PROPOSAL_ACCEPTED_OUTCOME = 'PROJECT_PROPOSAL_ACCEPTED';
+const EXPECTED_PERSONAL_APPLY_OUTCOMES = new Set([
+  'PROJECT_APPLIED',
+  'PROJECT_APPLY_NO_CHANGE',
+  'PROJECT_APPLY_REPLAYED',
+]);
+const EXPECTED_WORKER_APPLY_OUTCOMES = new Set([PROJECT_PROPOSAL_ACCEPTED_OUTCOME]);
 const PROJECT_APPLY_CONFLICT_OUTCOMES = new Set([
   'PROJECT_BASELINE_CONFLICT',
   'PROJECT_IDEMPOTENCY_CONFLICT',
@@ -138,7 +147,7 @@ class ProjectApplyService {
     validationResult,
   }) {
     const operationKey = this.operationKeyFactory();
-    const applyResponse = await this.apiEaseProjectApiClient.applyProject({
+    const applyResponse = await this.submitRetainedApply({
       ...projectApiInvocation,
       request: this.buildApplyRequest({
         candidateBuildResult,
@@ -147,6 +156,7 @@ class ProjectApplyService {
         requestPolicy,
       }),
     });
+    this.requireExpectedApplyOutcome(applyResponse, requestPolicy);
     const result = this.buildApplyResult({ applyResponse, planResponse, validationResult });
     if (!this.permitsCommittedLocalTransitions(result)) return result;
 
@@ -155,6 +165,25 @@ class ProjectApplyService {
       candidateBuildResult,
     });
     return result;
+  }
+
+  async submitRetainedApply(invocation) {
+    return invocation.request.authorityMode === 'worker'
+      ? await this.apiEaseProjectApiClient.submitProjectProposal(invocation)
+      : await this.apiEaseProjectApiClient.applyProject(invocation);
+  }
+
+  requireExpectedApplyOutcome(applyResponse, requestPolicy) {
+    if (!applyResponse.ok) return;
+    const expectedOutcomes = requestPolicy.authorityMode === 'worker'
+      ? EXPECTED_WORKER_APPLY_OUTCOMES
+      : EXPECTED_PERSONAL_APPLY_OUTCOMES;
+    if (!expectedOutcomes.has(applyResponse.outcome)) {
+      const errorCode = requestPolicy.authorityMode === 'worker'
+        ? 'PROJECT_PROPOSAL_SUBMISSION_OUTCOME_INVALID'
+        : 'PROJECT_APPLY_OUTCOME_INVALID';
+      throw buildServiceError(errorCode);
+    }
   }
 
   buildApplyRequest({ candidateBuildResult, operationKey, planResponse, requestPolicy }) {
@@ -249,22 +278,34 @@ class ProjectApplyService {
   }
 
   buildApplyResult({ applyResponse, planResponse, validationResult }) {
-    const state = applyResponse.ok ? 'success' : 'failure';
+    const accepted = applyResponse.ok && applyResponse.outcome === PROJECT_PROPOSAL_ACCEPTED_OUTCOME;
+    const state = accepted ? 'accepted' : (applyResponse.ok ? 'success' : 'failure');
     const sharedResult = {
       ok: applyResponse.ok,
       state,
       stage: 'apply',
       outcome: applyResponse.outcome,
       plan: planResponse.result,
-      receipt: applyResponse.ok ? applyResponse.result : null,
+      receipt: applyResponse.ok && !accepted ? applyResponse.result : null,
+      proposal: accepted ? applyResponse.result : null,
       diagnostics: applyResponse.error?.diagnostics ?? [],
       requiredSecureValues: validationResult.requiredSecureValues,
       guidance: applyResponse.ok
-        ? this.buildCommittedGuidance(validationResult.requiredSecureValues)
+        ? this.buildSuccessGuidance(validationResult.requiredSecureValues, accepted)
         : this.buildFailureGuidance(applyResponse.outcome),
     };
 
     return applyResponse.ok ? sharedResult : { ...sharedResult, error: applyResponse.error };
+  }
+
+  buildSuccessGuidance(requiredSecureValues, accepted) {
+    return accepted
+      ? this.buildRequiredSecureValueGuidance(requiredSecureValues)
+      : this.buildCommittedGuidance(requiredSecureValues);
+  }
+
+  buildRequiredSecureValueGuidance(requiredSecureValues) {
+    return requiredSecureValues.length > 0 ? [PROJECT_APPLY_SECURE_VALUE_GUIDANCE] : [];
   }
 
   buildCommittedGuidance(requiredSecureValues) {

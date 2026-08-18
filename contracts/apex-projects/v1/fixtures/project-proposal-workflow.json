@@ -1,0 +1,268 @@
+{
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "fixtures": [
+    {
+      "name": "worker-capability-claims",
+      "schemaDefinition": "workerCapabilityClaims",
+      "document": {
+        "iss": "apiease-apex-project-capability-v1",
+        "aud": "apiease-project-api-v1",
+        "sub": "worker_replica_01",
+        "jti": "capability_01",
+        "iat": 1770000000,
+        "nbf": 1770000000,
+        "exp": 1770000300,
+        "shopDomain": "workflow-fixture.myshopify.com",
+        "projectId": "project_workflow_fixture",
+        "conversationId": "conversation_01",
+        "designSessionId": "design_session_01",
+        "workerClaimId": "worker_claim_01",
+        "fencingVersion": 3,
+        "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+        "expectedCheckpointCommit": "1111111111111111111111111111111111111111",
+        "proposalId": "proposal_01",
+        "candidateBaseline": {
+          "liveRevision": 42,
+          "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "actions": ["proposal:submit"]
+      }
+    },
+    {
+      "name": "deferred-secure-input",
+      "schemaDefinition": "secureInputDefer",
+      "document": {
+        "resourceType": "variable",
+        "handle": "inventory-token",
+        "fieldPath": "value",
+        "mode": "defer"
+      }
+    },
+    {
+      "name": "approval-required-submission",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/apply",
+      "schemaDefinition": "projectProposalSubmissionRequest",
+      "document": {
+        "contractVersion": 1,
+        "operationKey": "proposal-operation-01",
+        "authorityMode": "worker",
+        "requireApproval": true,
+        "proposalCheckpoint": {
+          "designSessionId": "design_session_01",
+          "proposalId": "proposal_01",
+          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+          "commit": "1111111111111111111111111111111111111111"
+        },
+        "candidate": {
+          "candidateFormatVersion": 1,
+          "baseline": {
+            "liveRevision": 42,
+            "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "files": [
+            {
+              "path": ".apiease/project.json",
+              "encoding": "utf-8",
+              "content": "{}\n",
+              "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
+            }
+          ],
+          "resourceBindings": [],
+          "deletions": [],
+          "secureInputs": [
+            {
+              "resourceType": "variable",
+              "handle": "inventory-token",
+              "fieldPath": "value",
+              "mode": "defer"
+            }
+          ]
+        },
+        "operations": []
+      }
+    },
+    {
+      "name": "proposal-accepted",
+      "schemaDefinition": "projectProposalAcceptedResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_PROPOSAL_ACCEPTED",
+        "result": {
+          "proposalId": "proposal_01",
+          "designSessionId": "design_session_01",
+          "status": "pending",
+          "replayed": false,
+          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+          "commit": "1111111111111111111111111111111111111111",
+          "candidateSnapshotDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "operationDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "approvalBindingDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "requiredSecureValues": [
+            {"resourceType": "variable", "handle": "inventory-token", "fieldPath": "value"}
+          ],
+          "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
+        }
+      }
+    },
+    {
+      "name": "proposal-decision",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/proposals/decision",
+      "schemaDefinition": "proposalDecisionRequest",
+      "document": {
+        "contractVersion": 1,
+        "proposalId": "proposal_01",
+        "decision": "approve",
+        "approvalBindingDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      }
+    },
+    {
+      "name": "checkpoint-publication",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/checkpoints/publish",
+      "schemaDefinition": "checkpointPublishRequest",
+      "document": {
+        "contractVersion": 1,
+        "designSessionId": "design_session_01",
+        "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+        "expectedCommit": null,
+        "files": [
+          {"path": ".apiease/project.json", "encoding": "utf-8", "content": "{}\n", "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"}
+        ]
+      }
+    },
+    {
+      "name": "checkpoint-published",
+      "schemaDefinition": "checkpointPublishResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_CHECKPOINT_PUBLISHED",
+        "result": {
+          "designSessionId": "design_session_01",
+          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+          "previousCommit": null,
+          "commit": "1111111111111111111111111111111111111111",
+          "snapshotDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+        }
+      }
+    },
+    {
+      "name": "checkpoint-retrieval",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/checkpoints/retrieve",
+      "schemaDefinition": "checkpointRetrieveRequest",
+      "document": {
+        "contractVersion": 1,
+        "designSessionId": "design_session_01",
+        "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+        "commit": "1111111111111111111111111111111111111111"
+      }
+    },
+    {
+      "name": "checkpoint-retrieved",
+      "schemaDefinition": "checkpointRetrieveResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_CHECKPOINT_RETRIEVED",
+        "result": {
+          "designSessionId": "design_session_01",
+          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+          "commit": "1111111111111111111111111111111111111111",
+          "snapshotDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "files": [
+            {"path": ".apiease/project.json", "encoding": "utf-8", "content": "{}\n", "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"}
+          ]
+        }
+      }
+    },
+    {
+      "name": "approval-binding",
+      "schemaDefinition": "approvalBinding",
+      "document": {
+        "contractVersion": 1,
+        "proposalId": "proposal_01",
+        "shopDomain": "workflow-fixture.myshopify.com",
+        "projectId": "project_workflow_fixture",
+        "conversationId": "conversation_01",
+        "designSessionId": "design_session_01",
+        "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+        "commit": "1111111111111111111111111111111111111111",
+        "operationKey": "proposal-operation-01",
+        "candidateSnapshotDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "expectedBaseline": {"liveRevision": 42, "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"},
+        "operationDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "requiredSecureValues": [
+          {"resourceType": "variable", "handle": "inventory-token", "fieldPath": "value"}
+        ]
+      }
+    },
+    {
+      "name": "proposal-review",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/proposals/review",
+      "schemaDefinition": "proposalReviewResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_PROPOSAL_REVIEW_READY",
+        "result": {
+          "proposalId": "proposal_01",
+          "designSessionId": "design_session_01",
+          "status": "pending",
+          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
+          "commit": "1111111111111111111111111111111111111111",
+          "candidateSnapshotDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "expectedBaseline": {"liveRevision": 42, "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"},
+          "operationDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "approvalBindingDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "summary": {"createCount": 0, "deleteCount": 0, "noChangeCount": 1, "operationCount": 0, "updateCount": 0},
+          "operations": [],
+          "operationOffset": 0,
+          "operationLimit": 100,
+          "operationTotal": 0,
+          "diagnostics": [],
+          "requiredSecureValues": [{"resourceType": "variable", "handle": "inventory-token", "fieldPath": "value"}],
+          "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
+        }
+      }
+    },
+    {
+      "name": "proposal-approved",
+      "schemaDefinition": "proposalDecisionResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_PROPOSAL_APPROVED",
+        "result": {
+          "proposalId": "proposal_01",
+          "status": "approved",
+          "decision": "approve",
+          "approvalBindingDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "replayed": false,
+          "decidedAt": "2026-08-18T12:00:00Z"
+        }
+      }
+    },
+    {
+      "name": "design-session-cancellation",
+      "method": "POST",
+      "endpoint": "/api/v1/projects/design-sessions/cancel",
+      "schemaDefinition": "designSessionCancelRequest",
+      "document": {"contractVersion": 1, "designSessionId": "design_session_01"}
+    },
+    {
+      "name": "design-session-cancelled",
+      "schemaDefinition": "designSessionCancelResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": true,
+        "outcome": "PROJECT_DESIGN_SESSION_CANCELLED",
+        "result": {"designSessionId": "design_session_01", "status": "cancelled", "replayed": false}
+      }
+    }
+  ]
+}

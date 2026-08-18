@@ -103,7 +103,7 @@ describe('ApplyProjectCommand', () => {
       ].join('\n'));
     });
 
-    it('should recognize approval-required apply and preserve its fail-closed result', async () => {
+    it('should return accepted proposal metadata for an approval-required worker apply', async () => {
       // Arrange
       const { ApplyProjectCommand } = await import(applyProjectCommandModuleUrl);
       const calls = [];
@@ -111,7 +111,7 @@ describe('ApplyProjectCommand', () => {
       const stderrChunks = [];
       const applyProjectCommand = buildApplyProjectCommand({
         ApplyProjectCommand,
-        applyResult: buildApprovalFailure(),
+        applyResult: buildProposalAccepted(),
         calls,
         stdoutChunks,
         stderrChunks,
@@ -125,20 +125,50 @@ describe('ApplyProjectCommand', () => {
       ]);
 
       // Assert
-      assert.equal(exitCode, 3);
+      assert.equal(exitCode, 0);
       assert.equal(calls[0][1].requireApproval, true);
+      assert.deepEqual(calls[0][1].configurationOptions, {});
       assert.deepEqual(JSON.parse(stdoutChunks.join('')), {
         cliResultVersion: 1,
         command: 'apply',
-        state: 'failure',
-        error: {
-          code: 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE',
-          category: 'authorization',
+        state: 'accepted',
+        outcome: 'PROJECT_PROPOSAL_ACCEPTED',
+        result: {
+          plan: buildProposalAccepted().plan,
+          proposal: buildProposalAccepted().proposal,
         },
-        diagnostics: [{ code: 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE' }],
+        diagnostics: [],
         requiredSecureValues: [],
       });
       assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should preserve personal configuration on approval-required apply for fail-closed rejection', async () => {
+      // Arrange
+      const { ApplyProjectCommand } = await import(applyProjectCommandModuleUrl);
+      const calls = [];
+      const applyProjectCommand = buildApplyProjectCommand({
+        ApplyProjectCommand,
+        applyResult: buildProposalAccepted(),
+        calls,
+        stdoutChunks: [],
+        stderrChunks: [],
+      });
+
+      // Act
+      await applyProjectCommand.run([
+        'apply',
+        '--require-approval',
+        '--api-key',
+        'personal-key-must-be-rejected',
+      ]);
+
+      // Assert
+      assert.deepEqual(calls[0][1].configurationOptions, {
+        explicitApiBaseUrl: undefined,
+        explicitApiKey: 'personal-key-must-be-rejected',
+        explicitShopDomain: undefined,
+      });
     });
 
     it('should reject duplicate and unsupported authority or secure-input options', async () => {
@@ -270,16 +300,26 @@ function buildApplySuccess({
   };
 }
 
-function buildApprovalFailure() {
+function buildProposalAccepted() {
   return {
-    ok: false,
-    state: 'failure',
-    stage: 'policy',
-    error: {
-      code: 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE',
-      category: 'authorization',
+    ok: true,
+    state: 'accepted',
+    stage: 'apply',
+    outcome: 'PROJECT_PROPOSAL_ACCEPTED',
+    plan: {
+      baseline: { liveRevision: 12 },
+      operations: [],
+      operationDigest: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      summary: { operationCount: 0 },
     },
-    diagnostics: [{ code: 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE' }],
+    proposal: {
+      proposalId: 'proposal-safe',
+      designSessionId: 'design-session-safe',
+      status: 'pending',
+      replayed: false,
+    },
+    receipt: null,
+    diagnostics: [],
     requiredSecureValues: [],
     guidance: [],
   };

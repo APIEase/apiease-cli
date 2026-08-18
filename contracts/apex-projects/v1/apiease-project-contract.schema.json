@@ -37,12 +37,39 @@
       "enum": [
         "/api/v1/projects/apply",
         "/api/v1/projects/bootstrap",
+        "/api/v1/projects/checkpoints/publish",
+        "/api/v1/projects/checkpoints/retrieve",
+        "/api/v1/projects/design-sessions/cancel",
         "/api/v1/projects/plan",
+        "/api/v1/projects/proposals/decision",
+        "/api/v1/projects/proposals/review",
         "/api/v1/projects/validate"
       ]
     },
     "operationKind": {"enum": ["create-if-absent", "delete", "update"]},
     "authorizationMode": {"enum": ["personal", "worker"]},
+    "personalAuthenticationHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x-apiease-api-key", "x-shop-myshopify-domain"],
+      "properties": {
+        "x-apiease-api-key": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "x-shop-myshopify-domain": {"type": "string", "minLength": 3, "maxLength": 255}
+      }
+    },
+    "workerAuthenticationHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization"],
+      "properties": {
+        "authorization": {"type": "string", "minLength": 8, "maxLength": 8192, "pattern": "^Bearer [A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"}
+      }
+    },
+    "capabilityAction": {"enum": ["project:bootstrap", "project:pull", "project:validate", "project:plan", "checkpoint:publish", "checkpoint:retrieve", "proposal:submit"]},
+    "designSessionLifecycleState": {"enum": ["queued", "working", "needs_input", "awaiting_review", "stale", "cancelled", "failed", "completed"]},
+    "proposalLifecycleState": {"enum": ["pending", "approved", "rejected", "stale", "cancelled", "applying", "committed", "failed"]},
+    "proposalDecision": {"enum": ["approve", "reject"]},
+    "secureInputMode": {"enum": ["defer", "preserve", "reference", "replace"]},
     "contentEncoding": {"const": "utf-8"},
     "terminalOutcome": {
       "enum": [
@@ -52,8 +79,15 @@
         "PROJECT_BOOTSTRAP_PENDING",
         "PROJECT_BOOTSTRAP_SYNCHRONIZED",
         "PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES",
+        "PROJECT_CHECKPOINT_PUBLISHED",
+        "PROJECT_CHECKPOINT_RETRIEVED",
+        "PROJECT_DESIGN_SESSION_CANCELLED",
         "PROJECT_PLAN_NO_CHANGE",
         "PROJECT_PLAN_READY",
+        "PROJECT_PROPOSAL_ACCEPTED",
+        "PROJECT_PROPOSAL_APPROVED",
+        "PROJECT_PROPOSAL_REJECTED",
+        "PROJECT_PROPOSAL_REVIEW_READY",
         "PROJECT_VALID",
         "RESOURCE_CREATED",
         "RESOURCE_DELETED",
@@ -75,6 +109,8 @@
         "PROJECT_AGGREGATE_SIZE_EXCEEDED",
         "PROJECT_BASELINE_CONFLICT",
         "PROJECT_CANDIDATE_INVALID",
+        "PROJECT_CHECKPOINT_CONFLICT",
+        "PROJECT_CHECKPOINT_INVALID",
         "PROJECT_DEPENDENCY_INVALID",
         "PROJECT_FILE_COUNT_EXCEEDED",
         "PROJECT_FILE_SIZE_EXCEEDED",
@@ -82,6 +118,12 @@
         "PROJECT_NOT_FOUND",
         "PROJECT_PROJECTION_CONFLICT",
         "PROJECT_PROJECTION_UNAVAILABLE",
+        "PROJECT_PROPOSAL_APPROVAL_BINDING_MISMATCH",
+        "PROJECT_PROPOSAL_CANCELLED",
+        "PROJECT_PROPOSAL_DECISION_CONFLICT",
+        "PROJECT_PROPOSAL_NOT_FOUND",
+        "PROJECT_PROPOSAL_STALE",
+        "PROJECT_PROPOSAL_SUPERSEDED",
         "PROJECT_SECURE_INPUT_INVALID",
         "PROJECT_WORKER_AUTHORITY_UNAVAILABLE",
         "RATE_LIMITED",
@@ -91,7 +133,17 @@
         "RESOURCE_VERSION_CONFLICT",
         "SERVICE_UNAVAILABLE",
         "UNAUTHENTICATED",
-        "UNAUTHORIZED"
+        "UNAUTHORIZED",
+        "WORKER_CAPABILITY_ACTION_FORBIDDEN",
+        "WORKER_CAPABILITY_CANCELLED",
+        "WORKER_CAPABILITY_CONTEXT_MISMATCH",
+        "WORKER_CAPABILITY_EXPIRED",
+        "WORKER_CAPABILITY_INVALID_SIGNATURE",
+        "WORKER_CAPABILITY_MALFORMED",
+        "WORKER_CAPABILITY_NOT_YET_VALID",
+        "WORKER_CAPABILITY_REPLAY",
+        "WORKER_CAPABILITY_REVOKED",
+        "WORKER_CAPABILITY_STALE_FENCE"
       ]
     },
     "digest": {
@@ -789,6 +841,17 @@
         "mode": {"const": "preserve"}
       }
     },
+    "secureInputDefer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath", "mode"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"},
+        "mode": {"const": "defer"}
+      }
+    },
     "secureInputReplace": {
       "type": "object",
       "additionalProperties": false,
@@ -823,10 +886,29 @@
     },
     "secureInput": {
       "oneOf": [
+        {"$ref": "#/$defs/secureInputDefer"},
         {"$ref": "#/$defs/secureInputPreserve"},
         {"$ref": "#/$defs/secureInputReplace"},
         {"$ref": "#/$defs/secureInputReference"}
       ]
+    },
+    "requiredSecureValueSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"}
+      }
+    },
+    "requiredSecureValues": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {"$ref": "#/$defs/requiredSecureValueSelector"}
+    },
+    "requiredSecureValuesWarning": {
+      "const": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
     },
     "projectCandidate": {
       "type": "object",
@@ -1039,12 +1121,14 @@
         "result": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["candidateFormatVersion", "baseline", "summary", "diagnostics"],
+          "required": ["candidateFormatVersion", "baseline", "summary", "diagnostics", "requiredSecureValues", "requiredSecureValuesWarning"],
           "properties": {
             "candidateFormatVersion": {"const": 1},
             "baseline": {"$ref": "#/$defs/baseline"},
             "summary": {"$ref": "#/$defs/validationSummary"},
-            "diagnostics": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}}
+            "diagnostics": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}},
+            "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+            "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
           }
         }
       }
@@ -1111,12 +1195,14 @@
     "planResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["baseline", "operations", "operationDigest", "summary"],
+      "required": ["baseline", "operations", "operationDigest", "summary", "requiredSecureValues", "requiredSecureValuesWarning"],
       "properties": {
         "baseline": {"$ref": "#/$defs/baseline"},
         "operations": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectOperation"}},
         "operationDigest": {"$ref": "#/$defs/digest"},
-        "summary": {"$ref": "#/$defs/planSummary"}
+        "summary": {"$ref": "#/$defs/planSummary"},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+        "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
       }
     },
     "projectPlanReadyResponse": {
@@ -1150,13 +1236,294 @@
     "projectApplyRequest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contractVersion", "operationKey", "authorityMode", "candidate", "operations"],
+      "required": ["contractVersion", "operationKey", "authorityMode", "requireApproval", "candidate", "operations"],
       "properties": {
         "contractVersion": {"const": 1},
         "operationKey": {"$ref": "#/$defs/operationKey"},
         "authorityMode": {"$ref": "#/$defs/authorizationMode"},
+        "requireApproval": {"type": "boolean"},
+        "proposalCheckpoint": {"$ref": "#/$defs/proposalCheckpointIdentity"},
         "candidate": {"$ref": "#/$defs/projectCandidate"},
         "operations": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectOperation"}}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "authorityMode": {"const": "personal"},
+            "requireApproval": {"const": false},
+            "proposalCheckpoint": false
+          }
+        },
+        {
+          "required": ["proposalCheckpoint"],
+          "properties": {
+            "authorityMode": {"const": "worker"},
+            "requireApproval": {"const": true}
+          }
+        }
+      ]
+    },
+    "proposalCheckpointIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["designSessionId", "proposalId", "branchName", "commit"],
+      "properties": {
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "minLength": 19, "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "commit": {"$ref": "#/$defs/gitCommit"}
+      }
+    },
+    "workerCapabilityClaims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iss", "aud", "sub", "jti", "iat", "nbf", "exp", "shopDomain", "projectId", "conversationId", "designSessionId", "workerClaimId", "fencingVersion", "branchName", "expectedCheckpointCommit", "proposalId", "candidateBaseline", "actions"],
+      "properties": {
+        "iss": {"const": "apiease-apex-project-capability-v1"},
+        "aud": {"const": "apiease-project-api-v1"},
+        "sub": {"$ref": "#/$defs/identity"},
+        "jti": {"$ref": "#/$defs/identity"},
+        "iat": {"type": "integer", "minimum": 0},
+        "nbf": {"type": "integer", "minimum": 0},
+        "exp": {"type": "integer", "minimum": 1},
+        "shopDomain": {"type": "string", "minLength": 3, "maxLength": 255, "pattern": "^[a-z0-9][a-z0-9-]*\\.myshopify\\.com$"},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "conversationId": {"$ref": "#/$defs/identity"},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "workerClaimId": {"$ref": "#/$defs/identity"},
+        "fencingVersion": {"type": "integer", "minimum": 1},
+        "branchName": {"type": ["string", "null"], "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "expectedCheckpointCommit": {"oneOf": [{"$ref": "#/$defs/gitCommit"}, {"type": "null"}]},
+        "proposalId": {"oneOf": [{"$ref": "#/$defs/identity"}, {"type": "null"}]},
+        "candidateBaseline": {"oneOf": [{"$ref": "#/$defs/baseline"}, {"type": "null"}]},
+        "actions": {"type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/capabilityAction"}}
+      }
+    },
+    "checkpointPublishRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designSessionId", "branchName", "expectedCommit", "files"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "minLength": 19, "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "expectedCommit": {"oneOf": [{"$ref": "#/$defs/gitCommit"}, {"type": "null"}]},
+        "files": {"type": "array", "minItems": 1, "maxItems": 1000, "items": {"$ref": "#/$defs/managedFile"}}
+      }
+    },
+    "checkpointPublishResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_CHECKPOINT_PUBLISHED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["designSessionId", "branchName", "previousCommit", "commit", "snapshotDigest"],
+          "properties": {
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "branchName": {"type": "string", "maxLength": 255},
+            "previousCommit": {"oneOf": [{"$ref": "#/$defs/gitCommit"}, {"type": "null"}]},
+            "commit": {"$ref": "#/$defs/gitCommit"},
+            "snapshotDigest": {"$ref": "#/$defs/digest"}
+          }
+        }
+      }
+    },
+    "checkpointRetrieveRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designSessionId", "branchName", "commit"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "commit": {"$ref": "#/$defs/gitCommit"}
+      }
+    },
+    "checkpointRetrieveResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_CHECKPOINT_RETRIEVED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["designSessionId", "branchName", "commit", "snapshotDigest", "files"],
+          "properties": {
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "branchName": {"type": "string", "maxLength": 255},
+            "commit": {"$ref": "#/$defs/gitCommit"},
+            "snapshotDigest": {"$ref": "#/$defs/digest"},
+            "files": {"type": "array", "minItems": 1, "maxItems": 1000, "items": {"$ref": "#/$defs/managedFile"}}
+          }
+        }
+      }
+    },
+    "approvalBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "proposalId", "shopDomain", "projectId", "conversationId", "designSessionId", "branchName", "commit", "operationKey", "candidateSnapshotDigest", "expectedBaseline", "operationDigest", "requiredSecureValues"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "shopDomain": {"type": "string", "maxLength": 255},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "conversationId": {"$ref": "#/$defs/identity"},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "maxLength": 255},
+        "commit": {"$ref": "#/$defs/gitCommit"},
+        "operationKey": {"$ref": "#/$defs/operationKey"},
+        "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
+        "expectedBaseline": {"$ref": "#/$defs/baseline"},
+        "operationDigest": {"$ref": "#/$defs/digest"},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"}
+      }
+    },
+    "projectProposalSubmissionRequest": {
+      "$ref": "#/$defs/projectApplyRequest"
+    },
+    "projectProposalAcceptedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_PROPOSAL_ACCEPTED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["proposalId", "designSessionId", "status", "replayed", "branchName", "commit", "candidateSnapshotDigest", "operationDigest", "approvalBindingDigest", "requiredSecureValues", "requiredSecureValuesWarning"],
+          "properties": {
+            "proposalId": {"$ref": "#/$defs/identity"},
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "status": {"const": "pending"},
+            "replayed": {"type": "boolean"},
+            "branchName": {"type": "string", "maxLength": 255},
+            "commit": {"$ref": "#/$defs/gitCommit"},
+            "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
+            "operationDigest": {"$ref": "#/$defs/digest"},
+            "approvalBindingDigest": {"$ref": "#/$defs/digest"},
+            "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+            "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+          }
+        }
+      }
+    },
+    "proposalReviewRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "proposalId", "operationOffset", "operationLimit"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "operationOffset": {"type": "integer", "minimum": 0, "maximum": 999},
+        "operationLimit": {"type": "integer", "minimum": 1, "maximum": 100}
+      }
+    },
+    "proposalReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposalId", "designSessionId", "status", "branchName", "commit", "candidateSnapshotDigest", "expectedBaseline", "operationDigest", "approvalBindingDigest", "summary", "operations", "operationOffset", "operationLimit", "operationTotal", "diagnostics", "requiredSecureValues", "requiredSecureValuesWarning"],
+      "properties": {
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "status": {"$ref": "#/$defs/proposalLifecycleState"},
+        "branchName": {"type": "string", "maxLength": 255},
+        "commit": {"$ref": "#/$defs/gitCommit"},
+        "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
+        "expectedBaseline": {"$ref": "#/$defs/baseline"},
+        "operationDigest": {"$ref": "#/$defs/digest"},
+        "approvalBindingDigest": {"$ref": "#/$defs/digest"},
+        "summary": {"$ref": "#/$defs/planSummary"},
+        "operations": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/projectOperation"}},
+        "operationOffset": {"type": "integer", "minimum": 0, "maximum": 999},
+        "operationLimit": {"type": "integer", "minimum": 1, "maximum": 100},
+        "operationTotal": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "diagnostics": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+        "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+      }
+    },
+    "proposalReviewResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_PROPOSAL_REVIEW_READY"},
+        "result": {"$ref": "#/$defs/proposalReview"}
+      }
+    },
+    "proposalDecisionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "proposalId", "decision", "approvalBindingDigest"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "decision": {"$ref": "#/$defs/proposalDecision"},
+        "approvalBindingDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "proposalDecisionResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"enum": ["PROJECT_PROPOSAL_APPROVED", "PROJECT_PROPOSAL_REJECTED"]},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["proposalId", "status", "decision", "approvalBindingDigest", "replayed", "decidedAt"],
+          "properties": {
+            "proposalId": {"$ref": "#/$defs/identity"},
+            "status": {"enum": ["approved", "rejected"]},
+            "decision": {"$ref": "#/$defs/proposalDecision"},
+            "approvalBindingDigest": {"$ref": "#/$defs/digest"},
+            "replayed": {"type": "boolean"},
+            "decidedAt": {"type": "string", "minLength": 20, "maxLength": 35}
+          }
+        }
+      }
+    },
+    "designSessionCancelRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designSessionId"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designSessionId": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "designSessionCancelResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_DESIGN_SESSION_CANCELLED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["designSessionId", "status", "replayed"],
+          "properties": {
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "status": {"const": "cancelled"},
+            "replayed": {"type": "boolean"}
+          }
+        }
       }
     },
     "appliedResource": {
@@ -1189,14 +1556,16 @@
     "applyReceiptResult": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["applyReceiptVersion", "operationKey", "replayed", "outcome", "resultingLiveRevision", "resources"],
+      "required": ["applyReceiptVersion", "operationKey", "replayed", "outcome", "resultingLiveRevision", "resources", "requiredSecureValues", "requiredSecureValuesWarning"],
       "properties": {
         "applyReceiptVersion": {"const": 1},
         "operationKey": {"$ref": "#/$defs/operationKey"},
         "replayed": {"type": "boolean"},
         "outcome": {"enum": ["PROJECT_APPLIED", "PROJECT_APPLY_NO_CHANGE"]},
         "resultingLiveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
-        "resources": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/appliedResource"}}
+        "resources": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/appliedResource"}},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+        "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
       }
     },
     "projectAppliedResponse": {
@@ -1233,7 +1602,7 @@
       }
     },
     "projectErrorCode": {
-      "enum": ["INVALID_JSON", "CONTRACT_INVALID", "CONTRACT_VERSION_UNSUPPORTED", "CANDIDATE_FORMAT_VERSION_UNSUPPORTED", "UNAUTHENTICATED", "UNAUTHORIZED", "PROJECT_WORKER_AUTHORITY_UNAVAILABLE", "PROJECT_NOT_FOUND", "METHOD_NOT_ALLOWED", "RESOURCE_ALREADY_EXISTS", "RESOURCE_VERSION_CONFLICT", "PROJECT_BASELINE_CONFLICT", "PROJECT_IDEMPOTENCY_CONFLICT", "PROJECT_PROJECTION_CONFLICT", "PAYLOAD_TOO_LARGE", "PROJECT_FILE_COUNT_EXCEEDED", "PROJECT_FILE_SIZE_EXCEEDED", "PROJECT_AGGREGATE_SIZE_EXCEEDED", "CONTENT_TYPE_UNSUPPORTED", "RESOURCE_VALIDATION_FAILED", "PROJECT_CANDIDATE_INVALID", "PROJECT_DEPENDENCY_INVALID", "PROJECT_SECURE_INPUT_INVALID", "RATE_LIMITED", "PROJECT_PROJECTION_UNAVAILABLE", "SERVICE_UNAVAILABLE"]
+      "enum": ["INVALID_JSON", "CONTRACT_INVALID", "CONTRACT_VERSION_UNSUPPORTED", "CANDIDATE_FORMAT_VERSION_UNSUPPORTED", "UNAUTHENTICATED", "UNAUTHORIZED", "PROJECT_WORKER_AUTHORITY_UNAVAILABLE", "WORKER_CAPABILITY_ACTION_FORBIDDEN", "WORKER_CAPABILITY_CANCELLED", "WORKER_CAPABILITY_CONTEXT_MISMATCH", "WORKER_CAPABILITY_EXPIRED", "WORKER_CAPABILITY_INVALID_SIGNATURE", "WORKER_CAPABILITY_MALFORMED", "WORKER_CAPABILITY_NOT_YET_VALID", "WORKER_CAPABILITY_REPLAY", "WORKER_CAPABILITY_REVOKED", "WORKER_CAPABILITY_STALE_FENCE", "PROJECT_NOT_FOUND", "PROJECT_PROPOSAL_NOT_FOUND", "METHOD_NOT_ALLOWED", "RESOURCE_ALREADY_EXISTS", "RESOURCE_VERSION_CONFLICT", "PROJECT_BASELINE_CONFLICT", "PROJECT_IDEMPOTENCY_CONFLICT", "PROJECT_PROJECTION_CONFLICT", "PROJECT_CHECKPOINT_CONFLICT", "PROJECT_PROPOSAL_APPROVAL_BINDING_MISMATCH", "PROJECT_PROPOSAL_CANCELLED", "PROJECT_PROPOSAL_DECISION_CONFLICT", "PROJECT_PROPOSAL_STALE", "PROJECT_PROPOSAL_SUPERSEDED", "PAYLOAD_TOO_LARGE", "PROJECT_FILE_COUNT_EXCEEDED", "PROJECT_FILE_SIZE_EXCEEDED", "PROJECT_AGGREGATE_SIZE_EXCEEDED", "CONTENT_TYPE_UNSUPPORTED", "RESOURCE_VALIDATION_FAILED", "PROJECT_CANDIDATE_INVALID", "PROJECT_DEPENDENCY_INVALID", "PROJECT_SECURE_INPUT_INVALID", "PROJECT_CHECKPOINT_INVALID", "RATE_LIMITED", "PROJECT_PROJECTION_UNAVAILABLE", "SERVICE_UNAVAILABLE"]
     },
     "projectError": {
       "type": "object",

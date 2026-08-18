@@ -53,38 +53,69 @@ describe('ProjectSecureInputService', () => {
       });
     });
 
-    it('should fail closed with only a safe selector for a protected target on a new resource', () => {
+    it('should defer a protected target on a new resource with only its safe selector', () => {
       // Arrange
       const projectSecureInputService = new ProjectSecureInputService();
       const parsedResourceSources = [buildParsedVariableSource('new-token')];
 
-      // Act and Assert
-      assert.throws(() => projectSecureInputService.buildSecureInputs({
+      // Act
+      const result = projectSecureInputService.buildSecureInputs({
         parsedResourceSources,
         localState: buildLocalState([]),
-      }), error => {
-        assert.equal(error.code, 'PROJECT_SECURE_INPUT_DEFERRED_UNAVAILABLE');
-        assert.deepEqual(error.requiredSecureValues, [{
+      });
+
+      // Assert
+      assert.deepEqual(result, {
+        secureInputs: [{
           resourceType: 'variable',
           handle: 'new-token',
           fieldPath: 'value',
-        }]);
-        assert.equal(Object.hasOwn(error.requiredSecureValues[0], 'value'), false);
-        return true;
+          mode: 'defer',
+        }],
+        requiredSecureValues: [{
+          resourceType: 'variable',
+          handle: 'new-token',
+          fieldPath: 'value',
+        }],
       });
+      assert.equal(Object.hasOwn(result.requiredSecureValues[0], 'value'), false);
     });
 
-    it('should not treat a mismatched local-state resource as an existing binding', () => {
+    it('should defer a target whose local-state resource type does not match', () => {
       // Arrange
       const projectSecureInputService = new ProjectSecureInputService();
       const mismatchedBinding = buildBinding('variable', 'new-token');
       mismatchedBinding.resourceType = 'request';
 
-      // Act and Assert
-      assert.throws(() => projectSecureInputService.buildSecureInputs({
+      // Act
+      const result = projectSecureInputService.buildSecureInputs({
         parsedResourceSources: [buildParsedVariableSource('new-token')],
         localState: buildLocalState([mismatchedBinding]),
-      }), { code: 'PROJECT_SECURE_INPUT_DEFERRED_UNAVAILABLE' });
+      });
+
+      // Assert
+      assert.equal(result.secureInputs[0].mode, 'defer');
+    });
+
+    it('should preserve bound targets and defer new targets in deterministic order', () => {
+      // Arrange
+      const projectSecureInputService = new ProjectSecureInputService();
+      const parsedResourceSources = [
+        buildParsedVariableSource('new-token'),
+        buildParsedVariableSource('existing-token'),
+      ];
+
+      // Act
+      const result = projectSecureInputService.buildSecureInputs({
+        parsedResourceSources,
+        localState: buildLocalState([buildBinding('variable', 'existing-token')]),
+      });
+
+      // Assert
+      assert.deepEqual(result.secureInputs.map(secureInput => secureInput.mode), [
+        'preserve',
+        'defer',
+      ]);
     });
 
     for (const [representationName, protectedValue] of [

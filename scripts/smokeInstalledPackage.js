@@ -14,11 +14,14 @@ const expectedExportNames = Object.freeze([
   'ApiEaseUpdateRequestClient',
   'PersonalProjectAuthenticationAdapter',
   'ProjectAuthenticationAdapter',
+  'WorkerProjectAuthenticationAdapter',
 ]);
 const requiredContractPaths = Object.freeze([
   'contracts/apex-projects/v1/apiease-project-contract.schema.json',
   'contracts/apex-projects/v1/fixtures/bootstrap-synchronized.json',
   'contracts/apex-projects/v1/fixtures/project-failures.json',
+  'contracts/apex-projects/v1/fixtures/project-proposal-failures.json',
+  'contracts/apex-projects/v1/fixtures/project-proposal-workflow.json',
   'contracts/apex-projects/v1/fixtures/project-workflow-success.json',
   'contracts/apex-projects/v1/fixtures/resource-operations.json',
   'contracts/apex-projects/v1/provenance.json',

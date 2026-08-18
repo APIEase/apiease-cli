@@ -61,6 +61,60 @@ describe('ProjectApplyService', () => {
       assert.deepEqual(fixture.events, ['policy']);
     });
 
+    it('should validate plan and submit an accepted proposal without local transitions', async () => {
+      // Arrange
+      const proposalResponse = buildProposalAcceptedResponse();
+      const fixture = buildServiceFixture({
+        approvalRequired: true,
+        applyResponse: proposalResponse,
+      });
+
+      // Act
+      const result = await fixture.projectApplyService.applyProject({
+        ...buildInvocation(),
+        requireApproval: true,
+        configurationOptions: {},
+      });
+
+      // Assert
+      assert.deepEqual(fixture.events, [
+        'policy',
+        'authentication',
+        'candidate',
+        'validate',
+        'plan',
+        'operation-key',
+        'proposal-submit',
+      ]);
+      assert.strictEqual(fixture.proposalCalls[0].request.candidate, fixture.candidateBuildResult.candidate);
+      assert.strictEqual(fixture.proposalCalls[0].request.operations, fixture.planResponse.result.operations);
+      assert.equal(fixture.proposalCalls[0].request.operationKey, 'opaque-operation-key');
+      assert.equal(fixture.proposalCalls[0].request.requireApproval, true);
+      assert.deepEqual(fixture.proposalCalls[0].request.proposalCheckpoint, buildProposalCheckpoint());
+      assert.equal(result.state, 'accepted');
+      assert.strictEqual(result.proposal, proposalResponse.result);
+      assert.equal(result.receipt, null);
+      assert.equal(fixture.events.includes('publish-state'), false);
+      assert.equal(fixture.events.includes('archive-deletions'), false);
+    });
+
+    it('should reject a committed response to an approval-required submission', async () => {
+      // Arrange
+      const fixture = buildServiceFixture({ approvalRequired: true });
+
+      // Act and Assert
+      await assert.rejects(
+        fixture.projectApplyService.applyProject({
+          ...buildInvocation(),
+          requireApproval: true,
+          configurationOptions: {},
+        }),
+        { code: 'PROJECT_PROPOSAL_SUBMISSION_OUTCOME_INVALID' },
+      );
+      assert.equal(fixture.events.includes('publish-state'), false);
+      assert.equal(fixture.events.includes('archive-deletions'), false);
+    });
+
     it('should stop after authoritative validation failure without planning or local transitions', async () => {
       // Arrange
       const validationResult = buildValidationFailure();
@@ -201,6 +255,7 @@ describe('ProjectApplyService', () => {
 });
 
 function buildServiceFixture({
+  approvalRequired = false,
   applyResponse = buildApplyResponse(),
   candidateBuildResult = buildCandidateBuildResult(),
   planResponse = buildPlanResponse(),
@@ -212,12 +267,16 @@ function buildServiceFixture({
   const validationCalls = [];
   const planCalls = [];
   const applyCalls = [];
+  const proposalCalls = [];
   const deriveStateCalls = [];
   const archiveCalls = [];
   const projectAuthenticationAdapter = {
     async resolveRequestConfiguration(configurationOptions) {
       events.push('authentication');
-      assert.deepEqual(configurationOptions, buildInvocation().configurationOptions);
+      assert.deepEqual(
+        configurationOptions,
+        approvalRequired ? {} : buildInvocation().configurationOptions,
+      );
       return {
         ok: true,
         apiBaseUrl: 'https://api.example.test',
@@ -228,12 +287,14 @@ function buildServiceFixture({
   const projectApplyRequestPolicy = {
     selectRequestPolicy({ requireApproval }) {
       events.push('policy');
-      assert.equal(requireApproval, Boolean(policyFailure));
+      assert.equal(requireApproval, approvalRequired || Boolean(policyFailure));
       return policyFailure ?? {
         ok: true,
-        authorityMode: 'personal',
+        authorityMode: approvalRequired ? 'worker' : 'personal',
         projectAuthenticationAdapter,
-        applyRequestFields: {},
+        applyRequestFields: approvalRequired
+          ? { requireApproval: true, proposalCheckpoint: buildProposalCheckpoint() }
+          : {},
       };
     },
     permitsCommittedLocalTransitions({ state, outcome }) {
@@ -253,6 +314,11 @@ function buildServiceFixture({
     async applyProject(invocation) {
       events.push('apply');
       applyCalls.push(invocation);
+      return applyResponse;
+    },
+    async submitProjectProposal(invocation) {
+      events.push('proposal-submit');
+      proposalCalls.push(invocation);
       return applyResponse;
     },
   };
@@ -308,8 +374,18 @@ function buildServiceFixture({
     events,
     planCalls,
     planResponse,
+    proposalCalls,
     projectApplyService,
     validationCalls,
+  };
+}
+
+function buildProposalCheckpoint() {
+  return {
+    designSessionId: 'design_session_01',
+    proposalId: 'proposal_01',
+    branchName: 'apiease/proposals/project_01/design_session_01',
+    commit: '1111111111111111111111111111111111111111',
   };
 }
 
@@ -387,6 +463,27 @@ function buildApplyResponse({ outerOutcome = 'PROJECT_APPLIED', replayed = false
       outcome: 'PROJECT_APPLIED',
       resultingLiveRevision: 2,
       resources: [{ operation: 'delete', resourceId: 'resource-old' }],
+    },
+  };
+}
+
+function buildProposalAcceptedResponse() {
+  return {
+    status: 202,
+    ok: true,
+    outcome: 'PROJECT_PROPOSAL_ACCEPTED',
+    result: {
+      proposalId: 'proposal_01',
+      designSessionId: 'design_session_01',
+      status: 'pending',
+      replayed: false,
+      branchName: 'apiease/proposals/project_01/design_session_01',
+      commit: '1111111111111111111111111111111111111111',
+      candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      operationDigest: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      approvalBindingDigest: 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
+      requiredSecureValues: [],
+      requiredSecureValuesWarning: 'Configure deferred values in APIEase.',
     },
   };
 }

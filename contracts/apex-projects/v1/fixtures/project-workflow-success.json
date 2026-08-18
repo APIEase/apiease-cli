@@ -148,7 +148,9 @@
               "deleteCount": 1,
               "totalBytes": 1309
             },
-            "diagnostics": []
+            "diagnostics": [],
+            "requiredSecureValues": [],
+            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
           }
         }
       }
@@ -306,7 +308,9 @@
               "noChangeCount": 0,
               "operationCount": 5,
               "updateCount": 2
-            }
+            },
+            "requiredSecureValues": [],
+            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
           }
         }
       }
@@ -321,6 +325,7 @@
           "contractVersion": 1,
           "operationKey": "workflow-apply-0001",
           "authorityMode": "personal",
+          "requireApproval": false,
           "candidate": {
             "candidateFormatVersion": 1,
             "baseline": {
@@ -460,6 +465,8 @@
             "replayed": false,
             "outcome": "PROJECT_APPLIED",
             "resultingLiveRevision": 43,
+            "requiredSecureValues": [],
+            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use.",
             "resources": [
               {
                 "resourceType": "function",
@@ -510,6 +517,7 @@
           "contractVersion": 1,
           "operationKey": "workflow-no-change-0001",
           "authorityMode": "personal",
+          "requireApproval": false,
           "candidate": {
             "candidateFormatVersion": 1,
             "baseline": {
@@ -609,6 +617,8 @@
             "replayed": false,
             "outcome": "PROJECT_APPLY_NO_CHANGE",
             "resultingLiveRevision": 43,
+            "requiredSecureValues": [],
+            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use.",
             "resources": []
           }
         }
@@ -624,6 +634,7 @@
           "contractVersion": 1,
           "operationKey": "workflow-apply-0001",
           "authorityMode": "personal",
+          "requireApproval": false,
           "candidate": {
             "candidateFormatVersion": 1,
             "baseline": {
@@ -763,6 +774,8 @@
             "replayed": true,
             "outcome": "PROJECT_APPLIED",
             "resultingLiveRevision": 43,
+            "requiredSecureValues": [],
+            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use.",
             "resources": [
               {
                 "resourceType": "function",

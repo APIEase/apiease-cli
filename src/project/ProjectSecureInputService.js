@@ -7,20 +7,24 @@ class ProjectSecureInputService {
     const protectedTargets = this.discoverProtectedTargets(parsedResourceSources);
     this.requireUniqueProtectedTargets(protectedTargets);
     const boundResourcesByPath = this.buildBoundResourcesByPath(localState);
-    const requiredSecureValues = protectedTargets
-      .filter(target => !this.isBoundTarget(target, boundResourcesByPath))
-      .map(target => this.buildSafeSelector(target));
-
-    if (requiredSecureValues.length > 0) {
-      this.throwDeferredUnavailable(requiredSecureValues);
-    }
+    const secureInputs = protectedTargets.map(target => this.buildSecureInput(
+      target,
+      boundResourcesByPath,
+    ));
+    const requiredSecureValues = secureInputs
+      .filter(secureInput => secureInput.mode === 'defer')
+      .map(secureInput => this.buildSafeSelector(secureInput));
 
     return {
-      secureInputs: protectedTargets.map(target => ({
-        ...this.buildSafeSelector(target),
-        mode: 'preserve',
-      })),
-      requiredSecureValues: [],
+      secureInputs,
+      requiredSecureValues,
+    };
+  }
+
+  buildSecureInput(target, boundResourcesByPath) {
+    return {
+      ...this.buildSafeSelector(target),
+      mode: this.isBoundTarget(target, boundResourcesByPath) ? 'preserve' : 'defer',
     };
   }
 
@@ -155,14 +159,6 @@ class ProjectSecureInputService {
       handle: target.handle,
       fieldPath: target.fieldPath,
     };
-  }
-
-  throwDeferredUnavailable(requiredSecureValues) {
-    const code = 'PROJECT_SECURE_INPUT_DEFERRED_UNAVAILABLE';
-    const diagnostics = requiredSecureValues.map(selector => ({ code, ...selector }));
-    const error = buildServiceError(code, diagnostics);
-    error.requiredSecureValues = requiredSecureValues.map(selector => ({ ...selector }));
-    throw error;
   }
 }
 

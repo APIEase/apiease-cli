@@ -1,0 +1,45 @@
+{
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "fixtures": [
+    {
+      "name": "expired-worker-capability",
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "WORKER_CAPABILITY_EXPIRED",
+        "error": {"code": "WORKER_CAPABILITY_EXPIRED", "message": "Worker capability authentication failed.", "diagnostics": []}
+      }
+    },
+    {
+      "name": "stale-worker-fence",
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "WORKER_CAPABILITY_STALE_FENCE",
+        "error": {"code": "WORKER_CAPABILITY_STALE_FENCE", "message": "Worker capability authorization failed.", "diagnostics": []}
+      }
+    },
+    {
+      "name": "conflicting-proposal-decision",
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_PROPOSAL_DECISION_CONFLICT",
+        "error": {"code": "PROJECT_PROPOSAL_DECISION_CONFLICT", "message": "The proposal already has a different decision.", "diagnostics": []}
+      }
+    },
+    {
+      "name": "stale-proposal",
+      "schemaDefinition": "projectErrorResponse",
+      "document": {
+        "contractVersion": 1,
+        "ok": false,
+        "outcome": "PROJECT_PROPOSAL_STALE",
+        "error": {"code": "PROJECT_PROPOSAL_STALE", "message": "The proposal no longer matches live authority.", "diagnostics": []}
+      }
+    }
+  ]
+}
