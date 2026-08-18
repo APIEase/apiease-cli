@@ -267,6 +267,7 @@ class ProjectBootstrapArtifactService {
       files: exactFiles.map(file => ({ ...file, content: Buffer.from(file.content) })),
       localState: structuredClone(artifactPackage.localState),
       manifest: structuredClone(artifactPackage.manifest),
+      skippedResources: structuredClone(artifactPackage.skippedResources),
       template: structuredClone(artifactPackage.template),
     };
   }

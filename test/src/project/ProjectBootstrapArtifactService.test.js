@@ -45,7 +45,47 @@ describe('ProjectBootstrapArtifactService', () => {
           expectedResult.files.map(file => Buffer.from(file.content, 'utf8')),
         );
         assert.deepEqual(verifiedArtifact.localState, expectedResult.localState);
+        assert.deepEqual(verifiedArtifact.skippedResources, expectedResult.skippedResources);
       });
+    });
+
+    it('should preserve validated skipped-resource diagnostics', async () => {
+      // Arrange
+      const projectBootstrapArtifactService = new ProjectBootstrapArtifactService();
+      const bootstrapResponse = await readBootstrapResponse();
+      const skippedResource = {
+        resourceType: 'request',
+        resourceId: 'request-broken',
+        handle: 'broken-request',
+        path: 'resources/requests/broken-request.json',
+        diagnostics: [{
+          code: 'PROJECT_RESOURCE_DEPENDENCY_MISSING',
+          path: 'resources/requests/broken-request.json',
+          resourceType: 'request',
+          handle: 'broken-request',
+        }],
+      };
+      bootstrapResponse.result.skippedResources = [skippedResource];
+
+      // Act
+      const verifiedArtifact = projectBootstrapArtifactService
+        .verifySynchronizedArtifact(bootstrapResponse);
+
+      // Assert
+      assert.deepEqual(verifiedArtifact.skippedResources, [skippedResource]);
+    });
+
+    it('should reject a synchronized artifact without skipped-resource disclosure', async () => {
+      // Arrange
+      const projectBootstrapArtifactService = new ProjectBootstrapArtifactService();
+      const bootstrapResponse = await readBootstrapResponse();
+      delete bootstrapResponse.result.skippedResources;
+
+      // Act and assert
+      assert.throws(
+        () => projectBootstrapArtifactService.verifySynchronizedArtifact(bootstrapResponse),
+        hasArtifactErrorCode(PROJECT_BOOTSTRAP_ARTIFACT_ERROR_CODES.contract),
+      );
     });
 
     it('should reject unsupported versions or a different public template identity', async () => {

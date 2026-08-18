@@ -212,6 +212,26 @@ describe('ProjectCommandResultService', () => {
       assert.match(failureStderrChunks.join(''), /PROJECT_CANDIDATE_INVALID/);
     });
   });
+
+  describe('buildSkippedResourceGuidance', () => {
+    it('should identify a skipped resource and state that its APIEase record remains', () => {
+      // Arrange
+      const service = new ProjectCommandResultService();
+
+      // Act
+      const guidance = service.buildSkippedResourceGuidance([{
+        resourceType: 'request',
+        resourceId: 'request-broken',
+        diagnostics: [{ code: 'PROJECT_RESOURCE_DEPENDENCY_MISSING' }],
+      }]);
+
+      // Assert
+      assert.deepEqual(guidance, [
+        'Skipped request request-broken: PROJECT_RESOURCE_DEPENDENCY_MISSING. '
+          + 'The APIEase record was not deleted.',
+      ]);
+    });
+  });
 });
 
 function createWritableStream(chunks) {

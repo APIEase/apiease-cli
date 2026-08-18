@@ -55,7 +55,12 @@ class ProjectSynchronizationService {
     );
     await this.publishVerifiedLocalState(synchronizationContext, verifiedArtifact.localState);
 
-    return { bootstrapResponse, publication, warnings: synchronizationContext.warnings };
+    return {
+      bootstrapResponse,
+      publication,
+      skippedResources: verifiedArtifact.skippedResources,
+      warnings: synchronizationContext.warnings,
+    };
   }
 
   async prepareSynchronization(synchronizationRequest) {
@@ -123,7 +128,7 @@ class ProjectSynchronizationService {
 }
 
 function buildApiFailureResult(bootstrapResponse) {
-  return { bootstrapResponse, publication: null, warnings: [] };
+  return { bootstrapResponse, publication: null, skippedResources: [], warnings: [] };
 }
 
 function buildSynchronizationError(code, diagnostics = [{ code }]) {

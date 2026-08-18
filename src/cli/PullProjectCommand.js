@@ -141,8 +141,18 @@ class PullProjectCommand {
 
   renderSynchronizationResult({ checkout, json, synchronization }) {
     const commandResult = this.buildSynchronizationCommandResult({ checkout, synchronization });
-    const guidance = synchronization.bootstrapResponse.ok ? synchronization.warnings : [];
+    const guidance = synchronization.bootstrapResponse.ok
+      ? this.buildSynchronizationGuidance(synchronization)
+      : [];
     return this.renderResult(commandResult, json, guidance);
+  }
+
+  buildSynchronizationGuidance(synchronization) {
+    return [
+      ...synchronization.warnings,
+      ...this.projectCommandResultService
+        .buildSkippedResourceGuidance(synchronization.skippedResources),
+    ];
   }
 
   buildSynchronizationCommandResult({ checkout, synchronization }) {
@@ -157,6 +167,7 @@ class PullProjectCommand {
         projectDirectoryPath: checkout.repositoryTopLevelPath,
         publishedPaths: synchronization.publication.publishedPaths,
         removedPaths: synchronization.publication.removedPaths,
+        skippedResources: synchronization.skippedResources,
         warnings: synchronization.warnings,
       },
     };

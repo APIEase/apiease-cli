@@ -303,6 +303,7 @@ class InitProjectCommand {
         projectDirectoryPath: checkout.repositoryTopLevelPath,
         publishedPaths: synchronization.publication.publishedPaths,
         removedPaths: synchronization.publication.removedPaths,
+        skippedResources: synchronization.skippedResources,
         warnings: synchronization.warnings,
       },
     };
@@ -374,7 +375,9 @@ class InitProjectCommand {
 
   renderExistingResourcesResult(commandResult, json) {
     const envelope = this.projectCommandResultService.normalizeResult(commandResult);
-    this.projectCommandResultService.renderResult(envelope, { json });
+    const guidance = this.projectCommandResultService
+      .buildSkippedResourceGuidance(envelope.result?.skippedResources);
+    this.projectCommandResultService.renderResult(envelope, { guidance, json });
     return this.projectCommandResultService.resolveExitCode(envelope);
   }
 

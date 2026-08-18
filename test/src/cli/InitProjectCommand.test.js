@@ -786,6 +786,7 @@ describe('InitProjectCommand', () => {
           projectDirectoryPath: '/cloned/project',
           publishedPaths: ['.apiease/project.json'],
           removedPaths: ['resources/requests/sample.json'],
+          skippedResources: [],
           warnings: [],
         },
         diagnostics: [],
@@ -823,6 +824,45 @@ describe('InitProjectCommand', () => {
       ]);
       assert.equal(stdoutChunks.join(''), 'init: success (PROJECT_BOOTSTRAP_SYNCHRONIZED)\n');
       assert.equal(stderrChunks.join(''), '');
+    });
+
+    it('should report resources skipped by APIEase during existing-resource initialization', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const skippedResource = {
+        resourceType: 'request',
+        resourceId: 'request-broken',
+        handle: 'broken-request',
+        path: 'resources/requests/broken-request.json',
+        diagnostics: [{ code: 'PROJECT_RESOURCE_DEPENDENCY_MISSING' }],
+      };
+      const initProjectCommand = buildExistingResourcesCommand({
+        InitProjectCommand,
+        calls,
+        stdoutChunks,
+        stderrChunks,
+        synchronizationResult: {
+          ...buildExistingResourcesSynchronizationResult(),
+          skippedResources: [skippedResource],
+        },
+      });
+
+      // Act
+      const exitCode = await initProjectCommand.run([
+        'init',
+        '--from-existing-resources',
+      ]);
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.equal(stdoutChunks.join(''), 'init: success (PROJECT_BOOTSTRAP_SYNCHRONIZED)\n');
+      assert.equal(stderrChunks.join(''), [
+        'Skipped request broken-request (resources/requests/broken-request.json): ',
+        'PROJECT_RESOURCE_DEPENDENCY_MISSING. The APIEase record was not deleted.\n',
+      ].join(''));
     });
 
     it('should return normalized usage failure for invalid existing-resource arguments', async () => {
@@ -1036,19 +1076,7 @@ function buildExistingResourcesCommand({
   },
   cloneError,
   synchronizationError,
-  synchronizationResult = {
-    bootstrapResponse: {
-      status: 200,
-      ok: true,
-      outcome: 'PROJECT_BOOTSTRAP_SYNCHRONIZED',
-      result: {},
-    },
-    publication: {
-      publishedPaths: ['.apiease/project.json'],
-      removedPaths: ['resources/requests/sample.json'],
-    },
-    warnings: [],
-  },
+  synchronizationResult = buildExistingResourcesSynchronizationResult(),
 }) {
   return new InitProjectCommand({
     personalProjectAuthenticationAdapter: {
@@ -1074,4 +1102,21 @@ function buildExistingResourcesCommand({
     stdout: createWritableStream(stdoutChunks),
     stderr: createWritableStream(stderrChunks),
   });
+}
+
+function buildExistingResourcesSynchronizationResult() {
+  return {
+    bootstrapResponse: {
+      status: 200,
+      ok: true,
+      outcome: 'PROJECT_BOOTSTRAP_SYNCHRONIZED',
+      result: {},
+    },
+    publication: {
+      publishedPaths: ['.apiease/project.json'],
+      removedPaths: ['resources/requests/sample.json'],
+    },
+    skippedResources: [],
+    warnings: [],
+  };
 }

@@ -43,6 +43,7 @@ apiease --version
 ```bash
 apiease --version
 apiease init [project-name]
+apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease upgrade
 apiease upgrade [--check]
 apiease upgrade --dry-run
@@ -114,6 +115,14 @@ For existing directories:
 - The CLI reports skipped existing conflicting paths instead of overwriting them.
 - The CLI omits `git init` when the destination already contains a `.git` directory.
 - The CLI omits the entire `Next steps:` section when there are no remaining next steps to show.
+
+To initialize a project from resources already stored in APIEase, use
+`apiease init --from-existing-resources`. APIEase deterministically normalizes
+legacy records where possible. If an individual record still cannot be safely
+represented, initialization continues with the valid resources and the CLI
+reports the skipped resource, its safe diagnostic codes, and that the APIEase
+record was not deleted. JSON output includes the same records in
+`result.skippedResources`.
 
 ## Check for Template Upgrades
 

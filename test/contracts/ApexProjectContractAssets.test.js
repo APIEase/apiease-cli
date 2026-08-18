@@ -10,10 +10,10 @@ const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectoryPath = path.resolve(currentDirectoryPath, '..', '..');
 const contractDirectoryPath = path.join(projectDirectoryPath, 'contracts', 'apex-projects', 'v1');
 
-const expectedSourceCommit = '217b7d38180c11d77c0ca88aba0e7c02ab7a9379';
+const expectedSourceCommit = 'abb7d828e5c4129a8417f82521e26f6a082506af';
 const expectedFileHashes = {
-  'apiease-project-contract.schema.json': '5992c05949189214adeeacc0a9c2e82ac05587b6d49de1876bb4041ec29d9395',
-  'fixtures/bootstrap-synchronized.json': 'ec82c6786caac6be8ab3c07dec98a679a49b863accf7e7e617893eee6b9675c0',
+  'apiease-project-contract.schema.json': 'ef44f065eb68d4cd0c9d841ddfff702b99906e39ae46a52629df933b07f36288',
+  'fixtures/bootstrap-synchronized.json': '64586799cd65b1c222beb3b4d7af9220b49024ace79b0d285d76aa519555ede2',
   'fixtures/project-failures.json': '8a9dc6db0650a1ecb42b4bc6759aaff924b23dd8ccb18ce61d76a171df30859b',
   'fixtures/project-workflow-success.json': 'd1ada864cec7233f40e7adfbc1308359e39a015bd10ac9944fe677591cf962d4',
   'fixtures/resource-operations.json': 'f4c0d297513a421bdf90ca6e72547add369879ef8ca2f6e3a8feea01b0027627',

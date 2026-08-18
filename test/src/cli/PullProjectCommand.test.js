@@ -72,6 +72,7 @@ describe('PullProjectCommand', () => {
           projectDirectoryPath: '/checkout',
           publishedPaths: ['.apiease/project.json', 'resources/requests/live.json'],
           removedPaths: ['resources/requests/sample.json'],
+          skippedResources: [],
           warnings: [PROJECT_FORCE_DISCARD_WARNING],
         },
         diagnostics: [],
@@ -79,6 +80,39 @@ describe('PullProjectCommand', () => {
       });
       assert.equal(stdoutChunks.join('').includes('private-api-key'), false);
       assert.equal(stderrChunks.join(''), `${PROJECT_FORCE_DISCARD_WARNING}\n`);
+    });
+
+    it('should report resources skipped by APIEase during pull', async () => {
+      // Arrange
+      const { PullProjectCommand } = await import(pullProjectCommandModuleUrl);
+      const stdoutChunks = [];
+      const stderrChunks = [];
+      const skippedResource = {
+        resourceType: 'request',
+        resourceId: 'request-broken',
+        handle: 'broken-request',
+        path: 'resources/requests/broken-request.json',
+        diagnostics: [{ code: 'PROJECT_RESOURCE_DEPENDENCY_MISSING' }],
+      };
+      const pullProjectCommand = buildPullProjectCommand({
+        PullProjectCommand,
+        calls: [],
+        stdoutChunks,
+        stderrChunks,
+        synchronizationResult: buildSynchronizationResult({
+          skippedResources: [skippedResource],
+        }),
+      });
+
+      // Act
+      const exitCode = await pullProjectCommand.run(['pull']);
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.equal(stderrChunks.join(''), [
+        'Skipped request broken-request (resources/requests/broken-request.json): ',
+        'PROJECT_RESOURCE_DEPENDENCY_MISSING. The APIEase record was not deleted.\n',
+      ].join(''));
     });
 
     it('should protect local managed edits when force is omitted', async () => {
@@ -271,9 +305,10 @@ function buildSynchronizationResult({
     publishedPaths: ['.apiease/project.json', 'resources/requests/live.json'],
     removedPaths: ['resources/requests/sample.json'],
   },
+  skippedResources = [],
   warnings = [],
 } = {}) {
-  return { bootstrapResponse, publication, warnings };
+  return { bootstrapResponse, publication, skippedResources, warnings };
 }
 
 function createWritableStream(chunks) {

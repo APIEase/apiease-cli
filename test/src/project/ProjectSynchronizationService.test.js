@@ -36,6 +36,7 @@ describe('ProjectSynchronizationService', () => {
       assert.deepEqual(result, {
         bootstrapResponse: fixture.bootstrapResponse,
         publication: fixture.publication,
+        skippedResources: fixture.verifiedArtifact.skippedResources,
         warnings: [],
       });
     });
@@ -53,7 +54,12 @@ describe('ProjectSynchronizationService', () => {
       });
 
       // Assert
-      assert.deepEqual(result, { bootstrapResponse, publication: null, warnings: [] });
+      assert.deepEqual(result, {
+        bootstrapResponse,
+        publication: null,
+        skippedResources: [],
+        warnings: [],
+      });
       assert.deepEqual(calls, [['bootstrapProject', fixture.projectApiInvocation]]);
     });
   });
@@ -138,6 +144,13 @@ function buildServiceFixture({
   const projectApiInvocation = { request: { contractVersion: 1, wakeProjection: true } };
   const verifiedArtifact = {
     files: [{ path: '.apiease/project.json', content: Buffer.from('{}\n') }],
+    skippedResources: [{
+      resourceType: 'request',
+      resourceId: 'request-broken',
+      handle: 'broken-request',
+      path: 'resources/requests/broken-request.json',
+      diagnostics: [{ code: 'PROJECT_RESOURCE_DEPENDENCY_MISSING' }],
+    }],
     localState: {
       localStateVersion: 1,
       baseline: { snapshotDigest: 'sha256:baseline' },

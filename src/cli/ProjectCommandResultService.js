@@ -235,6 +235,18 @@ class ProjectCommandResultService {
     this.writeMessagesToStderr(guidance);
   }
 
+  buildSkippedResourceGuidance(skippedResources = []) {
+    return skippedResources.map(resource => this.buildSkippedResourceMessage(resource));
+  }
+
+  buildSkippedResourceMessage(resource) {
+    const identity = resource.handle ?? resource.resourceId;
+    const location = resource.path ? ` (${resource.path})` : '';
+    const codes = resource.diagnostics.map(diagnostic => diagnostic.code).join(', ');
+    return `Skipped ${resource.resourceType} ${identity}${location}: ${codes}. `
+      + 'The APIEase record was not deleted.';
+  }
+
   writeMessagesToStderr(messages) {
     messages.filter(message => typeof message === 'string')
       .forEach(message => this.stderr.write(`${this.normalizeSafeString(message)}\n`));

@@ -82,6 +82,22 @@
               "digest": "sha256:d4c660145a22630d0a3ec3cfe5f0ea5e3d81c9aade1923bfe59c8f564df6acff"
             }
           ],
+          "skippedResources": [
+            {
+              "resourceType": "request",
+              "resourceId": "request_broken",
+              "handle": "broken-request",
+              "path": "resources/requests/broken-request.json",
+              "diagnostics": [
+                {
+                  "code": "PROJECT_RESOURCE_DEPENDENCY_MISSING",
+                  "path": "resources/requests/broken-request.json",
+                  "resourceType": "request",
+                  "handle": "broken-request"
+                }
+              ]
+            }
+          ],
           "localState": {
             "localStateVersion": 1,
             "projectId": "project_01",
@@ -148,6 +164,7 @@
               "digest": "sha256:063b1a489adbd58d236e530c7b9213836beac117287610ad04abb4cc0d2d273d"
             }
           ],
+          "skippedResources": [],
           "localState": {
             "localStateVersion": 1,
             "projectId": "project_empty",
