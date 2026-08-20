@@ -22,7 +22,7 @@ import { ApiEaseDeleteRequestClient } from '../src/client/ApiEaseDeleteRequestCl
 import { ApiEaseReadRequestClient } from '../src/client/ApiEaseReadRequestClient.js';
 import { ApiEaseUpdateRequestClient } from '../src/client/ApiEaseUpdateRequestClient.js';
 import { ApiEaseProjectApiClient } from '../src/client/ApiEaseProjectApiClient.js';
-import { PersonalProjectAuthenticationAdapter } from '../src/auth/PersonalProjectAuthenticationAdapter.js';
+import { ProjectCommandAuthenticationContextResolver } from '../src/auth/ProjectCommandAuthenticationContextResolver.js';
 import { ProjectCommandResultService } from '../src/cli/ProjectCommandResultService.js';
 import { ProjectApplyRequestPolicy } from '../src/project/ProjectApplyRequestPolicy.js';
 import { ProjectApplyService } from '../src/project/ProjectApplyService.js';
@@ -95,10 +95,19 @@ function buildDeleteRequestCommand({ stdout = process.stdout, stderr = process.s
   });
 }
 
-function buildProjectCommands({ stdout = process.stdout, stderr = process.stderr } = {}) {
+function buildProjectCommands({
+  commandArguments = [],
+  projectCommandAuthenticationContextResolver =
+    new ProjectCommandAuthenticationContextResolver(),
+  stdout = process.stdout,
+  stderr = process.stderr,
+} = {}) {
   const projectContractService = new ProjectContractService();
   const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
-  const personalProjectAuthenticationAdapter = new PersonalProjectAuthenticationAdapter();
+  const authenticationContext = projectCommandAuthenticationContextResolver
+    .resolveContext(commandArguments);
+  const personalProjectAuthenticationAdapter =
+    authenticationContext.projectAuthenticationAdapter;
   const apiEaseProjectApiClient = new ApiEaseProjectApiClient({
     projectContractService,
     projectAuthenticationAdapter: personalProjectAuthenticationAdapter,
@@ -158,6 +167,7 @@ function buildProjectCommands({ stdout = process.stdout, stderr = process.stderr
   });
   const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
     personalProjectAuthenticationAdapter,
+    approvalProjectContext: authenticationContext.approvalProjectContext,
   });
   const applyProjectCommand = new ApplyProjectCommand({
     personalProjectAuthenticationAdapter,
@@ -236,7 +246,7 @@ async function runCli({
     || (commandName === 'rename' && !renameProjectResourceCommand)
   );
   if (requiresProjectCommands) {
-    const projectCommands = buildProjectCommands({ stdout, stderr });
+    const projectCommands = buildProjectCommands({ commandArguments, stdout, stderr });
     initProjectCommand ??= projectCommands.initProjectCommand;
     pullProjectCommand ??= projectCommands.pullProjectCommand;
     validateProjectCommand ??= projectCommands.validateProjectCommand;

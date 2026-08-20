@@ -43,10 +43,10 @@ apiease --version
 ```bash
 apiease --version
 apiease init [project-name]
-apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease apply [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
+apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
+apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
+apiease apply [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
 apiease upgrade
 apiease upgrade [--check]
@@ -145,6 +145,18 @@ apiease init my-project --from-existing-resources
 - Managed files and operational state are not published when artifact verification fails. Operational state is written last after a successful managed overlay.
 
 Project API authentication requires both the API key and the matching shop domain. The shop domain selects the shop; it does not grant authority by itself.
+
+Project commands also support explicit bearer authentication with
+`--bearer-token`. Bearer authentication sends exactly
+`Authorization: Bearer <token>` and does not read or write personal API-key
+configuration. `--bearer-token` is mutually exclusive with `--api-key` and
+`--shop-domain`; combining them fails closed with a stable configuration error.
+The explicit token is consumed for one HTTP request attempt. Trusted automation
+that performs a multi-request command supplies an action-scoped token set
+through `APIEASE_BEARER_TOKEN_SET`, with a distinct short-lived single-use token
+for every possible attempt. Unused tokens expire; retries never reuse a token.
+Bearer values are never written to configuration, project files, stdout,
+stderr, JSON results, or diagnostics.
 
 ## Project API Workflow
 

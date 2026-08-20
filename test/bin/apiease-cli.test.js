@@ -493,6 +493,47 @@ describe('apiease-cli', () => {
       );
     });
 
+    it('should wire generic bearer authority through every project command', async () => {
+      // Arrange
+      const { buildProjectCommands } = await import(entrypointModuleUrl);
+      const projectAuthenticationAdapter = {
+        readAuthorityMode: () => 'bearer',
+      };
+      const approvalProjectContext = {
+        projectAuthenticationAdapter,
+        proposalCheckpoint: {
+          branchName: 'apiease/proposals/project-1/session-1',
+          commit: 'a'.repeat(40),
+          designSessionId: 'session-1',
+          proposalId: 'proposal-1',
+        },
+      };
+      const projectCommandAuthenticationContextResolver = {
+        resolveContext: () => ({
+          projectAuthenticationAdapter,
+          approvalProjectContext,
+        }),
+      };
+
+      // Act
+      const projectCommands = buildProjectCommands({
+        projectCommandAuthenticationContextResolver,
+        stdout: createWritableStream([]),
+        stderr: createWritableStream([]),
+      });
+
+      // Assert
+      assert.equal(
+        projectCommands.initProjectCommand.personalProjectAuthenticationAdapter,
+        projectAuthenticationAdapter,
+      );
+      assert.equal(
+        projectCommands.applyProjectCommand.projectApplyService
+          .projectApplyRequestPolicy.approvalProjectContext,
+        approvalProjectContext,
+      );
+    });
+
     it('should return one and write top-level usage output when the command is missing', async () => {
       // Arrange
       const { runCli } = await import(entrypointModuleUrl);
@@ -528,6 +569,7 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
+        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -570,6 +612,7 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
+        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -612,6 +655,7 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
+        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -654,6 +698,7 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
+        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -696,6 +741,7 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
+        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',

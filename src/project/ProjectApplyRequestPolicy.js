@@ -13,10 +13,10 @@ const COMMITTED_PROJECT_APPLY_OUTCOMES = new Set([
 class ProjectApplyRequestPolicy {
   constructor({
     personalProjectAuthenticationAdapter = new PersonalProjectAuthenticationAdapter(),
-    workerProjectContext,
+    approvalProjectContext,
   } = {}) {
     this.personalProjectAuthenticationAdapter = personalProjectAuthenticationAdapter;
-    this.workerProjectContext = workerProjectContext;
+    this.approvalProjectContext = approvalProjectContext;
   }
 
   selectRequestPolicy({ requireApproval = false } = {}) {
@@ -26,27 +26,27 @@ class ProjectApplyRequestPolicy {
   }
 
   buildApprovalRequiredPolicy() {
-    if (!this.hasExactWorkerProjectContext()) {
+    if (!this.hasExactApprovalProjectContext()) {
       return this.buildWorkerAuthorityUnavailableFailure();
     }
     return {
       ok: true,
       authorityMode: WORKER_PROJECT_AUTHORITY_MODE,
-      projectAuthenticationAdapter: this.workerProjectContext.projectAuthenticationAdapter,
+      projectAuthenticationAdapter: this.approvalProjectContext.projectAuthenticationAdapter,
       applyRequestFields: {
         requireApproval: true,
-        proposalCheckpoint: this.workerProjectContext.proposalCheckpoint,
+        proposalCheckpoint: this.approvalProjectContext.proposalCheckpoint,
       },
     };
   }
 
-  hasExactWorkerProjectContext() {
-    return hasExactFields(this.workerProjectContext, [
+  hasExactApprovalProjectContext() {
+    return hasExactFields(this.approvalProjectContext, [
       'projectAuthenticationAdapter',
       'proposalCheckpoint',
     ])
-      && hasWorkerAuthorityMode(this.workerProjectContext.projectAuthenticationAdapter)
-      && isValidProposalCheckpoint(this.workerProjectContext.proposalCheckpoint);
+      && hasBearerAuthorityMode(this.approvalProjectContext.projectAuthenticationAdapter)
+      && isValidProposalCheckpoint(this.approvalProjectContext.proposalCheckpoint);
   }
 
   buildImmediatePersonalPolicy() {
@@ -98,9 +98,9 @@ function isValidProposalCheckpoint(proposalCheckpoint) {
     && /^[a-f0-9]{40,64}$/u.test(proposalCheckpoint.commit);
 }
 
-function hasWorkerAuthorityMode(projectAuthenticationAdapter) {
+function hasBearerAuthorityMode(projectAuthenticationAdapter) {
   return typeof projectAuthenticationAdapter?.readAuthorityMode === 'function'
-    && projectAuthenticationAdapter.readAuthorityMode() === WORKER_PROJECT_AUTHORITY_MODE;
+    && projectAuthenticationAdapter.readAuthorityMode() === 'bearer';
 }
 
 function isBoundedIdentity(value) {

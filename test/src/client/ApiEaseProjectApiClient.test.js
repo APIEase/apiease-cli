@@ -10,8 +10,8 @@ import {
   DEFAULT_PROJECT_API_RETRY_SETTINGS,
 } from '../../../src/client/ApiEaseProjectApiClient.js';
 import {
-  WORKER_PROJECT_CAPABILITY_ACTIONS,
-} from '../../../src/auth/WorkerProjectAuthenticationAdapter.js';
+  PROJECT_BEARER_AUTHENTICATION_ACTIONS,
+} from '../../../src/auth/ProjectBearerAuthenticationContract.js';
 import { ProjectContractService } from '../../../src/project/ProjectContractService.js';
 
 const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
@@ -352,7 +352,7 @@ describe('ApiEaseProjectApiClient', () => {
       assert.equal(result.outcome, response.outcome);
       assert.deepEqual(authenticationHeaderCalls, [{
         authenticationContext,
-        action: WORKER_PROJECT_CAPABILITY_ACTIONS.checkpointPublish,
+        action: PROJECT_BEARER_AUTHENTICATION_ACTIONS.checkpointPublish,
       }]);
       assert.deepEqual(contractCalls.map(({ endpoint }) => endpoint), [
         '/api/v1/projects/checkpoints/publish',
@@ -382,7 +382,7 @@ describe('ApiEaseProjectApiClient', () => {
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/projects/checkpoints/retrieve');
       assert.equal(
         authenticationHeaderCalls[0].action,
-        WORKER_PROJECT_CAPABILITY_ACTIONS.checkpointRetrieve,
+        PROJECT_BEARER_AUTHENTICATION_ACTIONS.checkpointRetrieve,
       );
     });
 
@@ -406,7 +406,7 @@ describe('ApiEaseProjectApiClient', () => {
       assert.equal(result.outcome, response.outcome);
       assert.equal(
         authenticationHeaderCalls[0].action,
-        WORKER_PROJECT_CAPABILITY_ACTIONS.proposalSubmit,
+        PROJECT_BEARER_AUTHENTICATION_ACTIONS.proposalSubmit,
       );
     });
 
@@ -580,7 +580,7 @@ function buildWorkerClient({
       return { authorization: `Bearer header.payload.signature${capabilitySequence}` };
     },
     readAuthorityMode() {
-      return 'worker';
+      return 'bearer';
     },
   };
   const projectContractService = {

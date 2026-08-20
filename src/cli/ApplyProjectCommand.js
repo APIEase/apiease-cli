@@ -7,6 +7,7 @@ const JSON_FLAG = '--json';
 const REQUIRE_APPROVAL_FLAG = '--require-approval';
 const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
+  '--bearer-token': 'bearerToken',
   '--base-url': 'apiBaseUrl',
   '--shop-domain': 'shopDomain',
 });
@@ -103,6 +104,9 @@ class ApplyProjectCommand {
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
     };
+    if (parseResult.bearerToken) {
+      configurationOptions.explicitBearerToken = parseResult.bearerToken;
+    }
     return parseResult.requireApproval && Object.values(configurationOptions).every(
       optionValue => optionValue === undefined,
     ) ? {} : configurationOptions;

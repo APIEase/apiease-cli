@@ -1,7 +1,7 @@
 import { ProjectContractService } from '../project/ProjectContractService.js';
 import {
-  WORKER_PROJECT_CAPABILITY_ACTIONS,
-} from '../auth/WorkerProjectAuthenticationAdapter.js';
+  PROJECT_BEARER_AUTHENTICATION_ACTIONS,
+} from '../auth/ProjectBearerAuthenticationContract.js';
 
 const PROJECT_API_ENDPOINTS = Object.freeze({
   apply: '/api/v1/projects/apply',
@@ -14,13 +14,13 @@ const PROJECT_API_ENDPOINTS = Object.freeze({
   validate: '/api/v1/projects/validate',
 });
 const PROJECT_API_ACTION_BY_OPERATION = Object.freeze({
-  bootstrap: WORKER_PROJECT_CAPABILITY_ACTIONS.bootstrap,
-  checkpointPublish: WORKER_PROJECT_CAPABILITY_ACTIONS.checkpointPublish,
-  checkpointRetrieve: WORKER_PROJECT_CAPABILITY_ACTIONS.checkpointRetrieve,
-  plan: WORKER_PROJECT_CAPABILITY_ACTIONS.plan,
-  proposalSubmit: WORKER_PROJECT_CAPABILITY_ACTIONS.proposalSubmit,
-  pull: WORKER_PROJECT_CAPABILITY_ACTIONS.pull,
-  validate: WORKER_PROJECT_CAPABILITY_ACTIONS.validate,
+  bootstrap: PROJECT_BEARER_AUTHENTICATION_ACTIONS.bootstrap,
+  checkpointPublish: PROJECT_BEARER_AUTHENTICATION_ACTIONS.checkpointPublish,
+  checkpointRetrieve: PROJECT_BEARER_AUTHENTICATION_ACTIONS.checkpointRetrieve,
+  plan: PROJECT_BEARER_AUTHENTICATION_ACTIONS.plan,
+  proposalSubmit: PROJECT_BEARER_AUTHENTICATION_ACTIONS.proposalSubmit,
+  pull: PROJECT_BEARER_AUTHENTICATION_ACTIONS.pull,
+  validate: PROJECT_BEARER_AUTHENTICATION_ACTIONS.validate,
 });
 const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   PROJECT_APPLIED: 200,
@@ -210,7 +210,7 @@ class ApiEaseProjectApiClient {
   }
 
   async buildPersonalRequestHeaders(authenticationContext) {
-    if (this.projectAuthenticationAdapter.readAuthorityMode() === 'worker') {
+    if (this.projectAuthenticationAdapter.readAuthorityMode() !== 'personal') {
       return null;
     }
     return this.buildRequestHeaders(authenticationContext);

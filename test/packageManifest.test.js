@@ -93,9 +93,9 @@ describe('package manifest', () => {
         'ApiEaseProjectApiClient',
         'ApiEaseReadRequestClient',
         'ApiEaseUpdateRequestClient',
+        'BearerProjectAuthenticationAdapter',
         'PersonalProjectAuthenticationAdapter',
         'ProjectAuthenticationAdapter',
-        'WorkerProjectAuthenticationAdapter',
       ]);
     });
   });

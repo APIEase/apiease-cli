@@ -8,6 +8,7 @@ const FORCE_FLAG = '--force';
 const JSON_FLAG = '--json';
 const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
+  '--bearer-token': 'bearerToken',
   '--base-url': 'apiBaseUrl',
   '--shop-domain': 'shopDomain',
 });
@@ -101,11 +102,16 @@ class PullProjectCommand {
   }
 
   async resolveRequestConfiguration(parseResult) {
-    return await this.personalProjectAuthenticationAdapter.resolveRequestConfiguration({
+    const configurationOptions = {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
-    });
+    };
+    if (parseResult.bearerToken) {
+      configurationOptions.explicitBearerToken = parseResult.bearerToken;
+    }
+    return await this.personalProjectAuthenticationAdapter
+      .resolveRequestConfiguration(configurationOptions);
   }
 
   async synchronizeCheckout({ currentWorkingDirectoryPath, parseResult, requestConfiguration }) {

@@ -111,6 +111,7 @@ class TopLevelCliCommandRouter {
       '  --base-url <url>                  APIEase base URL.',
       '  --shop-domain <shop-domain>       Shopify shop domain.',
       '  --api-key <api-key>               APIEase API key.',
+      '  --bearer-token <token>            Single-use Project API bearer token.',
       '  --json                            Emit one JSON result document.',
       '  --help                            Show this help.',
       '  --version                         Print the installed apiease CLI version.',

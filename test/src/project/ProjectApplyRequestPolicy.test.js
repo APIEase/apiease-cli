@@ -36,13 +36,13 @@ describe('ProjectApplyRequestPolicy', () => {
       assert.equal(Object.hasOwn(requestPolicy.applyRequestFields, 'requireApproval'), false);
     });
 
-    it('should select worker authority only from an exact injected worker context', () => {
+    it('should select approval authority only from an exact bearer context', () => {
       // Arrange
-      const workerProjectAuthenticationAdapter = { readAuthorityMode: () => 'worker' };
+      const bearerProjectAuthenticationAdapter = { readAuthorityMode: () => 'bearer' };
       const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
         personalProjectAuthenticationAdapter: {},
-        workerProjectContext: {
-          projectAuthenticationAdapter: workerProjectAuthenticationAdapter,
+        approvalProjectContext: {
+          projectAuthenticationAdapter: bearerProjectAuthenticationAdapter,
           proposalCheckpoint,
         },
       });
@@ -56,7 +56,7 @@ describe('ProjectApplyRequestPolicy', () => {
       assert.deepEqual(requestPolicy, {
         ok: true,
         authorityMode: 'worker',
-        projectAuthenticationAdapter: workerProjectAuthenticationAdapter,
+        projectAuthenticationAdapter: bearerProjectAuthenticationAdapter,
         applyRequestFields: { requireApproval: true, proposalCheckpoint },
       });
     });
@@ -101,8 +101,8 @@ describe('ProjectApplyRequestPolicy', () => {
       // Arrange
       const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
         personalProjectAuthenticationAdapter: {},
-        workerProjectContext: {
-          projectAuthenticationAdapter: { readAuthorityMode: () => 'worker' },
+        approvalProjectContext: {
+          projectAuthenticationAdapter: { readAuthorityMode: () => 'bearer' },
           proposalCheckpoint,
           apiKey: 'must-not-be-accepted',
         },
@@ -121,7 +121,7 @@ describe('ProjectApplyRequestPolicy', () => {
       // Arrange
       const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
         personalProjectAuthenticationAdapter: {},
-        workerProjectContext: {
+        approvalProjectContext: {
           projectAuthenticationAdapter: undefined,
           proposalCheckpoint: {},
         },

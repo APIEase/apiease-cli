@@ -10,11 +10,11 @@ const projectDirectoryPath = path.resolve(path.dirname(fileURLToPath(import.meta
 const expectedExportNames = Object.freeze([
   'ApiEaseCreateRequestClient',
   'ApiEaseProjectApiClient',
-  'ApiEaseReadRequestClient',
-  'ApiEaseUpdateRequestClient',
-  'PersonalProjectAuthenticationAdapter',
-  'ProjectAuthenticationAdapter',
-  'WorkerProjectAuthenticationAdapter',
+    'ApiEaseReadRequestClient',
+    'ApiEaseUpdateRequestClient',
+    'BearerProjectAuthenticationAdapter',
+    'PersonalProjectAuthenticationAdapter',
+    'ProjectAuthenticationAdapter',
 ]);
 const requiredContractPaths = Object.freeze([
   'contracts/apex-projects/v1/apiease-project-contract.schema.json',
