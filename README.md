@@ -45,6 +45,7 @@ apiease --version
 apiease init [project-name]
 apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
 apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
+apiease design-context --project-requirements <json> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
 apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
 apiease apply [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
@@ -162,6 +163,24 @@ stderr, JSON results, or diagnostics.
 ## Project API Workflow
 
 Run Project API commands from anywhere inside a checkout created with `apiease init --from-existing-resources`. These commands use the repository top level resolved by Git.
+
+### Design with the APIEase Project Design Protocol
+
+Command-line Codex acts as the Codex Project Designer by editing canonical local files. Before designing, retrieve the authenticated project context and the current effective APIEase Project Design Protocol:
+
+```bash
+apiease design-context --project-requirements '{"objective":"Add an order-status experience"}'
+```
+
+The JSON result retrieves the effective protocol version, common-instruction bytes and digest, Codex execution envelope, stable Mongo baseline, canonical resource inventory and bodies, local edits, explicit deletion intent, safe protected-value selectors, and workflow guidance. The CLI verifies the retrieved protocol identity and digest; this README does not copy or pin either value.
+
+Use the returned context to design by editing canonical resource files locally. Those files encode Canonical Resource Source objects. Neither the checkout, Git history, nor a Git diff is mutation authority, and `design-context` does not validate, submit, or apply a change.
+
+After local design:
+
+1. Run `apiease validate` for authoritative validation without mutation.
+2. Choose the lifecycle separately. `apiease apply` is an explicit personal immediate apply that validates, plans, and synchronously commits through the shared server pipeline.
+3. When using deferred submission, submit the same Canonical Resource Change Set for Project Proposal review instead of immediate apply. Deferred submission stores an immutable Project Change Artifact and makes no live mutation before approval.
 
 ### Pull Verified Resources
 

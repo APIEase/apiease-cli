@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CreateRequestCommand } from '../src/cli/CreateRequestCommand.js';
 import { DeleteRequestCommand } from '../src/cli/DeleteRequestCommand.js';
+import { DesignContextCommand } from '../src/cli/DesignContextCommand.js';
 import { InitProjectCommand } from '../src/cli/InitProjectCommand.js';
 import { PullProjectCommand } from '../src/cli/PullProjectCommand.js';
 import { ReadRequestCommand } from '../src/cli/ReadRequestCommand.js';
@@ -31,6 +32,7 @@ import { ProjectCandidateBuilder } from '../src/project/ProjectCandidateBuilder.
 import { ProjectCanonicalArtifactService } from '../src/project/ProjectCanonicalArtifactService.js';
 import { ProjectContractService } from '../src/project/ProjectContractService.js';
 import { ProjectDeletionIntentService } from '../src/project/ProjectDeletionIntentService.js';
+import { ProjectDesignContextService } from '../src/project/ProjectDesignContextService.js';
 import { ProjectGitCheckoutService } from '../src/project/ProjectGitCheckoutService.js';
 import { ProjectLocalStateService } from '../src/project/ProjectLocalStateService.js';
 import { ProjectManagedNamespaceService } from '../src/project/ProjectManagedNamespaceService.js';
@@ -165,6 +167,15 @@ function buildProjectCommands({
     projectValidationService,
     projectCommandResultService,
   });
+  const designContextCommand = new DesignContextCommand({
+    personalProjectAuthenticationAdapter,
+    projectDesignContextService: new ProjectDesignContextService({
+      apiEaseProjectApiClient,
+      projectCandidateBuilder,
+      projectCanonicalArtifactService,
+    }),
+    projectCommandResultService,
+  });
   const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
     personalProjectAuthenticationAdapter,
     approvalProjectContext: authenticationContext.approvalProjectContext,
@@ -192,6 +203,7 @@ function buildProjectCommands({
   return {
     initProjectCommand,
     pullProjectCommand,
+    designContextCommand,
     validateProjectCommand,
     applyProjectCommand,
     renameProjectResourceCommand,
@@ -224,6 +236,7 @@ async function runCli({
   deleteRequestCommand,
   initProjectCommand,
   pullProjectCommand,
+  designContextCommand,
   validateProjectCommand,
   applyProjectCommand,
   renameProjectResourceCommand,
@@ -241,6 +254,7 @@ async function runCli({
   const requiresProjectCommands = (
     (commandName === 'init' && !initProjectCommand)
     || (commandName === 'pull' && !pullProjectCommand)
+    || (commandName === 'design-context' && !designContextCommand)
     || (commandName === 'validate' && !validateProjectCommand)
     || (commandName === 'apply' && !applyProjectCommand)
     || (commandName === 'rename' && !renameProjectResourceCommand)
@@ -249,6 +263,7 @@ async function runCli({
     const projectCommands = buildProjectCommands({ commandArguments, stdout, stderr });
     initProjectCommand ??= projectCommands.initProjectCommand;
     pullProjectCommand ??= projectCommands.pullProjectCommand;
+    designContextCommand ??= projectCommands.designContextCommand;
     validateProjectCommand ??= projectCommands.validateProjectCommand;
     applyProjectCommand ??= projectCommands.applyProjectCommand;
     renameProjectResourceCommand ??= projectCommands.renameProjectResourceCommand;
@@ -264,6 +279,7 @@ async function runCli({
     deleteRequestCommand,
     initProjectCommand,
     pullProjectCommand,
+    designContextCommand,
     validateProjectCommand,
     applyProjectCommand,
     renameProjectResourceCommand,

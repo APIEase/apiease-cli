@@ -119,6 +119,32 @@ describe('apiease-cli', () => {
       assert.deepEqual(receivedCommandArguments, [commandArguments]);
     });
 
+    it('should delegate design-context command arguments to DesignContextCommand', async () => {
+      // Arrange
+      const { runCli } = await import(entrypointModuleUrl);
+      const commandArguments = ['design-context', '--project-requirements', '{}'];
+      const receivedCommandArguments = [];
+      const designContextCommand = {
+        async run(incomingCommandArguments) {
+          receivedCommandArguments.push(incomingCommandArguments);
+          return 0;
+        },
+      };
+
+      // Act
+      const exitCode = await runCli({
+        commandArguments,
+        createRequestCommand: createUnexpectedCommand('create'),
+        designContextCommand,
+        stdout: createWritableStream([]),
+        stderr: createWritableStream([]),
+      });
+
+      // Assert
+      assert.equal(exitCode, 0);
+      assert.deepEqual(receivedCommandArguments, [commandArguments]);
+    });
+
     it('should delegate validate apply and rename through the unified executable', async () => {
       // Arrange
       const { runCli } = await import(entrypointModuleUrl);
@@ -429,6 +455,7 @@ describe('apiease-cli', () => {
       // Assert
       assert.equal(exitCode, 0);
       assert.match(stdoutChunks.join(''), /pull\s+Pull verified Project API resources\./);
+      assert.match(stdoutChunks.join(''), /design-context --project-requirements <json>/);
       assert.doesNotMatch(stdoutChunks.join(''), /\btest\b/);
       assert.equal(stderrChunks.join(''), '');
     });
@@ -445,6 +472,7 @@ describe('apiease-cli', () => {
       const {
         initProjectCommand,
         pullProjectCommand,
+        designContextCommand,
         validateProjectCommand,
         applyProjectCommand,
         renameProjectResourceCommand,
@@ -470,6 +498,18 @@ describe('apiease-cli', () => {
       assert.equal(
         validateProjectCommand.personalProjectAuthenticationAdapter,
         initProjectCommand.personalProjectAuthenticationAdapter,
+      );
+      assert.equal(
+        designContextCommand.personalProjectAuthenticationAdapter,
+        initProjectCommand.personalProjectAuthenticationAdapter,
+      );
+      assert.equal(
+        designContextCommand.projectDesignContextService.apiEaseProjectApiClient,
+        validateProjectCommand.projectValidationService.apiEaseProjectApiClient,
+      );
+      assert.equal(
+        designContextCommand.projectDesignContextService.projectCandidateBuilder,
+        validateProjectCommand.projectValidationService.projectCandidateBuilder,
       );
       assert.equal(
         applyProjectCommand.personalProjectAuthenticationAdapter,
@@ -560,6 +600,7 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
         '  apply                             Validate, plan, and immediately apply the project.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
@@ -603,6 +644,7 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
         '  apply                             Validate, plan, and immediately apply the project.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
@@ -646,6 +688,7 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
         '  apply                             Validate, plan, and immediately apply the project.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
@@ -689,6 +732,7 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
         '  apply                             Validate, plan, and immediately apply the project.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
@@ -732,6 +776,7 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
         '  apply                             Validate, plan, and immediately apply the project.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',

@@ -255,6 +255,24 @@ describe('TopLevelCliCommandRouter', () => {
       });
     });
 
+    it('should resolve design-context without CRUD resource validation', () => {
+      // Arrange
+      const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
+      const designContextCommand = { name: 'design-context' };
+
+      // Act
+      const result = topLevelCliCommandRouter.resolveCommand({
+        commandArguments: ['design-context', '--project-requirements', '{}'],
+        designContextCommand,
+      });
+
+      // Assert
+      assert.deepEqual(result, {
+        ok: true,
+        command: designContextCommand,
+      });
+    });
+
     it('should resolve validate apply and rename without CRUD resource validation', () => {
       // Arrange
       const topLevelCliCommandRouter = new TopLevelCliCommandRouter();
@@ -346,6 +364,7 @@ describe('TopLevelCliCommandRouter', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
+        '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
         '  apply                             Validate, plan, and immediately apply the project.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',

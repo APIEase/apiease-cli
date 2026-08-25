@@ -11,10 +11,12 @@ const expectedExportNames = Object.freeze([
   'ApiEaseCreateRequestClient',
   'ApiEaseProjectApiClient',
     'ApiEaseReadRequestClient',
-    'ApiEaseUpdateRequestClient',
-    'BearerProjectAuthenticationAdapter',
-    'PersonalProjectAuthenticationAdapter',
-    'ProjectAuthenticationAdapter',
+  'ApiEaseUpdateRequestClient',
+  'BearerProjectAuthenticationAdapter',
+  'DesignContextCommand',
+  'PersonalProjectAuthenticationAdapter',
+  'ProjectAuthenticationAdapter',
+  'ProjectDesignContextService',
 ]);
 const requiredContractPaths = Object.freeze([
   'contracts/apex-projects/v1/apiease-project-contract.schema.json',
@@ -90,7 +92,7 @@ function verifyInstalledExecutable(smokeDirectoryPath, expectedVersion) {
 }
 
 function verifyInstalledHelp(helpText) {
-  for (const commandName of ['create', 'read', 'update', 'delete', 'init', 'upgrade', 'pull', 'validate', 'apply', 'rename']) {
+  for (const commandName of ['create', 'read', 'update', 'delete', 'init', 'upgrade', 'pull', 'design-context', 'validate', 'apply', 'rename']) {
     assert.match(helpText, new RegExp(`\\b${commandName}\\b`));
   }
   assert.equal(helpText.includes('--require-approval'), false);
