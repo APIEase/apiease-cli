@@ -141,7 +141,7 @@ function buildServiceFixture({
   hasLocalEdits = false,
   publicationError,
 }) {
-  const projectApiInvocation = { request: { contractVersion: 1, wakeProjection: true } };
+  const projectApiInvocation = { request: { contractVersion: 1 } };
   const verifiedArtifact = {
     files: [{ path: '.apiease/project.json', content: Buffer.from('{}\n') }],
     skippedResources: [{

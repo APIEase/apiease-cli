@@ -26,10 +26,9 @@ const fixtureDirectoryPath = path.join(
 
 describe('ApiEaseProjectApiClient', () => {
   describe('bootstrapProject', () => {
-    it('should poll after the server delay with byte-identical authenticated requests', async () => {
+    it('should return the Mongo-authoritative snapshot without projection polling', async () => {
       // Arrange
       const bootstrapFixtures = await readFixture('bootstrap-synchronized.json');
-      const pendingResponse = findFixture(bootstrapFixtures.fixtures, 'bootstrap-pending').document;
       const synchronizedResponse = findFixture(
         bootstrapFixtures.fixtures,
         'bootstrap-synchronized',
@@ -39,10 +38,7 @@ describe('ApiEaseProjectApiClient', () => {
       const fetchCalls = [];
       const authenticationHeaderCalls = [];
       const apiEaseProjectApiClient = buildClient({
-        responses: [
-          buildJsonResponse(202, pendingResponse),
-          buildJsonResponse(200, synchronizedResponse),
-        ],
+        responses: [buildJsonResponse(200, synchronizedResponse)],
         requestBodies,
         delays,
         fetchCalls,
@@ -52,14 +48,12 @@ describe('ApiEaseProjectApiClient', () => {
       // Act
       const result = await apiEaseProjectApiClient.bootstrapProject(buildInvocation({
         contractVersion: 1,
-        wakeProjection: true,
       }));
 
       // Assert
       assert.equal(result.outcome, 'PROJECT_BOOTSTRAP_SYNCHRONIZED');
-      assert.deepEqual(delays, [pendingResponse.result.retryAfterMilliseconds]);
-      assert.equal(requestBodies.length, 2);
-      assert.equal(requestBodies[0], requestBodies[1]);
+      assert.deepEqual(delays, []);
+      assert.equal(requestBodies.length, 1);
       assert.deepEqual(authenticationHeaderCalls, [authenticationContext]);
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/projects/bootstrap');
       assert.equal(fetchCalls[0].options.method, 'POST');
@@ -68,6 +62,30 @@ describe('ApiEaseProjectApiClient', () => {
         'x-shop-myshopify-domain': 'fixture.myshopify.com',
         'content-type': 'application/json',
       });
+    });
+
+    it('should reject an obsolete projection-pending response without polling', async () => {
+      // Arrange
+      const bootstrapFixtures = await readFixture('bootstrap-synchronized.json');
+      const pendingResponse = findFixture(bootstrapFixtures.fixtures, 'bootstrap-pending').document;
+      const fetchCalls = [];
+      const delays = [];
+      const apiEaseProjectApiClient = buildClient({
+        responses: [buildJsonResponse(202, pendingResponse)],
+        fetchCalls,
+        delays,
+      });
+
+      // Act
+      const result = await apiEaseProjectApiClient.bootstrapProject(buildInvocation({
+        contractVersion: 1,
+      }));
+
+      // Assert
+      assert.equal(result.outcome, 'CONTRACT_INVALID');
+      assert.deepEqual(result.error.diagnostics, [{ code: 'PROJECT_RESPONSE_STATUS_INVALID' }]);
+      assert.equal(fetchCalls.length, 1);
+      assert.deepEqual(delays, []);
     });
 
     it('should return a stable contract failure without transport for an invalid request', async () => {

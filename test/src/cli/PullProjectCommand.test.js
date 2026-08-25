@@ -59,7 +59,7 @@ describe('PullProjectCommand', () => {
           projectApiInvocation: {
             apiBaseUrl: 'https://apiease.example.com',
             authenticationContext,
-            request: { contractVersion: 1, wakeProjection: true },
+            request: { contractVersion: 1 },
           },
         }],
       ]);

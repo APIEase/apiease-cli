@@ -22,7 +22,7 @@ const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--base-url': 'apiBaseUrl',
   '--shop-domain': 'shopDomain',
 });
-const PROJECT_BOOTSTRAP_REQUEST = Object.freeze({ contractVersion: 1, wakeProjection: true });
+const PROJECT_BOOTSTRAP_REQUEST = Object.freeze({ contractVersion: 1 });
 
 class InitProjectCommand {
   constructor({

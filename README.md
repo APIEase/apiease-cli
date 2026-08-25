@@ -139,7 +139,8 @@ apiease init my-project --from-existing-resources
 - The destination defaults to `.` when `[project-name]` is omitted.
 - The destination must be new or empty. The CLI does not merge this checkout into a populated directory.
 - The CLI performs a real clone of the public `APIEase/apiease-template` repository at `main` and preserves it as a normal Git checkout. It never clones or requests access to an internal customer repository.
-- After cloning, the CLI obtains a synchronized artifact from APIEase, verifies its contract versions, template identity, counts, limits, mappings, exact file digests, and aggregate snapshot digest, and only then publishes the complete direct managed namespace.
+- After cloning, the CLI obtains a stable canonical snapshot directly from APIEase's Mongo authority, verifies its contract versions, template identity, counts, limits, mappings, exact file digests, and aggregate snapshot digest, and only then publishes the complete direct managed namespace.
+- Initialization does not read or wait for the store repository, its GitHub availability, repository provisioning, or asynchronous reconciliation.
 - Template sample files absent from the verified snapshot are removed. Unmanaged template files and local workflow directories remain untouched.
 - Operational Project API state is stored at the path Git resolves for `apiease/project-state-v1.json`, including in linked worktrees. It is ignored local state, not canonical source.
 - Managed files and operational state are not published when artifact verification fails. Operational state is written last after a successful managed overlay.
@@ -168,7 +169,7 @@ Run Project API commands from anywhere inside a checkout created with `apiease i
 apiease pull
 ```
 
-`pull` fetches and verifies the same complete synchronized artifact used by existing-resource initialization. It refuses to change files when the direct managed namespace differs from the ignored local baseline. It does not merge stale local and server source.
+`pull` fetches and verifies the same stable Mongo-authoritative snapshot used by existing-resource initialization. It does not read or wait for the store repository, its GitHub availability, repository provisioning, or asynchronous reconciliation. It refuses to change files when the direct managed namespace differs from the ignored local baseline. It does not merge stale local and server source.
 
 To deliberately discard direct managed-file edits and replace them with the verified server snapshot:
 
@@ -196,7 +197,7 @@ Personal terminal apply is immediate and noninteractive. The CLI builds one comp
 
 After a committed or replayed receipt, the CLI updates ignored local state and archives receipt-proven deletion intent. It does not wait for asynchronous Git projection. Even after successful server validation and atomic persistence, a person must verify affected live resources through the established APIEase execution paths.
 
-The CLI never resolves baseline, resource-version, already-exists, idempotency, or projection conflicts automatically. On conflict, preserve the intended source and deletion files, run a verified `apiease pull`, reconcile deliberately, and run `apiease apply` again. A new invocation is a new logical apply; only an ambiguous retry of the same logical request reuses its operation key.
+The CLI never resolves baseline, resource-version, already-exists, or idempotency conflicts automatically. On conflict, preserve the intended source and deletion files, run a verified `apiease pull`, reconcile deliberately, and run `apiease apply` again. A new invocation is a new logical apply; only an ambiguous retry of the same logical request reuses its operation key.
 
 ### Rename a Bound Resource
 
@@ -498,13 +499,13 @@ Stable Project API exit codes are:
 | `2` | Usage or configuration failure |
 | `3` | Authentication or authorization failure |
 | `4` | Validation or contract failure |
-| `5` | Concurrency, idempotency, already-exists, or projection conflict |
+| `5` | Concurrency, idempotency, or already-exists conflict |
 | `6` | Local integrity, state, Git checkout, or managed-publication failure |
 | `7` | Exhausted retry or service/transport failure |
 
 ## Retries and Deadlines
 
-Eligible requests use one initial attempt plus at most three retries. The default bounded backoff is 250 ms, 500 ms, and 1,000 ms. A `429` response is retried no earlier than its valid `Retry-After` value. Bootstrap pending responses are polled after the exact server-provided delay with the identical logical request. Eligible transport and `503` retries preserve byte-equivalent request input; ambiguous apply retries also preserve the same operation key. Authentication, contract, validation, concurrency, and idempotency conflicts stop immediately.
+Eligible requests use one initial attempt plus at most three retries. The default bounded backoff is 250 ms, 500 ms, and 1,000 ms. A `429` response is retried no earlier than its valid `Retry-After` value. Eligible transport and `503` retries preserve byte-equivalent request input; ambiguous apply retries also preserve the same operation key. Bootstrap returns one stable Mongo snapshot and is never polled for repository readiness or Git projection. Authentication, contract, validation, concurrency, and idempotency conflicts stop immediately.
 
 Default per-request timeouts and overall operation deadlines are:
 

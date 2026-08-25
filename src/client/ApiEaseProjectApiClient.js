@@ -26,7 +26,6 @@ const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   PROJECT_APPLIED: 200,
   PROJECT_APPLY_NO_CHANGE: 200,
   PROJECT_APPLY_REPLAYED: 200,
-  PROJECT_BOOTSTRAP_PENDING: 202,
   PROJECT_BOOTSTRAP_SYNCHRONIZED: 200,
   PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES: 200,
   PROJECT_CHECKPOINT_PUBLISHED: 200,
@@ -245,17 +244,6 @@ class ApiEaseProjectApiClient {
         return attemptResult.result;
       }
 
-      if (attemptResult.kind === 'pending') {
-        const didWait = await this.waitWithinDeadline(
-          attemptResult.delayMilliseconds,
-          requestContext.deadline,
-        );
-        if (!didWait) {
-          return this.buildTransportFailure('PROJECT_OPERATION_DEADLINE_EXCEEDED');
-        }
-        continue;
-      }
-
       if (retryCount >= this.retrySettings.maximumRetries) {
         return attemptResult.kind === 'retryableResponse'
           ? attemptResult.result
@@ -330,13 +318,6 @@ class ApiEaseProjectApiClient {
 
   classifyValidResponse(response, responseDocument) {
     const result = { status: response.status, ...responseDocument };
-    if (responseDocument.outcome === 'PROJECT_BOOTSTRAP_PENDING') {
-      return {
-        kind: 'pending',
-        delayMilliseconds: responseDocument.result.retryAfterMilliseconds,
-      };
-    }
-
     if (response.status === 429 || response.status === 503) {
       return {
         kind: 'retryableResponse',
