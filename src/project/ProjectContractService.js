@@ -10,6 +10,7 @@ const PROJECT_ERROR_SCHEMA_DEFINITION = 'projectErrorResponse';
 const PROJECT_REQUEST_DEFINITION_BY_ENDPOINT = Object.freeze({
   '/api/v1/projects/apply': 'projectApplyRequest',
   '/api/v1/projects/bootstrap': 'projectBootstrapRequest',
+  '/api/v1/projects/design-context': 'projectDesignContextRequest',
   '/api/v1/projects/plan': 'projectPlanRequest',
   '/api/v1/projects/validate': 'projectValidateRequest',
 });
@@ -24,6 +25,9 @@ const PROJECT_SUCCESS_DEFINITION_BY_ENDPOINT_AND_OUTCOME = Object.freeze({
     PROJECT_BOOTSTRAP_SYNCHRONIZED: 'projectBootstrapSynchronizedResponse',
     PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES:
       'projectBootstrapSynchronizedNoResourcesResponse',
+  }),
+  '/api/v1/projects/design-context': Object.freeze({
+    PROJECT_DESIGN_CONTEXT_READY: 'projectDesignContextResponse',
   }),
   '/api/v1/projects/plan': Object.freeze({
     PROJECT_PLAN_NO_CHANGE: 'projectPlanNoChangeResponse',

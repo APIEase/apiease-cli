@@ -39,6 +39,7 @@
         "/api/v1/projects/bootstrap",
         "/api/v1/projects/checkpoints/publish",
         "/api/v1/projects/checkpoints/retrieve",
+        "/api/v1/projects/design-context",
         "/api/v1/projects/design-sessions/cancel",
         "/api/v1/projects/plan",
         "/api/v1/projects/proposals/decision",
@@ -81,6 +82,7 @@
         "PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES",
         "PROJECT_CHECKPOINT_PUBLISHED",
         "PROJECT_CHECKPOINT_RETRIEVED",
+        "PROJECT_DESIGN_CONTEXT_READY",
         "PROJECT_DESIGN_SESSION_CANCELLED",
         "PROJECT_PLAN_NO_CHANGE",
         "PROJECT_PLAN_READY",
@@ -997,6 +999,145 @@
       "properties": {
         "contractVersion": {"const": 1},
         "wakeProjection": {"type": "boolean", "default": false}
+      }
+    },
+    "projectDesignRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "text": {"type": "string", "minLength": 1, "maxLength": 65536}
+      }
+    },
+    "projectDesignRequirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectName", "customerRequirements", "confirmedDecisions"],
+      "properties": {
+        "projectName": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "customerRequirements": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectDesignRequirement"}},
+        "confirmedDecisions": {"type": "array", "maxItems": 1000, "items": {"type": "string", "minLength": 1, "maxLength": 65536}}
+      }
+    },
+    "projectDesignContextRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designContextContractVersion", "projectId", "projectRequirements"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designContextContractVersion": {"const": 1},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "projectRequirements": {"$ref": "#/$defs/projectDesignRequirements"}
+      }
+    },
+    "projectDesignProtocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocolVersion", "commonInstructions", "commonInstructionDigest", "codexEnvelope"],
+      "properties": {
+        "protocolVersion": {"const": "1.0.0"},
+        "commonInstructions": {"type": "string", "minLength": 1, "maxLength": 1000000},
+        "commonInstructionDigest": {"$ref": "#/$defs/digest"},
+        "codexEnvelope": {"type": "string", "minLength": 1, "maxLength": 1000000}
+      }
+    },
+    "projectDesignIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["normalizedShopDomain", "projectId"],
+      "properties": {
+        "normalizedShopDomain": {"type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.myshopify\\.com$"},
+        "projectId": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "projectDesignSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectIdentity", "liveRevision", "snapshotDigest"],
+      "properties": {
+        "projectIdentity": {"$ref": "#/$defs/projectDesignIdentity"},
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
+        "snapshotDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "projectDesignInventoryEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handle", "path", "resourceType", "sourceDigest"],
+      "properties": {
+        "handle": {"$ref": "#/$defs/handle"},
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "sourceDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "projectDesignCanonicalBody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sourceDigest", "source"],
+      "properties": {
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "sourceDigest": {"$ref": "#/$defs/digest"},
+        "source": {"$ref": "#/$defs/canonicalResourceSource"}
+      }
+    },
+    "projectDesignBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "resourceType", "resourceId", "resourceVersion", "handle"],
+      "properties": {
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "handle": {"$ref": "#/$defs/handle"}
+      }
+    },
+    "projectDesignDiagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reasonCodes"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "reasonCodes": {"type": "array", "maxItems": 100, "items": {"type": "string", "minLength": 1, "maxLength": 1024}}
+      }
+    },
+    "projectDesignLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximumFileCount", "maximumAggregateBytes"],
+      "properties": {
+        "maximumFileCount": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "maximumAggregateBytes": {"type": "integer", "minimum": 1, "maximum": 25000000}
+      }
+    },
+    "projectDesignContextResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designContextContractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designContextContractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_DESIGN_CONTEXT_READY"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["protocol", "projectRequirements", "snapshot", "inventory", "canonicalBodies", "bindings", "limits", "diagnostics"],
+          "properties": {
+            "protocol": {"$ref": "#/$defs/projectDesignProtocol"},
+            "projectRequirements": {"$ref": "#/$defs/projectDesignRequirements"},
+            "snapshot": {"$ref": "#/$defs/projectDesignSnapshot"},
+            "inventory": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectDesignInventoryEntry"}},
+            "canonicalBodies": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectDesignCanonicalBody"}},
+            "bindings": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectDesignBinding"}},
+            "limits": {"$ref": "#/$defs/projectDesignLimits"},
+            "diagnostics": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectDesignDiagnostic"}}
+          }
+        }
       }
     },
     "projectStatus": {

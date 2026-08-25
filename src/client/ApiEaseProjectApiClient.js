@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import { ProjectContractService } from '../project/ProjectContractService.js';
 import {
   PROJECT_BEARER_AUTHENTICATION_ACTIONS,
@@ -8,6 +10,7 @@ const PROJECT_API_ENDPOINTS = Object.freeze({
   bootstrap: '/api/v1/projects/bootstrap',
   checkpointPublish: '/api/v1/projects/checkpoints/publish',
   checkpointRetrieve: '/api/v1/projects/checkpoints/retrieve',
+  designContext: '/api/v1/projects/design-context',
   plan: '/api/v1/projects/plan',
   proposalSubmit: '/api/v1/projects/apply',
   pull: '/api/v1/projects/bootstrap',
@@ -30,6 +33,7 @@ const PROJECT_API_STATUS_BY_OUTCOME = Object.freeze({
   PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES: 200,
   PROJECT_CHECKPOINT_PUBLISHED: 200,
   PROJECT_CHECKPOINT_RETRIEVED: 200,
+  PROJECT_DESIGN_CONTEXT_READY: 200,
   PROJECT_PLAN_NO_CHANGE: 200,
   PROJECT_PLAN_READY: 200,
   PROJECT_PROPOSAL_ACCEPTED: 202,
@@ -98,6 +102,10 @@ const DEFAULT_PROJECT_API_OPERATION_LIMITS = Object.freeze({
     requestTimeoutMilliseconds: 120000,
     overallDeadlineMilliseconds: 600000,
   }),
+  designContext: Object.freeze({
+    requestTimeoutMilliseconds: 120000,
+    overallDeadlineMilliseconds: 300000,
+  }),
   plan: Object.freeze({
     requestTimeoutMilliseconds: 60000,
     overallDeadlineMilliseconds: 300000,
@@ -148,6 +156,10 @@ class ApiEaseProjectApiClient {
 
   async validateProject(invocation) {
     return await this.executeProjectRequest('validate', invocation);
+  }
+
+  async retrieveProjectDesignContext(invocation) {
+    return await this.executeProjectRequest('designContext', invocation);
   }
 
   async planProject(invocation) {
@@ -305,7 +317,18 @@ class ApiEaseProjectApiClient {
       return this.buildInvalidResponse('PROJECT_RESPONSE_STATUS_INVALID');
     }
 
+    if (!this.hasValidProjectDesignProtocolDigest(endpoint, responseDocument)) {
+      return this.buildInvalidResponse('PROJECT_DESIGN_PROTOCOL_DIGEST_MISMATCH');
+    }
+
     return this.classifyValidResponse(response, responseDocument);
+  }
+
+  hasValidProjectDesignProtocolDigest(endpoint, responseDocument) {
+    if (endpoint !== PROJECT_API_ENDPOINTS.designContext || !responseDocument.ok) return true;
+    const protocol = responseDocument.result.protocol;
+    const digest = createHash('sha256').update(protocol.commonInstructions, 'utf8').digest('hex');
+    return protocol.commonInstructionDigest === `sha256:${digest}`;
   }
 
   async parseResponseDocument(response) {

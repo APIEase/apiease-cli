@@ -48,7 +48,7 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateProjectApiRequest', () => {
-    it('should validate bootstrap, validate, plan, and apply requests against endpoint definitions', async () => {
+    it('should validate design-context and mutation requests against endpoint definitions', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
@@ -256,7 +256,20 @@ function collectAnnotatedDocuments(value) {
 async function readProjectRequestsByEndpoint() {
   const workflowFixture = await readJson('fixtures/project-workflow-success.json');
   const bootstrapRequest = { contractVersion: 1 };
-  const requestsByEndpoint = new Map([['/api/v1/projects/bootstrap', bootstrapRequest]]);
+  const designContextRequest = {
+    contractVersion: 1,
+    designContextContractVersion: 1,
+    projectId: 'project-1',
+    projectRequirements: {
+      projectName: 'Inventory tools',
+      customerRequirements: [{ id: 'requirement-1', text: 'Keep inventory tools current.' }],
+      confirmedDecisions: ['Preserve the existing protected token.'],
+    },
+  };
+  const requestsByEndpoint = new Map([
+    ['/api/v1/projects/bootstrap', bootstrapRequest],
+    ['/api/v1/projects/design-context', designContextRequest],
+  ]);
 
   for (const pair of workflowFixture.pairs) {
     requestsByEndpoint.set(pair.endpoint, pair.request.document);

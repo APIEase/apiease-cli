@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -102,6 +103,69 @@ describe('ApiEaseProjectApiClient', () => {
       // Assert
       assert.equal(result.outcome, 'CONTRACT_INVALID');
       assert.equal(fetchCalls.length, 0);
+      assert.equal(JSON.stringify(result).includes('protected-value-must-not-appear'), false);
+    });
+  });
+
+  describe('retrieveProjectDesignContext', () => {
+    it('should return the exact verified common instructions, Codex envelope, and context', async () => {
+      // Arrange
+      const responseDocument = buildProjectDesignContextResponse();
+      const fetchCalls = [];
+      const apiEaseProjectApiClient = buildClient({
+        responses: [buildJsonResponse(200, responseDocument)],
+        fetchCalls,
+      });
+
+      // Act
+      const result = await apiEaseProjectApiClient.retrieveProjectDesignContext(
+        buildInvocation(buildProjectDesignContextRequest()),
+      );
+
+      // Assert
+      assert.deepEqual(result.result, responseDocument.result);
+      assert.equal(
+        fetchCalls[0].url,
+        'https://apiease.example.com/root/api/v1/projects/design-context',
+      );
+    });
+
+    it('should reject a protocol version mismatch', async () => {
+      // Arrange
+      const responseDocument = buildProjectDesignContextResponse();
+      responseDocument.result.protocol.protocolVersion = '2.0.0';
+      const apiEaseProjectApiClient = buildClient({
+        responses: [buildJsonResponse(200, responseDocument)],
+      });
+
+      // Act
+      const result = await apiEaseProjectApiClient.retrieveProjectDesignContext(
+        buildInvocation(buildProjectDesignContextRequest()),
+      );
+
+      // Assert
+      assert.deepEqual(result.error.diagnostics, [{
+        code: 'PROJECT_RESPONSE_CONTRACT_INVALID',
+      }]);
+    });
+
+    it('should reject a common-instruction digest mismatch without exposing response content', async () => {
+      // Arrange
+      const responseDocument = buildProjectDesignContextResponse();
+      responseDocument.result.protocol.commonInstructions = 'protected-value-must-not-appear';
+      const apiEaseProjectApiClient = buildClient({
+        responses: [buildJsonResponse(200, responseDocument)],
+      });
+
+      // Act
+      const result = await apiEaseProjectApiClient.retrieveProjectDesignContext(
+        buildInvocation(buildProjectDesignContextRequest()),
+      );
+
+      // Assert
+      assert.deepEqual(result.error.diagnostics, [{
+        code: 'PROJECT_DESIGN_PROTOCOL_DIGEST_MISMATCH',
+      }]);
       assert.equal(JSON.stringify(result).includes('protected-value-must-not-appear'), false);
     });
   });
@@ -682,6 +746,61 @@ function buildErrorResponse(outcome) {
       diagnostics: [],
     },
   };
+}
+
+function buildProjectDesignContextRequest() {
+  return {
+    contractVersion: 1,
+    designContextContractVersion: 1,
+    projectId: 'project-1',
+    projectRequirements: {
+      projectName: 'Inventory tools',
+      customerRequirements: [{
+        id: 'requirement-1',
+        text: 'Keep inventory tools current.',
+      }],
+      confirmedDecisions: ['Preserve the existing protected token.'],
+    },
+  };
+}
+
+function buildProjectDesignContextResponse() {
+  const commonInstructions = 'exact common instructions\n';
+  return {
+    contractVersion: 1,
+    designContextContractVersion: 1,
+    ok: true,
+    outcome: 'PROJECT_DESIGN_CONTEXT_READY',
+    result: {
+      protocol: {
+        protocolVersion: '1.0.0',
+        commonInstructions,
+        commonInstructionDigest: buildTextDigest(commonInstructions),
+        codexEnvelope: 'exact Codex envelope\n',
+      },
+      projectRequirements: buildProjectDesignContextRequest().projectRequirements,
+      snapshot: {
+        projectIdentity: {
+          normalizedShopDomain: 'fixture.myshopify.com',
+          projectId: 'project-1',
+        },
+        liveRevision: 7,
+        snapshotDigest: `sha256:${'b'.repeat(64)}`,
+      },
+      inventory: [],
+      canonicalBodies: [],
+      bindings: [],
+      limits: {
+        maximumFileCount: 1_000,
+        maximumAggregateBytes: 25_000_000,
+      },
+      diagnostics: [],
+    },
+  };
+}
+
+function buildTextDigest(value) {
+  return `sha256:${createHash('sha256').update(value, 'utf8').digest('hex')}`;
 }
 
 function buildWorkerSuccessResponse(outcome) {
