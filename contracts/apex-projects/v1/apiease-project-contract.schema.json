@@ -1,16 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
-  "title": "APIEase Resource API and Apex Projects contract bundle, version 1",
+  "title": "APIEase Project Design and Resource API contract bundle, version 1",
   "$defs": {
     "contractVersions": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["applyReceiptVersion", "artifactEnvelopeVersion", "candidateFormatVersion", "localStateVersion", "projectApiContractVersion", "resourceApiContractVersion"],
+      "required": ["applyReceiptVersion", "artifactEnvelopeVersion", "canonicalResourceChangeSetContractVersion", "localStateVersion", "projectApiContractVersion", "resourceApiContractVersion"],
       "properties": {
         "applyReceiptVersion": {"const": 1},
         "artifactEnvelopeVersion": {"const": 1},
-        "candidateFormatVersion": {"const": 1},
+        "canonicalResourceChangeSetContractVersion": {"const": 1},
         "localStateVersion": {"const": 1},
         "projectApiContractVersion": {"const": 1},
         "resourceApiContractVersion": {"const": 1}
@@ -910,6 +910,65 @@
     "requiredSecureValuesWarning": {
       "const": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
     },
+    "verifiedResourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bindingId", "resourceType", "handle", "resourceId", "expectedResourceVersion"],
+      "properties": {
+        "bindingId": {"$ref": "#/$defs/identity"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "resourceCreate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "source"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "source": {"$ref": "#/$defs/canonicalResourceSource"}
+      }
+    },
+    "resourceUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "bindingId", "source"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "bindingId": {"$ref": "#/$defs/identity"},
+        "source": {"$ref": "#/$defs/canonicalResourceSource"}
+      }
+    },
+    "resourceDelete": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "bindingId"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "bindingId": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "canonicalResourceChangeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "changeSetId", "changeSetDigest", "baseline", "creates", "updates", "deletes", "secureInputs", "verifiedBindings"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "changeSetId": {"$ref": "#/$defs/identity"},
+        "changeSetDigest": {"$ref": "#/$defs/digest"},
+        "baseline": {"$ref": "#/$defs/baseline"},
+        "creates": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceCreate"}},
+        "updates": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceUpdate"}},
+        "deletes": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceDelete"}},
+        "secureInputs": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/secureInput"}},
+        "verifiedBindings": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/verifiedResourceBinding"}}
+      }
+    },
     "projectCandidate": {
       "type": "object",
       "additionalProperties": false,
@@ -999,10 +1058,9 @@
     "artifactManifest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["projectId", "sourceMainCommit", "liveRevision", "snapshotDigest", "fileCount", "resourceFileCount", "totalBytes", "limits", "resources"],
+      "required": ["projectId", "liveRevision", "snapshotDigest", "fileCount", "resourceFileCount", "totalBytes", "limits", "resources"],
       "properties": {
         "projectId": {"$ref": "#/$defs/identity"},
-        "sourceMainCommit": {"$ref": "#/$defs/gitCommit"},
         "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
         "snapshotDigest": {"$ref": "#/$defs/digest"},
         "fileCount": {"type": "integer", "minimum": 1, "maximum": 1000},
@@ -1012,15 +1070,37 @@
         "resources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}}
       }
     },
-    "localState": {
+    "projectIdentity": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["localStateVersion", "projectId", "baseline", "sourceMainCommit", "resources"],
+      "required": ["normalizedShopDomain", "projectId", "templateOwner", "templateRef", "templateRepository"],
+      "properties": {
+        "normalizedShopDomain": {"type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.myshopify\\.com$"},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "templateOwner": {"const": "APIEase"},
+        "templateRef": {"const": "main"},
+        "templateRepository": {"const": "apiease-template"}
+      }
+    },
+    "bootstrapLocalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localStateVersion", "projectId", "baseline", "resources"],
       "properties": {
         "localStateVersion": {"const": 1},
         "projectId": {"$ref": "#/$defs/identity"},
         "baseline": {"$ref": "#/$defs/baseline"},
-        "sourceMainCommit": {"$ref": "#/$defs/gitCommit"},
+        "resources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}}
+      }
+    },
+    "localState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localStateVersion", "projectIdentity", "baseline", "resources"],
+      "properties": {
+        "localStateVersion": {"const": 1},
+        "projectIdentity": {"$ref": "#/$defs/projectIdentity"},
+        "baseline": {"$ref": "#/$defs/baseline"},
         "resources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}}
       }
     },
@@ -1039,16 +1119,20 @@
     "artifactPackage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["artifactEnvelopeVersion", "projectApiVersion", "candidateFormatVersion", "template", "manifest", "files", "skippedResources", "localState"],
+      "required": ["artifactEnvelopeVersion", "projectApiVersion", "template", "projectIdentity", "bindings", "limits", "liveRevision", "snapshotDigest", "manifest", "files", "skippedResources", "localState"],
       "properties": {
         "artifactEnvelopeVersion": {"const": 1},
         "projectApiVersion": {"const": 1},
-        "candidateFormatVersion": {"const": 1},
         "template": {"$ref": "#/$defs/publicTemplate"},
+        "projectIdentity": {"$ref": "#/$defs/projectIdentity"},
+        "bindings": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}},
+        "limits": {"$ref": "#/$defs/artifactLimits"},
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
+        "snapshotDigest": {"$ref": "#/$defs/digest"},
         "manifest": {"$ref": "#/$defs/artifactManifest"},
         "files": {"type": "array", "minItems": 1, "maxItems": 1000, "items": {"$ref": "#/$defs/managedFile"}},
         "skippedResources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/skippedResource"}},
-        "localState": {"$ref": "#/$defs/localState"}
+        "localState": {"$ref": "#/$defs/bootstrapLocalState"}
       }
     },
     "projectBootstrapSynchronizedResponse": {

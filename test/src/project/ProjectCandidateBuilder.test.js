@@ -11,7 +11,7 @@ const VARIABLE_VERSION = 'rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
 
 describe('ProjectCandidateBuilder', () => {
   describe('buildCandidate', () => {
-    it('should build one deterministic complete candidate with immutable authority', async () => {
+    it('should build one deterministic Canonical Resource Change Set from local files', async () => {
       // Arrange
       const fixture = buildFixture();
       const projectCandidateBuilder = buildCandidateBuilder(fixture);
@@ -25,7 +25,7 @@ describe('ProjectCandidateBuilder', () => {
       });
 
       // Assert
-      assert.deepEqual(firstResult.candidate, buildExpectedCandidate(fixture));
+      assert.deepEqual(firstResult.candidate, buildExpectedChangeSet(fixture));
       assert.equal(JSON.stringify(firstResult.candidate), JSON.stringify(secondResult.candidate));
       assert.equal(firstResult.candidateSnapshotDigest, CANDIDATE_DIGEST);
       assert.equal(secondResult.candidateSnapshotDigest, CANDIDATE_DIGEST);
@@ -108,9 +108,10 @@ function buildCandidateBuilder(fixture, {
   return new ProjectCandidateBuilder({
     projectCanonicalArtifactService: {
       parseResourceSource: ({ content }) => JSON.parse(content),
+      serializeCanonicalValue: value => JSON.stringify(sortCanonicalValue(value)),
     },
     projectContractService: candidateValidationResult
-      ? { validateProjectCandidate: () => candidateValidationResult }
+      ? { validateCanonicalResourceChangeSet: () => candidateValidationResult }
       : new ProjectContractService(),
     projectDeletionIntentService: {
       discoverDeletionIntents: async () => ({
@@ -121,7 +122,7 @@ function buildCandidateBuilder(fixture, {
     projectGitCheckoutService: {
       validateProjectCheckout: async () => ({
         repositoryTopLevelPath: '/checkout',
-        localState: structuredClone(fixture.localState),
+      localState: structuredClone(fixture.localState),
       }),
     },
     projectManagedNamespaceService: {
@@ -170,9 +171,14 @@ function buildFixture() {
     files: [metadataFile, requestFile, functionFile],
     localState: {
       localStateVersion: 1,
-      projectId: 'project_fixture',
+      projectIdentity: {
+        normalizedShopDomain: 'merchant.myshopify.com',
+        projectId: 'project_fixture',
+        templateOwner: 'APIEase',
+        templateRef: 'main',
+        templateRepository: 'apiease-template',
+      },
       baseline: { liveRevision: 42, snapshotDigest: BASELINE_DIGEST },
-      sourceMainCommit: '3333333333333333333333333333333333333333',
       resources: [
         {
           path: requestFile.path,
@@ -209,20 +215,42 @@ function buildFixture() {
   };
 }
 
-function buildExpectedCandidate(fixture) {
+function buildExpectedChangeSet(fixture) {
   return {
-    candidateFormatVersion: 1,
+    contractVersion: 1,
+    changeSetId: `change_set_${CANDIDATE_DIGEST.slice('sha256:'.length)}`,
+    changeSetDigest: 'sha256:d0f93117b970def4dfc07a9bd89c914287edb42c0b95287496216f3352c4347b',
     baseline: { liveRevision: 42, snapshotDigest: BASELINE_DIGEST },
-    files: [...fixture.files].sort(comparePath),
-    resourceBindings: [{
-      path: 'resources/requests/renamed-request.json',
-      resourceType: 'request',
-      resourceId: 'request_existing',
-      originalHandle: 'original-request',
-      expectedResourceVersion: REQUEST_VERSION,
+    creates: [{
+      resourceType: 'function',
+      handle: 'new-function',
+      source: JSON.parse(fixture.files[2].content),
     }],
-    deletions: fixture.deletions,
+    updates: [{
+      resourceType: 'request',
+      handle: 'renamed-request',
+      bindingId: 'binding_request_original_request',
+      source: JSON.parse(fixture.files[1].content),
+    }],
+    deletes: [{
+      resourceType: 'variable',
+      handle: 'deleted-variable',
+      bindingId: 'binding_variable_deleted_variable',
+    }],
     secureInputs: fixture.secureInputs,
+    verifiedBindings: [{
+      bindingId: 'binding_request_original_request',
+      resourceType: 'request',
+      handle: 'original-request',
+      resourceId: 'request_existing',
+      expectedResourceVersion: REQUEST_VERSION,
+    }, {
+      bindingId: 'binding_variable_deleted_variable',
+      resourceType: 'variable',
+      handle: 'deleted-variable',
+      resourceId: 'variable_deleted',
+      expectedResourceVersion: VARIABLE_VERSION,
+    }],
   };
 }
 
@@ -239,4 +267,10 @@ function buildFile(filePath, source) {
 
 function comparePath(leftValue, rightValue) {
   return leftValue.path.localeCompare(rightValue.path);
+}
+
+function sortCanonicalValue(value) {
+  if (Array.isArray(value)) return value.map(sortCanonicalValue);
+  if (value === null || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.keys(value).sort().map(key => [key, sortCanonicalValue(value[key])]));
 }

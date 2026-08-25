@@ -192,9 +192,12 @@ class ProjectBootstrapArtifactService {
     const resourceFiles = exactFiles.filter(file => file.path !== PROJECT_METADATA_PATH);
     const manifestResources = artifactPackage.manifest.resources;
     const localStateResources = artifactPackage.localState.resources;
+    const bindings = artifactPackage.bindings;
     this.requireSortedUniquePaths(manifestResources, 'resources');
     this.requireSortedUniquePaths(localStateResources, 'resources');
-    if (!isDeepStrictEqual(manifestResources, localStateResources)) {
+    this.requireSortedUniquePaths(bindings, 'resources');
+    if (!isDeepStrictEqual(manifestResources, localStateResources)
+      || !isDeepStrictEqual(manifestResources, bindings)) {
       throwArtifactError('localStateMismatch');
     }
     if (resourceFiles.length !== manifestResources.length) {
@@ -231,16 +234,18 @@ class ProjectBootstrapArtifactService {
     const recomputedDigest = this.projectCanonicalArtifactService
       .computeResourceSnapshotDigest(digestFiles);
     if (recomputedDigest !== artifactPackage.manifest.snapshotDigest
-      || recomputedDigest !== artifactPackage.localState.baseline.snapshotDigest) {
+      || recomputedDigest !== artifactPackage.localState.baseline.snapshotDigest
+      || recomputedDigest !== artifactPackage.snapshotDigest) {
       throwArtifactError('snapshotMismatch');
     }
   }
 
   verifyLocalStateAndMetadata(artifactPackage, metadata) {
-    const { manifest, localState, template } = artifactPackage;
+    const { manifest, localState, projectIdentity, template } = artifactPackage;
     const stateMatchesManifest = localState.projectId === manifest.projectId
-      && localState.sourceMainCommit === manifest.sourceMainCommit
-      && localState.baseline.liveRevision === manifest.liveRevision;
+      && localState.baseline.liveRevision === manifest.liveRevision
+      && artifactPackage.liveRevision === manifest.liveRevision
+      && projectIdentity.projectId === manifest.projectId;
     if (!stateMatchesManifest) throwArtifactError('localStateMismatch');
     if (metadata.projectId !== localState.projectId
       || !isDeepStrictEqual(readTemplateIdentity(metadata.template), template)) {
@@ -265,7 +270,15 @@ class ProjectBootstrapArtifactService {
   buildVerifiedArtifact(artifactPackage, exactFiles) {
     return {
       files: exactFiles.map(file => ({ ...file, content: Buffer.from(file.content) })),
-      localState: structuredClone(artifactPackage.localState),
+      localState: {
+        localStateVersion: artifactPackage.localState.localStateVersion,
+        projectIdentity: structuredClone(artifactPackage.projectIdentity),
+        baseline: {
+          liveRevision: artifactPackage.liveRevision,
+          snapshotDigest: artifactPackage.snapshotDigest,
+        },
+        resources: structuredClone(artifactPackage.bindings),
+      },
       manifest: structuredClone(artifactPackage.manifest),
       skippedResources: structuredClone(artifactPackage.skippedResources),
       template: structuredClone(artifactPackage.template),

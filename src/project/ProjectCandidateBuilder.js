@@ -1,3 +1,5 @@
+import crypto from 'node:crypto';
+
 import { ProjectCanonicalArtifactService } from './ProjectCanonicalArtifactService.js';
 import { ProjectContractService } from './ProjectContractService.js';
 import { ProjectDeletionIntentService } from './ProjectDeletionIntentService.js';
@@ -6,6 +8,7 @@ import { ProjectManagedNamespaceService } from './ProjectManagedNamespaceService
 import { ProjectSecureInputService } from './ProjectSecureInputService.js';
 
 const PROJECT_METADATA_PATH = '.apiease/project.json';
+const CHANGE_SET_DIGEST_DOMAIN = 'apiease-canonical-resource-change-set-v1';
 
 class ProjectCandidateBuilder {
   constructor({
@@ -41,8 +44,8 @@ class ProjectCandidateBuilder {
     });
     const candidate = this.buildCandidateValue({
       deletionResult,
-      files,
       localState: checkout.localState,
+      managedSnapshotDigest: managedNamespace.snapshotDigest,
       parsedResourceSources,
       secureInputResult,
     });
@@ -90,41 +93,72 @@ class ProjectCandidateBuilder {
 
   buildCandidateValue({
     deletionResult,
-    files,
     localState,
+    managedSnapshotDigest,
     parsedResourceSources,
     secureInputResult,
   }) {
-    return {
-      candidateFormatVersion: 1,
+    const verifiedBindings = this.buildVerifiedBindings(localState.resources);
+    const bindingByPath = new Map(localState.resources.map(binding => (
+      [binding.path, this.buildVerifiedBinding(binding)]
+    )));
+    const operations = this.buildOperations({
+      bindingByPath,
+      deletionResult,
+      parsedResourceSources,
+    });
+    const changeSet = {
+      contractVersion: 1,
+      changeSetId: `change_set_${managedSnapshotDigest.slice('sha256:'.length)}`,
+      changeSetDigest: '',
       baseline: { ...localState.baseline },
-      files,
-      resourceBindings: this.buildResourceBindings({
-        deletionIntents: deletionResult.deletionIntents,
-        localState,
-        parsedResourceSources,
-      }),
-      deletions: this.sortDeletions(deletionResult.deletions),
+      ...operations,
       secureInputs: this.sortSecureInputs(secureInputResult.secureInputs),
+      verifiedBindings,
+    };
+    changeSet.changeSetDigest = this.computeChangeSetDigest(changeSet);
+
+    return changeSet;
+  }
+
+  buildOperations({ bindingByPath, deletionResult, parsedResourceSources }) {
+    const sourcesByPath = new Map(parsedResourceSources.map(source => [source.path, source.source]));
+    const deletionPaths = new Set(deletionResult.deletionIntents.map(intent => intent.sourcePath));
+    const creates = [];
+    const updates = [];
+
+    for (const [sourcePath, source] of sourcesByPath) {
+      const binding = bindingByPath.get(sourcePath);
+      if (binding) this.requireMatchingBinding(binding, source);
+      const operation = { resourceType: source.resourceType, handle: source.handle, source };
+      if (binding) operation.bindingId = binding.bindingId;
+      (binding ? updates : creates).push(operation);
+    }
+    for (const [sourcePath] of bindingByPath) {
+      if (!sourcesByPath.has(sourcePath) && !deletionPaths.has(sourcePath)) {
+        this.throwMissingBoundFile(sourcePath);
+      }
+    }
+
+    return {
+      creates: creates.sort(compareResources),
+      updates: updates.sort(compareResources),
+      deletes: this.buildDeletes(deletionResult.deletions, bindingByPath),
     };
   }
 
-  buildResourceBindings({ deletionIntents, localState, parsedResourceSources }) {
-    const sourcesByPath = new Map(parsedResourceSources.map(source => [source.path, source.source]));
-    const deletionPaths = new Set(deletionIntents.map(intent => intent.sourcePath));
-    const resourceBindings = [];
-
-    for (const localResource of localState.resources) {
-      const source = sourcesByPath.get(localResource.path);
-      if (!source && deletionPaths.has(localResource.path)) continue;
-      if (!source) this.throwMissingBoundFile(localResource.path);
-      this.requireMatchingBinding(localResource, source);
-      resourceBindings.push(this.buildResourceBinding(localResource));
-    }
-
-    return resourceBindings.sort((leftBinding, rightBinding) => (
-      compareText(leftBinding.path, rightBinding.path)
-    ));
+  buildDeletes(deletions, bindingByPath) {
+    return deletions.map(deletion => {
+      const binding = [...bindingByPath.values()].find(value => (
+        value.resourceId === deletion.resourceId
+      ));
+      if (!binding) throwServiceError('PROJECT_CANDIDATE_BINDING_MISMATCH');
+      return {
+        resourceType: binding.resourceType,
+        handle: binding.handle,
+        bindingId: binding.bindingId,
+      };
+    }).sort(compareResources);
   }
 
   requireMatchingBinding(localResource, source) {
@@ -136,13 +170,21 @@ class ProjectCandidateBuilder {
     }
   }
 
-  buildResourceBinding(localResource) {
+  buildVerifiedBindings(localBindings) {
+    return localBindings.map(binding => this.buildVerifiedBinding(binding))
+      .sort((leftBinding, rightBinding) => compareText(
+        leftBinding.bindingId,
+        rightBinding.bindingId,
+      ));
+  }
+
+  buildVerifiedBinding(binding) {
     return {
-      path: localResource.path,
-      resourceType: localResource.resourceType,
-      resourceId: localResource.resourceId,
-      originalHandle: localResource.handle,
-      expectedResourceVersion: localResource.resourceVersion,
+      bindingId: buildBindingId(binding),
+      resourceType: binding.resourceType,
+      handle: binding.handle,
+      resourceId: binding.resourceId,
+      expectedResourceVersion: binding.resourceVersion,
     };
   }
 
@@ -151,10 +193,15 @@ class ProjectCandidateBuilder {
     throwServiceError(code, [{ code, path: resourcePath }]);
   }
 
-  sortDeletions(deletions) {
-    return deletions.map(deletion => ({ ...deletion })).sort((leftDeletion, rightDeletion) => (
-      compareText(buildDeletionIdentity(leftDeletion), buildDeletionIdentity(rightDeletion))
-    ));
+  computeChangeSetDigest(changeSet) {
+    const { changeSetDigest, ...digestIdentity } = changeSet;
+    const canonicalIdentity = this.projectCanonicalArtifactService
+      .serializeCanonicalValue(digestIdentity);
+    const digest = crypto.createHash('sha256')
+      .update(`${CHANGE_SET_DIGEST_DOMAIN}\0${canonicalIdentity}`, 'utf8')
+      .digest('hex');
+
+    return `sha256:${digest}`;
   }
 
   sortSecureInputs(secureInputs) {
@@ -165,20 +212,16 @@ class ProjectCandidateBuilder {
   }
 
   requireValidCandidate(candidate) {
-    const validationResult = this.projectContractService.validateProjectCandidate(candidate);
+    const validationResult = this.projectContractService
+      .validateCanonicalResourceChangeSet(candidate);
     if (!validationResult.ok) {
       throwServiceError('PROJECT_CANDIDATE_INVALID', validationResult.diagnostics);
     }
   }
 }
 
-function buildDeletionIdentity(deletion) {
-  return [
-    deletion.resourceType,
-    deletion.resourceId,
-    deletion.originalHandle,
-    deletion.expectedResourceVersion,
-  ].join('\0');
+function buildBindingId(binding) {
+  return `binding_${binding.resourceType}_${binding.handle.replaceAll('-', '_')}`;
 }
 
 function buildSecureInputIdentity(secureInput) {
@@ -189,6 +232,13 @@ function compareText(leftText, rightText) {
   if (leftText === rightText) return 0;
 
   return leftText < rightText ? -1 : 1;
+}
+
+function compareResources(leftResource, rightResource) {
+  return compareText(
+    `${leftResource.resourceType}:${leftResource.handle}`,
+    `${rightResource.resourceType}:${rightResource.handle}`,
+  );
 }
 
 function throwServiceError(code, diagnostics = [{ code }]) {

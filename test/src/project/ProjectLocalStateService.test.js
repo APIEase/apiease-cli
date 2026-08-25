@@ -6,8 +6,6 @@ import path from 'node:path';
 
 import { ProjectLocalStateService } from '../../../src/project/ProjectLocalStateService.js';
 
-const sourceMainCommit = '0123456789abcdef0123456789abcdef01234567';
-
 describe('ProjectLocalStateService', () => {
   describe('resolveLocalStateLocation', () => {
     it('should use Git to resolve an ordinary checkout state path', async () => {
@@ -156,13 +154,13 @@ describe('ProjectLocalStateService', () => {
   });
 
   describe('deriveCommittedLocalState', () => {
-    it('should use receipt versions and candidate paths while preserving projection provenance', async () => {
+    it('should use receipt versions and candidate paths while preserving project identity', async () => {
       // Arrange
       const workflowFixture = await readWorkflowFixture();
       const applyPair = workflowFixture.pairs.find(pair => pair.name === 'apply');
       const projectLocalStateService = buildService();
       const localState = buildLocalState({
-        projectId: workflowFixture.initialState.projectId,
+        projectIdentity: buildProjectIdentity(workflowFixture.initialState.projectId),
         baseline: workflowFixture.initialState.baseline,
         resources: workflowFixture.initialState.resources,
       });
@@ -178,9 +176,8 @@ describe('ProjectLocalStateService', () => {
       // Assert
       assert.deepEqual(committedLocalState, {
         localStateVersion: 1,
-        projectId: workflowFixture.resultingState.projectId,
+        projectIdentity: buildProjectIdentity(workflowFixture.resultingState.projectId),
         baseline: workflowFixture.resultingState.baseline,
-        sourceMainCommit,
         resources: workflowFixture.resultingState.resources.map(resource => ({
           path: buildResourcePath(resource.resourceType, resource.handle),
           ...resource,
@@ -248,7 +245,7 @@ describe('ProjectLocalStateService', () => {
         ...localState.resources[0],
         path: 'resources/requests/renamed-inventory-sync.json',
       });
-      assert.equal(renamedLocalState.sourceMainCommit, sourceMainCommit);
+      assert.deepEqual(renamedLocalState.projectIdentity, localState.projectIdentity);
       assert.deepEqual(renamedLocalState.baseline, localState.baseline);
     });
 
@@ -278,12 +275,11 @@ function buildService({ gitOutputs = [], gitInvocations = [] } = {}) {
 function buildLocalState(overrides = {}) {
   return {
     localStateVersion: 1,
-    projectId: 'project_workflow_fixture',
+    projectIdentity: buildProjectIdentity('project_workflow_fixture'),
     baseline: {
       liveRevision: 42,
       snapshotDigest: 'sha256:1111111111111111111111111111111111111111111111111111111111111111',
     },
-    sourceMainCommit,
     resources: [{
       path: 'resources/requests/inventory-sync.json',
       resourceType: 'request',
@@ -292,6 +288,16 @@ function buildLocalState(overrides = {}) {
       resourceVersion: 'rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
     }],
     ...overrides,
+  };
+}
+
+function buildProjectIdentity(projectId) {
+  return {
+    normalizedShopDomain: 'fixture.myshopify.com',
+    projectId,
+    templateOwner: 'APIEase',
+    templateRef: 'main',
+    templateRepository: 'apiease-template',
   };
 }
 

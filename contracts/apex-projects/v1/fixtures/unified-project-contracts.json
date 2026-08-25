@@ -1,0 +1,23 @@
+{
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "fixtures": [
+    {
+      "name": "canonical-resource-change-set",
+      "schemaDefinition": "canonicalResourceChangeSet",
+      "document": {
+        "contractVersion": 1,
+        "changeSetId": "change_set_01",
+        "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "baseline": {
+          "liveRevision": 42,
+          "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "creates": [],
+        "updates": [],
+        "deletes": [],
+        "secureInputs": [],
+        "verifiedBindings": []
+      }
+    }
+  ]
+}

@@ -44,9 +44,33 @@ describe('ProjectBootstrapArtifactService', () => {
           verifiedArtifact.files.map(file => file.content),
           expectedResult.files.map(file => Buffer.from(file.content, 'utf8')),
         );
-        assert.deepEqual(verifiedArtifact.localState, expectedResult.localState);
+        assert.deepEqual(verifiedArtifact.localState, {
+          localStateVersion: expectedResult.localState.localStateVersion,
+          projectIdentity: expectedResult.projectIdentity,
+          baseline: {
+            liveRevision: expectedResult.liveRevision,
+            snapshotDigest: expectedResult.snapshotDigest,
+          },
+          resources: expectedResult.bindings,
+        });
         assert.deepEqual(verifiedArtifact.skippedResources, expectedResult.skippedResources);
       });
+    });
+
+    it('should retain Mongo baseline identity and bindings without projection authority', async () => {
+      // Arrange
+      const projectBootstrapArtifactService = new ProjectBootstrapArtifactService();
+      const bootstrapResponse = await readBootstrapResponse();
+
+      // Act
+      const verifiedArtifact = projectBootstrapArtifactService
+        .verifySynchronizedArtifact(bootstrapResponse);
+
+      // Assert
+      assert.equal(verifiedArtifact.localState.baseline.liveRevision, 42);
+      assert.deepEqual(verifiedArtifact.localState.projectIdentity, bootstrapResponse.result.projectIdentity);
+      assert.deepEqual(verifiedArtifact.localState.resources, bootstrapResponse.result.bindings);
+      assert.equal(Object.hasOwn(verifiedArtifact.localState, 'sourceMainCommit'), false);
     });
 
     it('should preserve validated skipped-resource diagnostics', async () => {
@@ -221,6 +245,7 @@ describe('ProjectBootstrapArtifactService', () => {
       const mappingResponse = mutateResponse(bootstrapResponse, response => {
         response.result.manifest.resources[0].handle = 'different-handle';
         response.result.localState.resources[0].handle = 'different-handle';
+        response.result.bindings[0].handle = 'different-handle';
       });
       const stateResponse = mutateResponse(bootstrapResponse, response => {
         response.result.localState.resources[0].resourceVersion = 'rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';

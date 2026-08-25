@@ -145,29 +145,29 @@ describe('ProjectContractService', () => {
     });
   });
 
-  describe('validateProjectCandidate', () => {
-    it('should validate the complete candidate from the authoritative workflow fixture', async () => {
+  describe('validateCanonicalResourceChangeSet', () => {
+    it('should validate the Canonical Resource Change Set from the authoritative fixture', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
-      const candidate = await readWorkflowCandidate();
+      const candidate = await readCanonicalResourceChangeSet();
 
       // Act
-      const validationResult = projectContractService.validateProjectCandidate(candidate);
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(candidate);
 
       // Assert
       assert.deepEqual(validationResult, { ok: true });
     });
 
-    it('should reject an unsupported candidate version', async () => {
+    it('should reject an unsupported change-set contract version', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
-      const candidate = await readWorkflowCandidate();
-      candidate.candidateFormatVersion = 2;
+      const candidate = await readCanonicalResourceChangeSet();
+      candidate.contractVersion = 2;
 
       // Act
-      const validationResult = projectContractService.validateProjectCandidate(candidate);
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(candidate);
 
       // Assert
       assert.equal(validationResult.ok, false);
@@ -180,11 +180,16 @@ describe('ProjectContractService', () => {
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
       const bootstrapFixture = await readBootstrapFixture('bootstrap-synchronized');
+      const bootstrapResult = bootstrapFixture.document.result;
+      const localState = {
+        localStateVersion: bootstrapResult.localState.localStateVersion,
+        projectIdentity: bootstrapResult.projectIdentity,
+        baseline: bootstrapResult.localState.baseline,
+        resources: bootstrapResult.bindings,
+      };
 
       // Act
-      const validationResult = projectContractService.validateLocalState(
-        bootstrapFixture.document.result.localState,
-      );
+      const validationResult = projectContractService.validateLocalState(localState);
 
       // Assert
       assert.deepEqual(validationResult, { ok: true });
@@ -295,6 +300,15 @@ async function readWorkflowCandidate() {
   const workflowFixture = await readJson('fixtures/project-workflow-success.json');
 
   return structuredClone(workflowFixture.pairs[0].request.document.candidate);
+}
+
+async function readCanonicalResourceChangeSet() {
+  const unifiedFixture = await readJson('fixtures/unified-project-contracts.json');
+  const changeSetFixture = unifiedFixture.fixtures.find(
+    fixture => fixture.schemaDefinition === 'canonicalResourceChangeSet',
+  );
+
+  return structuredClone(changeSetFixture.document);
 }
 
 async function readBootstrapFixture(fixtureName) {

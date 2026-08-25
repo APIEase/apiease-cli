@@ -226,9 +226,14 @@ async function buildFixture() {
   await fs.writeFile(currentFilePath, originalContent);
   const localState = {
     localStateVersion: 1,
-    projectId: 'project_fixture',
+    projectIdentity: {
+      normalizedShopDomain: 'fixture.myshopify.com',
+      projectId: 'project_fixture',
+      templateOwner: 'APIEase',
+      templateRef: 'main',
+      templateRepository: 'apiease-template',
+    },
     baseline: { liveRevision: 42, snapshotDigest: BASELINE_DIGEST },
-    sourceMainCommit: '3333333333333333333333333333333333333333',
     resources: [{
       path: 'resources/requests/inventory-sync.json',
       resourceType: 'request',

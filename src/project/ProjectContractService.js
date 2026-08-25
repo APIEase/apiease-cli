@@ -66,6 +66,10 @@ class ProjectContractService {
     return this.validateFixtureDocument('projectCandidate', candidate);
   }
 
+  validateCanonicalResourceChangeSet(changeSet) {
+    return this.validateFixtureDocument('canonicalResourceChangeSet', changeSet);
+  }
+
   validateLocalState(localState) {
     return this.validateFixtureDocument('localState', localState);
   }

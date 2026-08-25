@@ -39,15 +39,36 @@
         "result": {
           "artifactEnvelopeVersion": 1,
           "projectApiVersion": 1,
-          "candidateFormatVersion": 1,
           "template": {
             "owner": "APIEase",
             "repository": "apiease-template",
             "ref": "main"
           },
+          "projectIdentity": {
+            "normalizedShopDomain": "example.myshopify.com",
+            "projectId": "project_01",
+            "templateOwner": "APIEase",
+            "templateRef": "main",
+            "templateRepository": "apiease-template"
+          },
+          "bindings": [
+            {
+              "path": "resources/variables/api-origin.json",
+              "resourceType": "variable",
+              "resourceId": "variable_01",
+              "handle": "api-origin",
+              "resourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            }
+          ],
+          "limits": {
+            "maximumFileCount": 1000,
+            "maximumFileBytes": 1000000,
+            "maximumAggregateBytes": 25000000
+          },
+          "liveRevision": 42,
+          "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea",
           "manifest": {
             "projectId": "project_01",
-            "sourceMainCommit": "0123456789abcdef0123456789abcdef01234567",
             "liveRevision": 42,
             "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea",
             "fileCount": 2,
@@ -105,7 +126,6 @@
               "liveRevision": 42,
               "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea"
             },
-            "sourceMainCommit": "0123456789abcdef0123456789abcdef01234567",
             "resources": [
               {
                 "path": "resources/variables/api-origin.json",
@@ -135,15 +155,28 @@
         "result": {
           "artifactEnvelopeVersion": 1,
           "projectApiVersion": 1,
-          "candidateFormatVersion": 1,
           "template": {
             "owner": "APIEase",
             "repository": "apiease-template",
             "ref": "main"
           },
+          "projectIdentity": {
+            "normalizedShopDomain": "empty-fixture.myshopify.com",
+            "projectId": "project_empty",
+            "templateOwner": "APIEase",
+            "templateRef": "main",
+            "templateRepository": "apiease-template"
+          },
+          "bindings": [],
+          "limits": {
+            "maximumFileCount": 1000,
+            "maximumFileBytes": 1000000,
+            "maximumAggregateBytes": 25000000
+          },
+          "liveRevision": 0,
+          "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9",
           "manifest": {
             "projectId": "project_empty",
-            "sourceMainCommit": "89abcdef0123456789abcdef0123456789abcdef",
             "liveRevision": 0,
             "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9",
             "fileCount": 1,
@@ -172,7 +205,6 @@
               "liveRevision": 0,
               "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9"
             },
-            "sourceMainCommit": "89abcdef0123456789abcdef0123456789abcdef",
             "resources": []
           }
         }
