@@ -1,0 +1,1719 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://apiease.com/contracts/apex-projects/v1/project-api-compatibility.schema.json",
+  "title": "APIEase transitional Project API compatibility adapter, version 1",
+  "$defs": {
+    "contractVersions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applyReceiptVersion", "artifactEnvelopeVersion", "canonicalResourceChangeSetContractVersion", "localStateVersion", "projectApiContractVersion", "resourceApiContractVersion"],
+      "properties": {
+        "applyReceiptVersion": {"const": 1},
+        "artifactEnvelopeVersion": {"const": 1},
+        "canonicalResourceChangeSetContractVersion": {"const": 1},
+        "localStateVersion": {"const": 1},
+        "projectApiContractVersion": {"const": 1},
+        "resourceApiContractVersion": {"const": 1}
+      }
+    },
+    "identity": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,1023}$"
+    },
+    "handle": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "resourceVersion": {
+      "type": "string",
+      "pattern": "^rv1_[A-Za-z0-9_-]{43}$"
+    },
+    "projectApiMethod": {"const": "POST"},
+    "projectApiEndpoint": {
+      "enum": [
+        "/api/v1/projects/apply",
+        "/api/v1/projects/bootstrap",
+        "/api/v1/projects/checkpoints/publish",
+        "/api/v1/projects/checkpoints/retrieve",
+        "/api/v1/projects/design-sessions/cancel",
+        "/api/v1/projects/plan",
+        "/api/v1/projects/proposals/decision",
+        "/api/v1/projects/proposals/review",
+        "/api/v1/projects/validate"
+      ]
+    },
+    "operationKind": {"enum": ["create-if-absent", "delete", "update"]},
+    "authorizationMode": {"enum": ["personal", "worker"]},
+    "personalAuthenticationHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x-apiease-api-key", "x-shop-myshopify-domain"],
+      "properties": {
+        "x-apiease-api-key": {"type": "string", "minLength": 1, "maxLength": 4096},
+        "x-shop-myshopify-domain": {"type": "string", "minLength": 3, "maxLength": 255}
+      }
+    },
+    "workerAuthenticationHeaders": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization"],
+      "properties": {
+        "authorization": {"type": "string", "minLength": 8, "maxLength": 8192, "pattern": "^Bearer [A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"}
+      }
+    },
+    "capabilityAction": {"enum": ["project:bootstrap", "project:pull", "project:validate", "project:plan", "checkpoint:publish", "checkpoint:retrieve", "proposal:submit"]},
+    "designSessionLifecycleState": {"enum": ["queued", "working", "needs_input", "awaiting_review", "stale", "cancelled", "failed", "completed"]},
+    "proposalLifecycleState": {"enum": ["pending", "approved", "rejected", "stale", "cancelled", "applying", "committed", "failed"]},
+    "proposalDecision": {"enum": ["approve", "reject"]},
+    "secureInputMode": {"enum": ["defer", "preserve", "reference", "replace"]},
+    "contentEncoding": {"const": "utf-8"},
+    "terminalOutcome": {
+      "enum": [
+        "PROJECT_APPLIED",
+        "PROJECT_APPLY_NO_CHANGE",
+        "PROJECT_APPLY_REPLAYED",
+        "PROJECT_BOOTSTRAP_PENDING",
+        "PROJECT_BOOTSTRAP_SYNCHRONIZED",
+        "PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES",
+        "PROJECT_CHECKPOINT_PUBLISHED",
+        "PROJECT_CHECKPOINT_RETRIEVED",
+        "PROJECT_DESIGN_SESSION_CANCELLED",
+        "PROJECT_PLAN_NO_CHANGE",
+        "PROJECT_PLAN_READY",
+        "PROJECT_PROPOSAL_ACCEPTED",
+        "PROJECT_PROPOSAL_APPROVED",
+        "PROJECT_PROPOSAL_REJECTED",
+        "PROJECT_PROPOSAL_REVIEW_READY",
+        "PROJECT_VALID",
+        "RESOURCE_CREATED",
+        "RESOURCE_DELETED",
+        "RESOURCE_LISTED",
+        "RESOURCE_NO_CHANGE",
+        "RESOURCE_READ",
+        "RESOURCE_UPDATED"
+      ]
+    },
+    "errorCode": {
+      "enum": [
+        "CANDIDATE_FORMAT_VERSION_UNSUPPORTED",
+        "CONTENT_TYPE_UNSUPPORTED",
+        "CONTRACT_INVALID",
+        "CONTRACT_VERSION_UNSUPPORTED",
+        "INVALID_JSON",
+        "METHOD_NOT_ALLOWED",
+        "PAYLOAD_TOO_LARGE",
+        "PROJECT_AGGREGATE_SIZE_EXCEEDED",
+        "PROJECT_BASELINE_CONFLICT",
+        "PROJECT_CANDIDATE_INVALID",
+        "PROJECT_CHECKPOINT_CONFLICT",
+        "PROJECT_CHECKPOINT_INVALID",
+        "PROJECT_DEPENDENCY_INVALID",
+        "PROJECT_FILE_COUNT_EXCEEDED",
+        "PROJECT_FILE_SIZE_EXCEEDED",
+        "PROJECT_IDEMPOTENCY_CONFLICT",
+        "PROJECT_NOT_FOUND",
+        "PROJECT_PROJECTION_CONFLICT",
+        "PROJECT_PROJECTION_UNAVAILABLE",
+        "PROJECT_PROPOSAL_APPROVAL_BINDING_MISMATCH",
+        "PROJECT_PROPOSAL_CANCELLED",
+        "PROJECT_PROPOSAL_DECISION_CONFLICT",
+        "PROJECT_PROPOSAL_NOT_FOUND",
+        "PROJECT_PROPOSAL_STALE",
+        "PROJECT_PROPOSAL_SUPERSEDED",
+        "PROJECT_SECURE_INPUT_INVALID",
+        "PROJECT_WORKER_AUTHORITY_UNAVAILABLE",
+        "RATE_LIMITED",
+        "RESOURCE_ALREADY_EXISTS",
+        "RESOURCE_NOT_FOUND",
+        "RESOURCE_VALIDATION_FAILED",
+        "RESOURCE_VERSION_CONFLICT",
+        "SERVICE_UNAVAILABLE",
+        "UNAUTHENTICATED",
+        "UNAUTHORIZED",
+        "WORKER_CAPABILITY_ACTION_FORBIDDEN",
+        "WORKER_CAPABILITY_CANCELLED",
+        "WORKER_CAPABILITY_CONTEXT_MISMATCH",
+        "WORKER_CAPABILITY_EXPIRED",
+        "WORKER_CAPABILITY_INVALID_SIGNATURE",
+        "WORKER_CAPABILITY_MALFORMED",
+        "WORKER_CAPABILITY_NOT_YET_VALID",
+        "WORKER_CAPABILITY_REPLAY",
+        "WORKER_CAPABILITY_REVOKED",
+        "WORKER_CAPABILITY_STALE_FENCE"
+      ]
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "gitCommit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40,64}$"
+    },
+    "resourceType": {
+      "enum": ["function", "request", "variable", "widget"]
+    },
+    "projectResourceType": {
+      "enum": ["request", "variable"]
+    },
+    "nonnegativeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "boundedString": {
+      "type": "string",
+      "maxLength": 65536
+    },
+    "shortString": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "nullableShortString": {
+      "type": ["string", "null"],
+      "maxLength": 1024
+    },
+    "managedPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?:\\.apiease/project\\.json|resources/(?:functions|requests|variables|widgets)/[a-z0-9]+(?:-[a-z0-9]+)*\\.json)$"
+    },
+    "resourcePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^resources/(?:functions|requests|variables|widgets)/[a-z0-9]+(?:-[a-z0-9]+)*\\.json$"
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["liveRevision", "snapshotDigest"],
+      "properties": {
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
+        "snapshotDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "publicTemplate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "repository", "ref"],
+      "properties": {
+        "owner": {"const": "APIEase"},
+        "repository": {"const": "apiease-template"},
+        "ref": {"const": "main"}
+      }
+    },
+    "protectedValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": {"const": "preserve"}
+      }
+    },
+    "requestParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "sensitive", "value"],
+      "properties": {
+        "type": {"$ref": "#/$defs/shortString"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "sensitive": {"type": "boolean"},
+        "value": {
+          "oneOf": [
+            {"$ref": "#/$defs/boundedString"},
+            {"$ref": "#/$defs/protectedValue"}
+          ]
+        }
+      }
+    },
+    "requestTrigger": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "cron"],
+          "properties": {
+            "type": {"const": "cron"},
+            "cron": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["value"],
+              "properties": {"value": {"$ref": "#/$defs/shortString"}}
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "proxyEndpoint"],
+          "properties": {
+            "type": {"const": "proxyEndpoint"},
+            "proxyEndpoint": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "method", "authenticated"],
+              "properties": {
+                "path": {"$ref": "#/$defs/shortString"},
+                "method": {"$ref": "#/$defs/shortString"},
+                "authenticated": {"type": "boolean"}
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "storefrontAppProxy"],
+          "properties": {
+            "type": {"const": "storefrontAppProxy"},
+            "storefrontAppProxy": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sensitiveRequest": {"type": "boolean"},
+                "sensitiveResponse": {"type": "boolean"}
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "webhook"],
+          "properties": {
+            "type": {"const": "webhook"},
+            "webhook": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["event"],
+              "properties": {"event": {"$ref": "#/$defs/shortString"}}
+            }
+          }
+        }
+      ]
+    },
+    "functionParameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "description", "type"],
+      "properties": {
+        "name": {"$ref": "#/$defs/shortString"},
+        "description": {"$ref": "#/$defs/boundedString"},
+        "type": {"$ref": "#/$defs/shortString"}
+      }
+    },
+    "canonicalRequestSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "formatVersion", "resourceType", "handle", "name", "type", "parameters", "triggers"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "formatVersion": {"const": 1},
+        "resourceType": {"const": "request"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "type": {"$ref": "#/$defs/shortString"},
+        "method": {"$ref": "#/$defs/shortString"},
+        "address": {"$ref": "#/$defs/boundedString"},
+        "liquid": {"$ref": "#/$defs/boundedString"},
+        "parameters": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/requestParameter"}},
+        "triggers": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/requestTrigger"}},
+        "nextRequestHandle": {"$ref": "#/$defs/handle"}
+      }
+    },
+    "canonicalWidgetSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "formatVersion", "resourceType", "handle", "name", "liquid", "javascript", "externalJavascriptUrls", "disableJavascript"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "formatVersion": {"const": 1},
+        "resourceType": {"const": "widget"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "liquid": {"$ref": "#/$defs/boundedString"},
+        "javascript": {"$ref": "#/$defs/boundedString"},
+        "externalJavascriptUrls": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/boundedString"}},
+        "disableJavascript": {"type": "boolean"}
+      }
+    },
+    "canonicalVariableSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "formatVersion", "resourceType", "handle", "name", "sensitive", "value"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "formatVersion": {"const": 1},
+        "resourceType": {"const": "variable"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "sensitive": {"type": "boolean"},
+        "value": {
+          "oneOf": [
+            {"$ref": "#/$defs/boundedString"},
+            {"$ref": "#/$defs/protectedValue"}
+          ]
+        }
+      }
+    },
+    "canonicalFunctionSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "formatVersion", "resourceType", "handle", "name", "description", "type", "liquid", "parameters"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "formatVersion": {"const": 1},
+        "resourceType": {"const": "function"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "description": {"$ref": "#/$defs/boundedString"},
+        "type": {"$ref": "#/$defs/shortString"},
+        "liquid": {"$ref": "#/$defs/boundedString"},
+        "parameters": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/functionParameter"}}
+      }
+    },
+    "canonicalResourceSource": {
+      "oneOf": [
+        {"$ref": "#/$defs/canonicalRequestSource"},
+        {"$ref": "#/$defs/canonicalWidgetSource"},
+        {"$ref": "#/$defs/canonicalVariableSource"},
+        {"$ref": "#/$defs/canonicalFunctionSource"}
+      ]
+    },
+    "resourceRequestParameterInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": {"enum": ["path", "query", "header", "body", "flow", "liquid", "system"]},
+        "name": {"$ref": "#/$defs/shortString"},
+        "value": {"$ref": "#/$defs/boundedString"},
+        "sensitive": {"type": "boolean"}
+      }
+    },
+    "resourceRequestDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identity"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "type": {"enum": ["http", "flow", "liquid", "system"]},
+        "method": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "address": {"type": "string", "minLength": 1, "maxLength": 65536},
+        "liquid": {"type": "string", "minLength": 1, "maxLength": 1000000},
+        "nextRequest": {"$ref": "#/$defs/shortString"},
+        "parameters": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceRequestParameterInput"}},
+        "triggers": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/requestTrigger"}}
+      }
+    },
+    "resourceWidgetDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handle", "name", "liquid"],
+      "properties": {
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "liquid": {"type": "string", "minLength": 1, "maxLength": 1000000},
+        "javascript": {"type": "string", "maxLength": 1000000},
+        "externalJavascriptUrls": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/boundedString"}},
+        "disableJavascript": {"type": "boolean"}
+      }
+    },
+    "resourceVariableDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sensitive"],
+      "properties": {
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "value": {"$ref": "#/$defs/boundedString"},
+        "sensitive": {"type": "boolean"},
+        "displayValue": {"$ref": "#/$defs/boundedString"}
+      }
+    },
+    "resourceFunctionDraft": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "type", "liquid"],
+      "properties": {
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "description": {"$ref": "#/$defs/boundedString"},
+        "type": {"const": "liquid"},
+        "liquid": {"type": "string", "minLength": 1, "maxLength": 1000000},
+        "parameters": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "type"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1, "maxLength": 1024},
+              "description": {"$ref": "#/$defs/boundedString"},
+              "type": {"enum": ["string", "number", "boolean", "object", "array"]}
+            }
+          }
+        }
+      }
+    },
+    "resourceDraft": {
+      "anyOf": [
+        {"$ref": "#/$defs/resourceRequestDraft"},
+        {"$ref": "#/$defs/resourceWidgetDraft"},
+        {"$ref": "#/$defs/resourceVariableDraft"},
+        {"$ref": "#/$defs/resourceFunctionDraft"}
+      ]
+    },
+    "editableRequestParameter": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "sensitive", "value"],
+          "properties": {
+            "id": {"$ref": "#/$defs/identity"},
+            "type": {"enum": ["path", "query", "header", "body", "flow", "liquid", "system"]},
+            "name": {"$ref": "#/$defs/shortString"},
+            "sensitive": {"const": false},
+            "value": {"$ref": "#/$defs/boundedString"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "sensitive", "displayValue"],
+          "properties": {
+            "id": {"$ref": "#/$defs/identity"},
+            "type": {"enum": ["path", "query", "header", "body", "flow", "liquid", "system"]},
+            "name": {"$ref": "#/$defs/shortString"},
+            "sensitive": {"const": true},
+            "displayValue": {"$ref": "#/$defs/boundedString"}
+          }
+        }
+      ]
+    },
+    "editableRequestTrigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identity"},
+        "type": {"enum": ["webhook", "cron", "proxyEndpoint", "storefrontAppProxy"]},
+        "webhook": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["event"],
+          "properties": {"event": {"$ref": "#/$defs/shortString"}}
+        },
+        "cron": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {"value": {"$ref": "#/$defs/shortString"}}
+        },
+        "proxyEndpoint": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "method", "authenticated"],
+          "properties": {
+            "path": {"$ref": "#/$defs/shortString"},
+            "method": {"$ref": "#/$defs/shortString"},
+            "authenticated": {"type": "boolean"}
+          }
+        },
+        "storefrontAppProxy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "systemGenerated": {"type": "boolean"},
+            "systemGeneratedAt": {"$ref": "#/$defs/shortString"},
+            "systemGeneratedReason": {"$ref": "#/$defs/shortString"},
+            "sensitiveRequest": {"type": "boolean"},
+            "sensitiveResponse": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "editableRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "resourceVersion", "handle", "name", "type", "method", "address", "liquid", "nextRequest", "parameters", "triggers"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identity"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "type": {"enum": ["http", "flow", "liquid", "system"]},
+        "method": {"$ref": "#/$defs/shortString"},
+        "address": {"$ref": "#/$defs/boundedString"},
+        "liquid": {"$ref": "#/$defs/boundedString"},
+        "nextRequest": {"$ref": "#/$defs/shortString"},
+        "parameters": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/editableRequestParameter"}},
+        "triggers": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/editableRequestTrigger"}}
+      }
+    },
+    "editableWidget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "resourceVersion", "handle", "name", "liquid", "javascript", "externalJavascriptUrls", "disableJavascript"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identity"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "liquid": {"$ref": "#/$defs/boundedString"},
+        "javascript": {"$ref": "#/$defs/boundedString"},
+        "externalJavascriptUrls": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/boundedString"}},
+        "disableJavascript": {"type": "boolean"}
+      }
+    },
+    "editableVariable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "resourceVersion", "handle", "name", "sensitive", "value", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identity"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "sensitive": {"type": "boolean"},
+        "value": {"oneOf": [{"$ref": "#/$defs/boundedString"}, {"$ref": "#/$defs/protectedValue"}]},
+        "displayValue": {"$ref": "#/$defs/boundedString"},
+        "createdAt": {"type": ["string", "null"], "maxLength": 1024},
+        "updatedAt": {"type": ["string", "null"], "maxLength": 1024}
+      }
+    },
+    "editableFunction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "resourceVersion", "handle", "name", "description", "type", "liquid", "parameters", "createdAt", "updatedAt"],
+      "properties": {
+        "id": {"$ref": "#/$defs/identity"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "name": {"$ref": "#/$defs/shortString"},
+        "description": {"$ref": "#/$defs/boundedString"},
+        "type": {"const": "liquid"},
+        "liquid": {"$ref": "#/$defs/boundedString"},
+        "parameters": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/functionParameter"}},
+        "createdAt": {"type": ["string", "null"], "maxLength": 1024},
+        "updatedAt": {"type": ["string", "null"], "maxLength": 1024}
+      }
+    },
+    "editableResource": {
+      "oneOf": [
+        {"$ref": "#/$defs/editableRequest"},
+        {"$ref": "#/$defs/editableWidget"},
+        {"$ref": "#/$defs/editableVariable"},
+        {"$ref": "#/$defs/editableFunction"}
+      ]
+    },
+    "resourceCreateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "operation", "resource"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "operation": {"const": "create-if-absent"},
+        "resource": {"$ref": "#/$defs/resourceDraft"}
+      }
+    },
+    "resourceUpdateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "expectedResourceVersion", "resource"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "resource": {"$ref": "#/$defs/resourceDraft"}
+      }
+    },
+    "resourceDeleteRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "expectedResourceVersion"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "resourceReadResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "resource"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resource": {"$ref": "#/$defs/editableResource"}
+      }
+    },
+    "resourceListResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "resources"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resources": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/editableResource"}}
+      }
+    },
+    "resourceMutationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "resource", "resourceVersion"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resource": {"$ref": "#/$defs/editableResource"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"}
+      }
+    },
+    "resourceDeleteResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "id", "handle"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "id": {"$ref": "#/$defs/identity"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"}
+      }
+    },
+    "resourceReadResponse": {
+      "$ref": "#/$defs/resourceSuccessEnvelopeRead"
+    },
+    "resourceSuccessEnvelopeRead": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "RESOURCE_READ"},
+        "result": {"$ref": "#/$defs/resourceReadResult"}
+      }
+    },
+    "resourceListResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "RESOURCE_LISTED"},
+        "result": {"$ref": "#/$defs/resourceListResult"}
+      }
+    },
+    "resourceMutationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"enum": ["RESOURCE_CREATED", "RESOURCE_UPDATED", "RESOURCE_NO_CHANGE"]},
+        "result": {"$ref": "#/$defs/resourceMutationResult"}
+      }
+    },
+    "resourceDeleteResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "RESOURCE_DELETED"},
+        "result": {"$ref": "#/$defs/resourceDeleteResult"}
+      }
+    },
+    "fieldError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "code", "message"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1, "maxLength": 256},
+        "code": {"type": "string", "minLength": 1, "maxLength": 256},
+        "message": {"type": "string", "minLength": 1, "maxLength": 256}
+      }
+    },
+    "conflictDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "id": {"$ref": "#/$defs/identity"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "currentResourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "path": {"$ref": "#/$defs/shortString"},
+        "fieldPath": {"$ref": "#/$defs/shortString"},
+        "operationIndex": {"$ref": "#/$defs/nonnegativeInteger"}
+      }
+    },
+    "resourceError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message"],
+      "properties": {
+        "code": {
+          "enum": ["INVALID_JSON", "CONTRACT_INVALID", "CONTRACT_VERSION_UNSUPPORTED", "UNAUTHENTICATED", "UNAUTHORIZED", "RESOURCE_NOT_FOUND", "METHOD_NOT_ALLOWED", "RESOURCE_ALREADY_EXISTS", "RESOURCE_VERSION_CONFLICT", "PAYLOAD_TOO_LARGE", "CONTENT_TYPE_UNSUPPORTED", "RESOURCE_VALIDATION_FAILED", "SERVICE_UNAVAILABLE"]
+        },
+        "message": {"type": "string", "minLength": 1, "maxLength": 256},
+        "fieldErrors": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/fieldError"}},
+        "details": {"type": "array", "maxItems": 50, "items": {"$ref": "#/$defs/conflictDetail"}}
+      }
+    },
+    "resourceErrorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "error"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": false},
+        "outcome": {"$ref": "#/$defs/resourceErrorCode"},
+        "error": {"$ref": "#/$defs/resourceError"}
+      }
+    },
+    "resourceErrorCode": {
+      "enum": ["INVALID_JSON", "CONTRACT_INVALID", "CONTRACT_VERSION_UNSUPPORTED", "UNAUTHENTICATED", "UNAUTHORIZED", "RESOURCE_NOT_FOUND", "METHOD_NOT_ALLOWED", "RESOURCE_ALREADY_EXISTS", "RESOURCE_VERSION_CONFLICT", "PAYLOAD_TOO_LARGE", "CONTENT_TYPE_UNSUPPORTED", "RESOURCE_VALIDATION_FAILED", "SERVICE_UNAVAILABLE"]
+    },
+    "managedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "encoding", "content", "digest"],
+      "properties": {
+        "path": {"$ref": "#/$defs/managedPath"},
+        "encoding": {"$ref": "#/$defs/contentEncoding"},
+        "content": {"type": "string", "maxLength": 1000000},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "metadataManagedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "encoding", "content", "digest"],
+      "properties": {
+        "path": {"const": ".apiease/project.json"},
+        "encoding": {"$ref": "#/$defs/contentEncoding"},
+        "content": {"type": "string", "maxLength": 1000000},
+        "digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "resourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "resourceType", "resourceId", "originalHandle", "expectedResourceVersion"],
+      "properties": {
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "originalHandle": {"$ref": "#/$defs/handle"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "deletion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "resourceId", "originalHandle", "expectedResourceVersion"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "originalHandle": {"$ref": "#/$defs/handle"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "secureInputPreserve": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath", "mode"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"},
+        "mode": {"const": "preserve"}
+      }
+    },
+    "secureInputDefer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath", "mode"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"},
+        "mode": {"const": "defer"}
+      }
+    },
+    "secureInputReplace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath", "mode", "value"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"},
+        "mode": {"const": "replace"},
+        "value": {"$ref": "#/$defs/boundedString"}
+      }
+    },
+    "secureInputReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath", "mode", "sourceResourceType", "sourceResourceId", "sourceFieldPath", "sourceExpectedResourceVersion"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"},
+        "mode": {"const": "reference"},
+        "sourceResourceType": {"$ref": "#/$defs/projectResourceType"},
+        "sourceResourceId": {"$ref": "#/$defs/identity"},
+        "sourceFieldPath": {"$ref": "#/$defs/protectedFieldPath"},
+        "sourceExpectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "protectedFieldPath": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^(?:value|parameters\\.[^.]+\\.value)$"
+    },
+    "secureInput": {
+      "oneOf": [
+        {"$ref": "#/$defs/secureInputDefer"},
+        {"$ref": "#/$defs/secureInputPreserve"},
+        {"$ref": "#/$defs/secureInputReplace"},
+        {"$ref": "#/$defs/secureInputReference"}
+      ]
+    },
+    "requiredSecureValueSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "fieldPath"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/projectResourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/protectedFieldPath"}
+      }
+    },
+    "requiredSecureValues": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {"$ref": "#/$defs/requiredSecureValueSelector"}
+    },
+    "requiredSecureValuesWarning": {
+      "const": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
+    },
+    "verifiedResourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bindingId", "resourceType", "handle", "resourceId", "expectedResourceVersion"],
+      "properties": {
+        "bindingId": {"$ref": "#/$defs/identity"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "resourceCreate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "source"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "source": {"$ref": "#/$defs/canonicalResourceSource"}
+      }
+    },
+    "resourceUpdate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "bindingId", "source"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "bindingId": {"$ref": "#/$defs/identity"},
+        "source": {"$ref": "#/$defs/canonicalResourceSource"}
+      }
+    },
+    "resourceDelete": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "handle", "bindingId"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "bindingId": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "canonicalResourceChangeSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "changeSetId", "changeSetDigest", "baseline", "creates", "updates", "deletes", "secureInputs", "verifiedBindings"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "changeSetId": {"$ref": "#/$defs/identity"},
+        "changeSetDigest": {"$ref": "#/$defs/digest"},
+        "baseline": {"$ref": "#/$defs/baseline"},
+        "creates": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceCreate"}},
+        "updates": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceUpdate"}},
+        "deletes": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceDelete"}},
+        "secureInputs": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/secureInput"}},
+        "verifiedBindings": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/verifiedResourceBinding"}}
+      }
+    },
+    "projectCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidateFormatVersion", "baseline", "files", "resourceBindings", "deletions", "secureInputs"],
+      "properties": {
+        "candidateFormatVersion": {"const": 1},
+        "baseline": {"$ref": "#/$defs/baseline"},
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "items": {"$ref": "#/$defs/managedFile"},
+          "contains": {"$ref": "#/$defs/metadataManagedFile"},
+          "minContains": 1,
+          "maxContains": 1
+        },
+        "resourceBindings": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/resourceBinding"}},
+        "deletions": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/deletion"}},
+        "secureInputs": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/secureInput"}}
+      }
+    },
+    "projectBootstrapRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "wakeProjection": {"type": "boolean", "default": false}
+      }
+    },
+    "projectStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["synchronized"],
+      "properties": {
+        "errorClassification": {"$ref": "#/$defs/nullableShortString"},
+        "lifecycle": {"$ref": "#/$defs/nullableShortString"},
+        "liveRevision": {"type": ["integer", "null"], "minimum": 0, "maximum": 9007199254740991},
+        "projectId": {"oneOf": [{"$ref": "#/$defs/identity"}, {"type": "null"}]},
+        "projectedRevision": {"type": ["integer", "null"], "minimum": 0, "maximum": 9007199254740991},
+        "repositoryState": {"$ref": "#/$defs/nullableShortString"},
+        "repositoryVerified": {"type": ["boolean", "null"]},
+        "synchronized": {"const": false}
+      }
+    },
+    "projectBootstrapPendingResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_BOOTSTRAP_PENDING"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["project", "retryAfterMilliseconds"],
+          "properties": {
+            "project": {"$ref": "#/$defs/projectStatus"},
+            "retryAfterMilliseconds": {"type": "integer", "minimum": 1, "maximum": 3600000}
+          }
+        }
+      }
+    },
+    "artifactResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "resourceType", "resourceId", "handle", "resourceVersion"],
+      "properties": {
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "resourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "artifactLimits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["maximumFileCount", "maximumFileBytes", "maximumAggregateBytes"],
+      "properties": {
+        "maximumFileCount": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "maximumFileBytes": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "maximumAggregateBytes": {"type": "integer", "minimum": 1, "maximum": 25000000}
+      }
+    },
+    "artifactManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["projectId", "liveRevision", "snapshotDigest", "fileCount", "resourceFileCount", "totalBytes", "limits", "resources"],
+      "properties": {
+        "projectId": {"$ref": "#/$defs/identity"},
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
+        "snapshotDigest": {"$ref": "#/$defs/digest"},
+        "fileCount": {"type": "integer", "minimum": 1, "maximum": 1000},
+        "resourceFileCount": {"type": "integer", "minimum": 0, "maximum": 999},
+        "totalBytes": {"type": "integer", "minimum": 0, "maximum": 25000000},
+        "limits": {"$ref": "#/$defs/artifactLimits"},
+        "resources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}}
+      }
+    },
+    "projectIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["normalizedShopDomain", "projectId", "templateOwner", "templateRef", "templateRepository"],
+      "properties": {
+        "normalizedShopDomain": {"type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.myshopify\\.com$"},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "templateOwner": {"const": "APIEase"},
+        "templateRef": {"const": "main"},
+        "templateRepository": {"const": "apiease-template"}
+      }
+    },
+    "bootstrapLocalState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localStateVersion", "projectId", "baseline", "resources"],
+      "properties": {
+        "localStateVersion": {"const": 1},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "baseline": {"$ref": "#/$defs/baseline"},
+        "resources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}}
+      }
+    },
+    "localState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["localStateVersion", "projectIdentity", "baseline", "resources"],
+      "properties": {
+        "localStateVersion": {"const": 1},
+        "projectIdentity": {"$ref": "#/$defs/projectIdentity"},
+        "baseline": {"$ref": "#/$defs/baseline"},
+        "resources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}}
+      }
+    },
+    "skippedResource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resourceType", "resourceId", "diagnostics"],
+      "properties": {
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "diagnostics": {"type": "array", "minItems": 1, "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}}
+      }
+    },
+    "artifactPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactEnvelopeVersion", "projectApiVersion", "template", "projectIdentity", "bindings", "limits", "liveRevision", "snapshotDigest", "manifest", "files", "skippedResources", "localState"],
+      "properties": {
+        "artifactEnvelopeVersion": {"const": 1},
+        "projectApiVersion": {"const": 1},
+        "template": {"$ref": "#/$defs/publicTemplate"},
+        "projectIdentity": {"$ref": "#/$defs/projectIdentity"},
+        "bindings": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/artifactResource"}},
+        "limits": {"$ref": "#/$defs/artifactLimits"},
+        "liveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
+        "snapshotDigest": {"$ref": "#/$defs/digest"},
+        "manifest": {"$ref": "#/$defs/artifactManifest"},
+        "files": {"type": "array", "minItems": 1, "maxItems": 1000, "items": {"$ref": "#/$defs/managedFile"}},
+        "skippedResources": {"type": "array", "maxItems": 999, "items": {"$ref": "#/$defs/skippedResource"}},
+        "localState": {"$ref": "#/$defs/bootstrapLocalState"}
+      }
+    },
+    "projectBootstrapSynchronizedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_BOOTSTRAP_SYNCHRONIZED"},
+        "result": {"$ref": "#/$defs/artifactPackage"}
+      }
+    },
+    "projectBootstrapSynchronizedNoResourcesResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES"},
+        "result": {"$ref": "#/$defs/artifactPackage"}
+      }
+    },
+    "projectCandidateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "candidate"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "candidate": {"$ref": "#/$defs/projectCandidate"}
+      }
+    },
+    "projectValidateRequest": {"$ref": "#/$defs/projectCandidateRequest"},
+    "projectPlanRequest": {"$ref": "#/$defs/projectCandidateRequest"},
+    "validationSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fileCount", "resourceCount", "createCount", "updateCount", "deleteCount", "totalBytes"],
+      "properties": {
+        "fileCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "resourceCount": {"type": "integer", "minimum": 0, "maximum": 999},
+        "createCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "updateCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "deleteCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "totalBytes": {"type": "integer", "minimum": 0, "maximum": 25000000}
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": {"type": "string", "minLength": 1, "maxLength": 256},
+        "path": {"$ref": "#/$defs/shortString"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "fieldPath": {"$ref": "#/$defs/shortString"},
+        "operationIndex": {"type": "integer", "minimum": 0, "maximum": 999}
+      }
+    },
+    "projectValidateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_VALID"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["candidateFormatVersion", "baseline", "summary", "diagnostics", "requiredSecureValues", "requiredSecureValuesWarning"],
+          "properties": {
+            "candidateFormatVersion": {"const": 1},
+            "baseline": {"$ref": "#/$defs/baseline"},
+            "summary": {"$ref": "#/$defs/validationSummary"},
+            "diagnostics": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}},
+            "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+            "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+          }
+        }
+      }
+    },
+    "createOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "resourceType", "path", "handle", "sourceFileDigest"],
+      "properties": {
+        "operation": {"const": "create-if-absent"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "sourceFileDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "updateOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "resourceType", "path", "resourceId", "originalHandle", "handle", "expectedResourceVersion", "sourceFileDigest"],
+      "properties": {
+        "operation": {"const": "update"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "originalHandle": {"$ref": "#/$defs/handle"},
+        "handle": {"$ref": "#/$defs/handle"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"},
+        "sourceFileDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "deleteOperation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "resourceType", "path", "resourceId", "originalHandle", "expectedResourceVersion"],
+      "properties": {
+        "operation": {"const": "delete"},
+        "resourceType": {"$ref": "#/$defs/resourceType"},
+        "path": {"$ref": "#/$defs/resourcePath"},
+        "resourceId": {"$ref": "#/$defs/identity"},
+        "originalHandle": {"$ref": "#/$defs/handle"},
+        "expectedResourceVersion": {"$ref": "#/$defs/resourceVersion"}
+      }
+    },
+    "projectOperation": {
+      "oneOf": [
+        {"$ref": "#/$defs/createOperation"},
+        {"$ref": "#/$defs/updateOperation"},
+        {"$ref": "#/$defs/deleteOperation"}
+      ]
+    },
+    "planSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["createCount", "deleteCount", "noChangeCount", "operationCount", "updateCount"],
+      "properties": {
+        "createCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "deleteCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "noChangeCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "operationCount": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "updateCount": {"type": "integer", "minimum": 0, "maximum": 1000}
+      }
+    },
+    "planResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["baseline", "operations", "operationDigest", "summary", "requiredSecureValues", "requiredSecureValuesWarning"],
+      "properties": {
+        "baseline": {"$ref": "#/$defs/baseline"},
+        "operations": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectOperation"}},
+        "operationDigest": {"$ref": "#/$defs/digest"},
+        "summary": {"$ref": "#/$defs/planSummary"},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+        "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+      }
+    },
+    "projectPlanReadyResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_PLAN_READY"},
+        "result": {"$ref": "#/$defs/planResult"}
+      }
+    },
+    "projectPlanNoChangeResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_PLAN_NO_CHANGE"},
+        "result": {"$ref": "#/$defs/planResult"}
+      }
+    },
+    "operationKey": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^.*\\S.*$"
+    },
+    "projectApplyRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "operationKey", "authorityMode", "requireApproval", "candidate", "operations"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "operationKey": {"$ref": "#/$defs/operationKey"},
+        "authorityMode": {"$ref": "#/$defs/authorizationMode"},
+        "requireApproval": {"type": "boolean"},
+        "proposalCheckpoint": {"$ref": "#/$defs/proposalCheckpointIdentity"},
+        "candidate": {"$ref": "#/$defs/projectCandidate"},
+        "operations": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectOperation"}}
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "authorityMode": {"const": "personal"},
+            "requireApproval": {"const": false},
+            "proposalCheckpoint": false
+          }
+        },
+        {
+          "required": ["proposalCheckpoint"],
+          "properties": {
+            "authorityMode": {"const": "worker"},
+            "requireApproval": {"const": true}
+          }
+        }
+      ]
+    },
+    "proposalCheckpointIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["designSessionId", "proposalId", "branchName", "commit"],
+      "properties": {
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "minLength": 19, "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "commit": {"$ref": "#/$defs/gitCommit"}
+      }
+    },
+    "workerCapabilityClaims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iss", "aud", "sub", "jti", "iat", "nbf", "exp", "shopDomain", "projectId", "conversationId", "designSessionId", "workerClaimId", "fencingVersion", "branchName", "expectedCheckpointCommit", "proposalId", "candidateBaseline", "actions"],
+      "properties": {
+        "iss": {"const": "apiease-apex-project-capability-v1"},
+        "aud": {"const": "apiease-project-api-v1"},
+        "sub": {"$ref": "#/$defs/identity"},
+        "jti": {"$ref": "#/$defs/identity"},
+        "iat": {"type": "integer", "minimum": 0},
+        "nbf": {"type": "integer", "minimum": 0},
+        "exp": {"type": "integer", "minimum": 1},
+        "shopDomain": {"type": "string", "minLength": 3, "maxLength": 255, "pattern": "^[a-z0-9][a-z0-9-]*\\.myshopify\\.com$"},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "conversationId": {"$ref": "#/$defs/identity"},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "workerClaimId": {"$ref": "#/$defs/identity"},
+        "fencingVersion": {"type": "integer", "minimum": 1},
+        "branchName": {"type": ["string", "null"], "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "expectedCheckpointCommit": {"oneOf": [{"$ref": "#/$defs/gitCommit"}, {"type": "null"}]},
+        "proposalId": {"oneOf": [{"$ref": "#/$defs/identity"}, {"type": "null"}]},
+        "candidateBaseline": {"oneOf": [{"$ref": "#/$defs/baseline"}, {"type": "null"}]},
+        "actions": {"type": "array", "minItems": 1, "maxItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/capabilityAction"}}
+      }
+    },
+    "checkpointPublishRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designSessionId", "branchName", "expectedCommit", "files"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "minLength": 19, "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "expectedCommit": {"oneOf": [{"$ref": "#/$defs/gitCommit"}, {"type": "null"}]},
+        "files": {"type": "array", "minItems": 1, "maxItems": 1000, "items": {"$ref": "#/$defs/managedFile"}}
+      }
+    },
+    "checkpointPublishResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_CHECKPOINT_PUBLISHED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["designSessionId", "branchName", "previousCommit", "commit", "snapshotDigest"],
+          "properties": {
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "branchName": {"type": "string", "maxLength": 255},
+            "previousCommit": {"oneOf": [{"$ref": "#/$defs/gitCommit"}, {"type": "null"}]},
+            "commit": {"$ref": "#/$defs/gitCommit"},
+            "snapshotDigest": {"$ref": "#/$defs/digest"}
+          }
+        }
+      }
+    },
+    "checkpointRetrieveRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designSessionId", "branchName", "commit"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "maxLength": 255, "pattern": "^apiease/proposals/[A-Za-z0-9._/-]+$"},
+        "commit": {"$ref": "#/$defs/gitCommit"}
+      }
+    },
+    "checkpointRetrieveResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_CHECKPOINT_RETRIEVED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["designSessionId", "branchName", "commit", "snapshotDigest", "files"],
+          "properties": {
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "branchName": {"type": "string", "maxLength": 255},
+            "commit": {"$ref": "#/$defs/gitCommit"},
+            "snapshotDigest": {"$ref": "#/$defs/digest"},
+            "files": {"type": "array", "minItems": 1, "maxItems": 1000, "items": {"$ref": "#/$defs/managedFile"}}
+          }
+        }
+      }
+    },
+    "approvalBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "proposalId", "shopDomain", "projectId", "conversationId", "designSessionId", "branchName", "commit", "operationKey", "candidateSnapshotDigest", "expectedBaseline", "operationDigest", "requiredSecureValues"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "shopDomain": {"type": "string", "maxLength": 255},
+        "projectId": {"$ref": "#/$defs/identity"},
+        "conversationId": {"$ref": "#/$defs/identity"},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "branchName": {"type": "string", "maxLength": 255},
+        "commit": {"$ref": "#/$defs/gitCommit"},
+        "operationKey": {"$ref": "#/$defs/operationKey"},
+        "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
+        "expectedBaseline": {"$ref": "#/$defs/baseline"},
+        "operationDigest": {"$ref": "#/$defs/digest"},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"}
+      }
+    },
+    "projectProposalSubmissionRequest": {
+      "$ref": "#/$defs/projectApplyRequest"
+    },
+    "projectProposalAcceptedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_PROPOSAL_ACCEPTED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["proposalId", "designSessionId", "status", "replayed", "branchName", "commit", "candidateSnapshotDigest", "operationDigest", "approvalBindingDigest", "requiredSecureValues", "requiredSecureValuesWarning"],
+          "properties": {
+            "proposalId": {"$ref": "#/$defs/identity"},
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "status": {"const": "pending"},
+            "replayed": {"type": "boolean"},
+            "branchName": {"type": "string", "maxLength": 255},
+            "commit": {"$ref": "#/$defs/gitCommit"},
+            "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
+            "operationDigest": {"$ref": "#/$defs/digest"},
+            "approvalBindingDigest": {"$ref": "#/$defs/digest"},
+            "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+            "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+          }
+        }
+      }
+    },
+    "proposalReviewRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "proposalId", "operationOffset", "operationLimit"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "operationOffset": {"type": "integer", "minimum": 0, "maximum": 999},
+        "operationLimit": {"type": "integer", "minimum": 1, "maximum": 100}
+      }
+    },
+    "proposalReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["proposalId", "designSessionId", "status", "branchName", "commit", "candidateSnapshotDigest", "expectedBaseline", "operationDigest", "approvalBindingDigest", "summary", "operations", "operationOffset", "operationLimit", "operationTotal", "diagnostics", "requiredSecureValues", "requiredSecureValuesWarning"],
+      "properties": {
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "designSessionId": {"$ref": "#/$defs/identity"},
+        "status": {"$ref": "#/$defs/proposalLifecycleState"},
+        "branchName": {"type": "string", "maxLength": 255},
+        "commit": {"$ref": "#/$defs/gitCommit"},
+        "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
+        "expectedBaseline": {"$ref": "#/$defs/baseline"},
+        "operationDigest": {"$ref": "#/$defs/digest"},
+        "approvalBindingDigest": {"$ref": "#/$defs/digest"},
+        "summary": {"$ref": "#/$defs/planSummary"},
+        "operations": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/projectOperation"}},
+        "operationOffset": {"type": "integer", "minimum": 0, "maximum": 999},
+        "operationLimit": {"type": "integer", "minimum": 1, "maximum": 100},
+        "operationTotal": {"type": "integer", "minimum": 0, "maximum": 1000},
+        "diagnostics": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+        "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+      }
+    },
+    "proposalReviewResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_PROPOSAL_REVIEW_READY"},
+        "result": {"$ref": "#/$defs/proposalReview"}
+      }
+    },
+    "proposalDecisionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "proposalId", "decision", "approvalBindingDigest"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "proposalId": {"$ref": "#/$defs/identity"},
+        "decision": {"$ref": "#/$defs/proposalDecision"},
+        "approvalBindingDigest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "proposalDecisionResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"enum": ["PROJECT_PROPOSAL_APPROVED", "PROJECT_PROPOSAL_REJECTED"]},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["proposalId", "status", "decision", "approvalBindingDigest", "replayed", "decidedAt"],
+          "properties": {
+            "proposalId": {"$ref": "#/$defs/identity"},
+            "status": {"enum": ["approved", "rejected"]},
+            "decision": {"$ref": "#/$defs/proposalDecision"},
+            "approvalBindingDigest": {"$ref": "#/$defs/digest"},
+            "replayed": {"type": "boolean"},
+            "decidedAt": {"type": "string", "minLength": 20, "maxLength": 35}
+          }
+        }
+      }
+    },
+    "designSessionCancelRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "designSessionId"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "designSessionId": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "designSessionCancelResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_DESIGN_SESSION_CANCELLED"},
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["designSessionId", "status", "replayed"],
+          "properties": {
+            "designSessionId": {"$ref": "#/$defs/identity"},
+            "status": {"const": "cancelled"},
+            "replayed": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "appliedResource": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["resourceType", "resourceId", "handle", "operation", "resourceVersion"],
+          "properties": {
+            "resourceType": {"$ref": "#/$defs/resourceType"},
+            "resourceId": {"$ref": "#/$defs/identity"},
+            "handle": {"$ref": "#/$defs/handle"},
+            "operation": {"enum": ["create-if-absent", "update"]},
+            "resourceVersion": {"$ref": "#/$defs/resourceVersion"}
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["resourceType", "resourceId", "handle", "operation"],
+          "properties": {
+            "resourceType": {"$ref": "#/$defs/resourceType"},
+            "resourceId": {"$ref": "#/$defs/identity"},
+            "handle": {"$ref": "#/$defs/handle"},
+            "operation": {"const": "delete"}
+          }
+        }
+      ]
+    },
+    "applyReceiptResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applyReceiptVersion", "operationKey", "replayed", "outcome", "resultingLiveRevision", "resources", "requiredSecureValues", "requiredSecureValuesWarning"],
+      "properties": {
+        "applyReceiptVersion": {"const": 1},
+        "operationKey": {"$ref": "#/$defs/operationKey"},
+        "replayed": {"type": "boolean"},
+        "outcome": {"enum": ["PROJECT_APPLIED", "PROJECT_APPLY_NO_CHANGE"]},
+        "resultingLiveRevision": {"$ref": "#/$defs/nonnegativeInteger"},
+        "resources": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/appliedResource"}},
+        "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
+        "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}
+      }
+    },
+    "projectAppliedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_APPLIED"},
+        "result": {"$ref": "#/$defs/applyReceiptResult"}
+      }
+    },
+    "projectApplyNoChangeResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_APPLY_NO_CHANGE"},
+        "result": {"$ref": "#/$defs/applyReceiptResult"}
+      }
+    },
+    "projectApplyReplayedResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "result"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": true},
+        "outcome": {"const": "PROJECT_APPLY_REPLAYED"},
+        "result": {"$ref": "#/$defs/applyReceiptResult"}
+      }
+    },
+    "projectErrorCode": {
+      "enum": ["INVALID_JSON", "CONTRACT_INVALID", "CONTRACT_VERSION_UNSUPPORTED", "CANDIDATE_FORMAT_VERSION_UNSUPPORTED", "UNAUTHENTICATED", "UNAUTHORIZED", "PROJECT_WORKER_AUTHORITY_UNAVAILABLE", "WORKER_CAPABILITY_ACTION_FORBIDDEN", "WORKER_CAPABILITY_CANCELLED", "WORKER_CAPABILITY_CONTEXT_MISMATCH", "WORKER_CAPABILITY_EXPIRED", "WORKER_CAPABILITY_INVALID_SIGNATURE", "WORKER_CAPABILITY_MALFORMED", "WORKER_CAPABILITY_NOT_YET_VALID", "WORKER_CAPABILITY_REPLAY", "WORKER_CAPABILITY_REVOKED", "WORKER_CAPABILITY_STALE_FENCE", "PROJECT_NOT_FOUND", "PROJECT_PROPOSAL_NOT_FOUND", "METHOD_NOT_ALLOWED", "RESOURCE_ALREADY_EXISTS", "RESOURCE_VERSION_CONFLICT", "PROJECT_BASELINE_CONFLICT", "PROJECT_IDEMPOTENCY_CONFLICT", "PROJECT_PROJECTION_CONFLICT", "PROJECT_CHECKPOINT_CONFLICT", "PROJECT_PROPOSAL_APPROVAL_BINDING_MISMATCH", "PROJECT_PROPOSAL_CANCELLED", "PROJECT_PROPOSAL_DECISION_CONFLICT", "PROJECT_PROPOSAL_STALE", "PROJECT_PROPOSAL_SUPERSEDED", "PAYLOAD_TOO_LARGE", "PROJECT_FILE_COUNT_EXCEEDED", "PROJECT_FILE_SIZE_EXCEEDED", "PROJECT_AGGREGATE_SIZE_EXCEEDED", "CONTENT_TYPE_UNSUPPORTED", "RESOURCE_VALIDATION_FAILED", "PROJECT_CANDIDATE_INVALID", "PROJECT_DEPENDENCY_INVALID", "PROJECT_SECURE_INPUT_INVALID", "PROJECT_CHECKPOINT_INVALID", "RATE_LIMITED", "PROJECT_PROJECTION_UNAVAILABLE", "SERVICE_UNAVAILABLE"]
+    },
+    "projectError": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "message", "diagnostics"],
+      "properties": {
+        "code": {"$ref": "#/$defs/projectErrorCode"},
+        "message": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "diagnostics": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/diagnostic"}}
+      }
+    },
+    "projectErrorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contractVersion", "ok", "outcome", "error"],
+      "properties": {
+        "contractVersion": {"const": 1},
+        "ok": {"const": false},
+        "outcome": {"$ref": "#/$defs/projectErrorCode"},
+        "error": {"$ref": "#/$defs/projectError"}
+      }
+    },
+    "conflictResponse": {
+      "oneOf": [
+        {"$ref": "#/$defs/resourceErrorResponse"},
+        {"$ref": "#/$defs/projectErrorResponse"}
+      ]
+    }
+  }
+}

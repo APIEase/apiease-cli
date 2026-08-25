@@ -2,6 +2,38 @@
   "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
   "fixtures": [
     {
+      "name": "project-design-context",
+      "schemaDefinition": "projectDesignContext",
+      "document": {
+        "protocolIdentity": {
+          "protocolVersion": "1.0.0",
+          "commonInstructionDigest": "sha256:186f43f66fc0fff9d89313b58dd533d07e4a1d82a4247abacd727a45928fb1fe"
+        },
+        "customerRequirements": [{"id": "requirement_01", "text": "Show inventory status."}],
+        "confirmedDecisions": ["Use a protected inventory credential."],
+        "project": {"projectId": "project_01", "name": "Inventory tools"},
+        "baseline": {
+          "liveRevision": 42,
+          "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "resources": [{
+          "path": "resources/variables/inventory-token.json",
+          "sourceDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "source": {
+            "contractVersion": 1,
+            "formatVersion": 1,
+            "resourceType": "variable",
+            "handle": "inventory-token",
+            "name": "Inventory token",
+            "sensitive": true,
+            "value": {"mode": "preserve"}
+          }
+        }],
+        "dependencies": [],
+        "limits": {"maximumOperations": 1000, "maximumResultBytes": 25000000}
+      }
+    },
+    {
       "name": "canonical-resource-change-set",
       "schemaDefinition": "canonicalResourceChangeSet",
       "document": {
@@ -12,11 +44,133 @@
           "liveRevision": 42,
           "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
         },
-        "creates": [],
-        "updates": [],
-        "deletes": [],
-        "secureInputs": [],
-        "verifiedBindings": []
+        "creates": [{
+          "resourceType": "widget",
+          "handle": "inventory-badge",
+          "source": {
+            "contractVersion": 1,
+            "formatVersion": 1,
+            "resourceType": "widget",
+            "handle": "inventory-badge",
+            "name": "Inventory badge",
+            "liquid": "<span>In stock</span>",
+            "javascript": "",
+            "externalJavascriptUrls": [],
+            "disableJavascript": true
+          }
+        }],
+        "updates": [{
+          "resourceType": "variable",
+          "handle": "inventory-token",
+          "bindingId": "binding_variable_inventory_token",
+          "source": {
+            "contractVersion": 1,
+            "formatVersion": 1,
+            "resourceType": "variable",
+            "handle": "inventory-token",
+            "name": "Inventory API token",
+            "sensitive": true,
+            "value": {"mode": "preserve"}
+          }
+        }],
+        "deletes": [{
+          "resourceType": "request",
+          "handle": "legacy-inventory",
+          "bindingId": "binding_request_legacy_inventory"
+        }],
+        "secureInputs": [{
+          "resourceType": "variable",
+          "handle": "inventory-token",
+          "fieldPath": "value",
+          "mode": "preserve"
+        }],
+        "verifiedBindings": [
+          {
+            "bindingId": "binding_request_legacy_inventory",
+            "resourceType": "request",
+            "handle": "legacy-inventory",
+            "resourceId": "request_01",
+            "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+          },
+          {
+            "bindingId": "binding_variable_inventory_token",
+            "resourceType": "variable",
+            "handle": "inventory-token",
+            "resourceId": "variable_01",
+            "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+          }
+        ]
+      }
+    },
+    {
+      "name": "project-change-artifact",
+      "schemaDefinition": "projectChangeArtifact",
+      "document": {
+        "artifactContractVersion": 1,
+        "artifactId": "artifact_01",
+        "artifactDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+        "projectId": "project_01",
+        "changeSetId": "change_set_01",
+        "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "changeSet": {
+          "contractVersion": 1,
+          "changeSetId": "change_set_01",
+          "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "baseline": {"liveRevision": 42, "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"},
+          "creates": [],
+          "updates": [],
+          "deletes": [],
+          "secureInputs": [],
+          "verifiedBindings": []
+        }
+      }
+    },
+    {
+      "name": "project-proposal",
+      "schemaDefinition": "projectProposal",
+      "document": {
+        "proposalContractVersion": 1,
+        "proposalId": "proposal_01",
+        "projectId": "project_01",
+        "artifactBinding": {
+          "artifactId": "artifact_01",
+          "artifactDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "changeSetId": "change_set_01",
+          "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "approvalBindingDigest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+        "status": "pending"
+      }
+    },
+    {
+      "name": "project-apply-receipt",
+      "schemaDefinition": "projectApplyReceipt",
+      "document": {
+        "applyReceiptContractVersion": 1,
+        "receiptId": "receipt_01",
+        "operationKey": "operation_01",
+        "projectId": "project_01",
+        "proposalId": "proposal_01",
+        "artifactBinding": {
+          "artifactId": "artifact_01",
+          "artifactDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "changeSetId": "change_set_01",
+          "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+        },
+        "changeSetId": "change_set_01",
+        "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+        "replayed": false,
+        "outcome": "PROJECT_APPLIED",
+        "resultingBaseline": {
+          "liveRevision": 43,
+          "snapshotDigest": "sha256:6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "resources": [{
+          "resourceType": "widget",
+          "handle": "inventory-badge",
+          "operation": "create",
+          "resourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+        }]
       }
     }
   ]

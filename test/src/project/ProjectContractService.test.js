@@ -227,7 +227,8 @@ async function readJson(relativePath) {
 }
 
 async function readAnnotatedFixtureDocuments() {
-  const fixtureFileNames = await fs.readdir(path.join(contractDirectoryPath, 'fixtures'));
+  const fixtureFileNames = (await fs.readdir(path.join(contractDirectoryPath, 'fixtures')))
+    .filter(fixtureFileName => fixtureFileName !== 'unified-project-contracts.json');
   const fixtureDocuments = await Promise.all(fixtureFileNames.map(async fixtureFileName => (
     collectAnnotatedDocuments(await readJson(path.join('fixtures', fixtureFileName)))
   )));

@@ -3,7 +3,7 @@ import Ajv2020 from 'ajv/dist/2020.js';
 
 const MAXIMUM_CONTRACT_DIAGNOSTICS = 20;
 const CONTRACT_SCHEMA_URL = new URL(
-  '../../contracts/apex-projects/v1/apiease-project-contract.schema.json',
+  '../../contracts/apex-projects/v1/project-api-compatibility.schema.json',
   import.meta.url,
 );
 const PROJECT_ERROR_SCHEMA_DEFINITION = 'projectErrorResponse';

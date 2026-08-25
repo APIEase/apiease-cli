@@ -1,5 +1,5 @@
 {
-  "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
+  "schemaId": "https://apiease.com/contracts/apex-projects/v1/project-api-compatibility.schema.json",
   "resourceTypes": [
     {
       "resourceType": "request",

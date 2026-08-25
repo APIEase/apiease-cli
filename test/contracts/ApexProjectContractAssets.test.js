@@ -10,16 +10,10 @@ const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectoryPath = path.resolve(currentDirectoryPath, '..', '..');
 const contractDirectoryPath = path.join(projectDirectoryPath, 'contracts', 'apex-projects', 'v1');
 
-const expectedSourceCommit = '09809d63f7a68cf78810c95708f45784e37e57d6';
+const expectedSourceCommit = '0f2b9e1b2a594e33820199d0891df7e81688161c';
 const expectedFileHashes = {
-  'apiease-project-contract.schema.json': 'cec72c0e8ff4c3586f0c7db141ad5451b8e2b36ad628e6895adae5c39fd26faa',
-  'fixtures/bootstrap-synchronized.json': 'e3fbbab878393014aea4b647e4c66449cb4fac0b30177753b8814d289b2fca94',
-  'fixtures/project-failures.json': '8a9dc6db0650a1ecb42b4bc6759aaff924b23dd8ccb18ce61d76a171df30859b',
-  'fixtures/project-proposal-failures.json': '8ed27188db17f38fc2e5352064f6ad982a5b8681550d559655fad6adafa4f70f',
-  'fixtures/project-proposal-workflow.json': '256dd00a29706741341a0df80936be724036c6756decce0b422cba6b7dca6ff4',
-  'fixtures/project-workflow-success.json': '721310bc64068e570843b5a1599b8d3b17daa01c7eb45e41364871f69fee4c29',
-  'fixtures/resource-operations.json': 'f4c0d297513a421bdf90ca6e72547add369879ef8ca2f6e3a8feea01b0027627',
-  'fixtures/unified-project-contracts.json': 'e2532b0e446395a2abf8624d6e0d3135ae9eece75c8845421a101cb2a930fc03',
+  'apiease-project-contract.schema.json': 'bf5abf2a081409e2cde075a8274f4749c1a0a0f1e9ee6769a2dbe65cc783a72c',
+  'fixtures/unified-project-contracts.json': 'c0fb82b203b926bae7095902b78d7ef4db88c35f7eb5edd02300f07e17cc9fbc',
 };
 
 describe('Apex Project contract assets', () => {
@@ -44,9 +38,9 @@ describe('Apex Project contract assets', () => {
   });
 
   describe('runtime schema engine', () => {
-    it('should compile the authoritative JSON Schema 2020-12 bundle and accept canonical source', async () => {
+    it('should keep the transitional Project API schema behind a compatibility adapter', async () => {
       // Arrange
-      const contractSchema = await readJson('apiease-project-contract.schema.json');
+      const contractSchema = await readJson('project-api-compatibility.schema.json');
       const ajv = new Ajv2020({ strict: true });
       ajv.addSchema(contractSchema);
       const validateCanonicalVariable = ajv.compile({
@@ -70,7 +64,7 @@ describe('Apex Project contract assets', () => {
 
     it('should reject incompatible unknown fields without coercing the canonical source', async () => {
       // Arrange
-      const contractSchema = await readJson('apiease-project-contract.schema.json');
+      const contractSchema = await readJson('project-api-compatibility.schema.json');
       const ajv = new Ajv2020({ strict: true });
       ajv.addSchema(contractSchema);
       const validateCanonicalVariable = ajv.getSchema(
@@ -93,6 +87,17 @@ describe('Apex Project contract assets', () => {
       // Assert
       assert.equal(isValid, false);
       assert.equal('protectedValue' in canonicalVariable, true);
+    });
+
+    it('should keep retired worker and candidate vocabulary out of the authoritative contract', async () => {
+      // Arrange
+      const contractSchema = await readJson('apiease-project-contract.schema.json');
+
+      // Act
+      const serializedContract = JSON.stringify(contractSchema);
+
+      // Assert
+      assert.doesNotMatch(serializedContract, /candidate|workerCapability|checkpoint|branchName/u);
     });
   });
 });
