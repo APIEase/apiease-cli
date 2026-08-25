@@ -533,25 +533,15 @@ describe('apiease-cli', () => {
       );
     });
 
-    it('should wire generic bearer authority through every project command', async () => {
+    it('should wire one resolved authentication adapter without worker proposal context', async () => {
       // Arrange
       const { buildProjectCommands } = await import(entrypointModuleUrl);
       const projectAuthenticationAdapter = {
         readAuthorityMode: () => 'bearer',
       };
-      const approvalProjectContext = {
-        projectAuthenticationAdapter,
-        proposalCheckpoint: {
-          branchName: 'apiease/proposals/project-1/session-1',
-          commit: 'a'.repeat(40),
-          designSessionId: 'session-1',
-          proposalId: 'proposal-1',
-        },
-      };
       const projectCommandAuthenticationContextResolver = {
         resolveContext: () => ({
           projectAuthenticationAdapter,
-          approvalProjectContext,
         }),
       };
 
@@ -569,8 +559,8 @@ describe('apiease-cli', () => {
       );
       assert.equal(
         projectCommands.applyProjectCommand.projectApplyService
-          .projectApplyRequestPolicy.approvalProjectContext,
-        approvalProjectContext,
+          .projectApplyRequestPolicy.personalProjectAuthenticationAdapter,
+        projectAuthenticationAdapter,
       );
     });
 
@@ -602,7 +592,7 @@ describe('apiease-cli', () => {
         '  pull                              Pull verified Project API resources.',
         '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
-        '  apply                             Validate, plan, and immediately apply the project.',
+        '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
@@ -611,6 +601,7 @@ describe('apiease-cli', () => {
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
         '  --bearer-token <token>            Single-use Project API bearer token.',
+        '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -646,7 +637,7 @@ describe('apiease-cli', () => {
         '  pull                              Pull verified Project API resources.',
         '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
-        '  apply                             Validate, plan, and immediately apply the project.',
+        '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
@@ -655,6 +646,7 @@ describe('apiease-cli', () => {
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
         '  --bearer-token <token>            Single-use Project API bearer token.',
+        '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -690,7 +682,7 @@ describe('apiease-cli', () => {
         '  pull                              Pull verified Project API resources.',
         '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
-        '  apply                             Validate, plan, and immediately apply the project.',
+        '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
@@ -699,6 +691,7 @@ describe('apiease-cli', () => {
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
         '  --bearer-token <token>            Single-use Project API bearer token.',
+        '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -734,7 +727,7 @@ describe('apiease-cli', () => {
         '  pull                              Pull verified Project API resources.',
         '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
-        '  apply                             Validate, plan, and immediately apply the project.',
+        '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
@@ -743,6 +736,7 @@ describe('apiease-cli', () => {
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
         '  --bearer-token <token>            Single-use Project API bearer token.',
+        '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
@@ -778,7 +772,7 @@ describe('apiease-cli', () => {
         '  pull                              Pull verified Project API resources.',
         '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
-        '  apply                             Validate, plan, and immediately apply the project.',
+        '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
@@ -787,6 +781,7 @@ describe('apiease-cli', () => {
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
         '  --bearer-token <token>            Single-use Project API bearer token.',
+        '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',

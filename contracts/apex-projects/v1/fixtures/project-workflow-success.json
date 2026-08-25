@@ -45,66 +45,101 @@
         "schemaDefinition": "projectValidateRequest",
         "document": {
           "contractVersion": 1,
-          "candidate": {
-            "candidateFormatVersion": 1,
+          "changeSet": {
+            "contractVersion": 1,
+            "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
+            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             },
-            "files": [
-              {
-                "path": ".apiease/project.json",
-                "encoding": "utf-8",
-                "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_workflow_fixture\",\n  \"normalizedShopDomain\": \"workflow-fixture.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"3333333333333333333333333333333333333333\"\n  }\n}\n",
-                "digest": "sha256:a3db900fd3333884de827ad0d651c85bbf4b84f871bcb523a11e051e49dc5d56"
-              },
-              {
-                "path": "resources/functions/format-order.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"description\":\"Formats an order label.\",\"formatVersion\":1,\"handle\":\"format-order\",\"liquid\":\"{{ order.name | upcase }}\",\"name\":\"Format order\",\"parameters\":[{\"description\":\"Order payload\",\"name\":\"order\",\"type\":\"object\"}],\"resourceType\":\"function\",\"type\":\"liquid\"}\n",
-                "digest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-              },
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "encoding": "utf-8",
-                "content": "{\"address\":\"https://fixture.invalid/inventory\",\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-sync\",\"method\":\"POST\",\"name\":\"Inventory sync\",\"parameters\":[{\"name\":\"api-key\",\"sensitive\":true,\"type\":\"header\",\"value\":{\"mode\":\"preserve\"}}],\"resourceType\":\"request\",\"triggers\":[],\"type\":\"http\"}\n",
-                "digest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-              },
-              {
-                "path": "resources/variables/inventory-token-copy.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-token-copy\",\"name\":\"Inventory token copy\",\"resourceType\":\"variable\",\"sensitive\":true,\"value\":{\"mode\":\"preserve\"}}\n",
-                "digest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"disableJavascript\":true,\"externalJavascriptUrls\":[],\"formatVersion\":1,\"handle\":\"inventory-banner\",\"javascript\":\"\",\"liquid\":\"<p>Inventory fixture</p>\",\"name\":\"Inventory banner\",\"resourceType\":\"widget\"}\n",
-                "digest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-              }
-            ],
-            "resourceBindings": [
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "resourceType": "request",
-                "resourceId": "request_inventory_sync",
-                "originalHandle": "inventory-sync",
-                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "resourceType": "widget",
-                "resourceId": "widget_stock_banner",
-                "originalHandle": "stock-banner",
-                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-              }
-            ],
-            "deletions": [
+            "creates": [
               {
                 "resourceType": "function",
-                "resourceId": "function_legacy_transform",
-                "originalHandle": "legacy-transform",
-                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+                "handle": "format-order",
+                "source": {
+                  "contractVersion": 1,
+                  "description": "Formats an order label.",
+                  "formatVersion": 1,
+                  "handle": "format-order",
+                  "liquid": "{{ order.name | upcase }}",
+                  "name": "Format order",
+                  "parameters": [
+                    {
+                      "description": "Order payload",
+                      "name": "order",
+                      "type": "object"
+                    }
+                  ],
+                  "resourceType": "function",
+                  "type": "liquid"
+                }
+              },
+              {
+                "resourceType": "variable",
+                "handle": "inventory-token-copy",
+                "source": {
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-token-copy",
+                  "name": "Inventory token copy",
+                  "resourceType": "variable",
+                  "sensitive": true,
+                  "value": {
+                    "mode": "preserve"
+                  }
+                }
+              }
+            ],
+            "updates": [
+              {
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "source": {
+                  "address": "https://fixture.invalid/inventory",
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-sync",
+                  "method": "POST",
+                  "name": "Inventory sync",
+                  "parameters": [
+                    {
+                      "name": "api-key",
+                      "sensitive": true,
+                      "type": "header",
+                      "value": {
+                        "mode": "preserve"
+                      }
+                    }
+                  ],
+                  "resourceType": "request",
+                  "triggers": [],
+                  "type": "http"
+                },
+                "bindingId": "binding_request_inventory_sync"
+              },
+              {
+                "resourceType": "widget",
+                "handle": "inventory-banner",
+                "source": {
+                  "contractVersion": 1,
+                  "disableJavascript": true,
+                  "externalJavascriptUrls": [],
+                  "formatVersion": 1,
+                  "handle": "inventory-banner",
+                  "javascript": "",
+                  "liquid": "<p>Inventory fixture</p>",
+                  "name": "Inventory banner",
+                  "resourceType": "widget"
+                },
+                "bindingId": "binding_widget_stock_banner"
+              }
+            ],
+            "deletes": [
+              {
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "bindingId": "binding_function_legacy_transform"
               }
             ],
             "secureInputs": [
@@ -123,6 +158,29 @@
                 "sourceResourceId": "request_inventory_sync",
                 "sourceFieldPath": "parameters.api-key.value",
                 "sourceExpectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ],
+            "verifiedBindings": [
+              {
+                "bindingId": "binding_function_legacy_transform",
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "resourceId": "function_legacy_transform",
+                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+              },
+              {
+                "bindingId": "binding_request_inventory_sync",
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "resourceId": "request_inventory_sync",
+                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
+              {
+                "bindingId": "binding_widget_stock_banner",
+                "resourceType": "widget",
+                "handle": "stock-banner",
+                "resourceId": "widget_stock_banner",
+                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
               }
             ]
           }
@@ -163,66 +221,101 @@
         "schemaDefinition": "projectPlanRequest",
         "document": {
           "contractVersion": 1,
-          "candidate": {
-            "candidateFormatVersion": 1,
+          "changeSet": {
+            "contractVersion": 1,
+            "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
+            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             },
-            "files": [
-              {
-                "path": ".apiease/project.json",
-                "encoding": "utf-8",
-                "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_workflow_fixture\",\n  \"normalizedShopDomain\": \"workflow-fixture.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"3333333333333333333333333333333333333333\"\n  }\n}\n",
-                "digest": "sha256:a3db900fd3333884de827ad0d651c85bbf4b84f871bcb523a11e051e49dc5d56"
-              },
-              {
-                "path": "resources/functions/format-order.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"description\":\"Formats an order label.\",\"formatVersion\":1,\"handle\":\"format-order\",\"liquid\":\"{{ order.name | upcase }}\",\"name\":\"Format order\",\"parameters\":[{\"description\":\"Order payload\",\"name\":\"order\",\"type\":\"object\"}],\"resourceType\":\"function\",\"type\":\"liquid\"}\n",
-                "digest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-              },
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "encoding": "utf-8",
-                "content": "{\"address\":\"https://fixture.invalid/inventory\",\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-sync\",\"method\":\"POST\",\"name\":\"Inventory sync\",\"parameters\":[{\"name\":\"api-key\",\"sensitive\":true,\"type\":\"header\",\"value\":{\"mode\":\"preserve\"}}],\"resourceType\":\"request\",\"triggers\":[],\"type\":\"http\"}\n",
-                "digest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-              },
-              {
-                "path": "resources/variables/inventory-token-copy.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-token-copy\",\"name\":\"Inventory token copy\",\"resourceType\":\"variable\",\"sensitive\":true,\"value\":{\"mode\":\"preserve\"}}\n",
-                "digest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"disableJavascript\":true,\"externalJavascriptUrls\":[],\"formatVersion\":1,\"handle\":\"inventory-banner\",\"javascript\":\"\",\"liquid\":\"<p>Inventory fixture</p>\",\"name\":\"Inventory banner\",\"resourceType\":\"widget\"}\n",
-                "digest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-              }
-            ],
-            "resourceBindings": [
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "resourceType": "request",
-                "resourceId": "request_inventory_sync",
-                "originalHandle": "inventory-sync",
-                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "resourceType": "widget",
-                "resourceId": "widget_stock_banner",
-                "originalHandle": "stock-banner",
-                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-              }
-            ],
-            "deletions": [
+            "creates": [
               {
                 "resourceType": "function",
-                "resourceId": "function_legacy_transform",
-                "originalHandle": "legacy-transform",
-                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+                "handle": "format-order",
+                "source": {
+                  "contractVersion": 1,
+                  "description": "Formats an order label.",
+                  "formatVersion": 1,
+                  "handle": "format-order",
+                  "liquid": "{{ order.name | upcase }}",
+                  "name": "Format order",
+                  "parameters": [
+                    {
+                      "description": "Order payload",
+                      "name": "order",
+                      "type": "object"
+                    }
+                  ],
+                  "resourceType": "function",
+                  "type": "liquid"
+                }
+              },
+              {
+                "resourceType": "variable",
+                "handle": "inventory-token-copy",
+                "source": {
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-token-copy",
+                  "name": "Inventory token copy",
+                  "resourceType": "variable",
+                  "sensitive": true,
+                  "value": {
+                    "mode": "preserve"
+                  }
+                }
+              }
+            ],
+            "updates": [
+              {
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "source": {
+                  "address": "https://fixture.invalid/inventory",
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-sync",
+                  "method": "POST",
+                  "name": "Inventory sync",
+                  "parameters": [
+                    {
+                      "name": "api-key",
+                      "sensitive": true,
+                      "type": "header",
+                      "value": {
+                        "mode": "preserve"
+                      }
+                    }
+                  ],
+                  "resourceType": "request",
+                  "triggers": [],
+                  "type": "http"
+                },
+                "bindingId": "binding_request_inventory_sync"
+              },
+              {
+                "resourceType": "widget",
+                "handle": "inventory-banner",
+                "source": {
+                  "contractVersion": 1,
+                  "disableJavascript": true,
+                  "externalJavascriptUrls": [],
+                  "formatVersion": 1,
+                  "handle": "inventory-banner",
+                  "javascript": "",
+                  "liquid": "<p>Inventory fixture</p>",
+                  "name": "Inventory banner",
+                  "resourceType": "widget"
+                },
+                "bindingId": "binding_widget_stock_banner"
+              }
+            ],
+            "deletes": [
+              {
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "bindingId": "binding_function_legacy_transform"
               }
             ],
             "secureInputs": [
@@ -241,6 +334,29 @@
                 "sourceResourceId": "request_inventory_sync",
                 "sourceFieldPath": "parameters.api-key.value",
                 "sourceExpectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              }
+            ],
+            "verifiedBindings": [
+              {
+                "bindingId": "binding_function_legacy_transform",
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "resourceId": "function_legacy_transform",
+                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+              },
+              {
+                "bindingId": "binding_request_inventory_sync",
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "resourceId": "request_inventory_sync",
+                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
+              {
+                "bindingId": "binding_widget_stock_banner",
+                "resourceType": "widget",
+                "handle": "stock-banner",
+                "resourceId": "widget_stock_banner",
+                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
               }
             ]
           }
@@ -326,66 +442,101 @@
           "operationKey": "workflow-apply-0001",
           "authorityMode": "personal",
           "requireApproval": false,
-          "candidate": {
-            "candidateFormatVersion": 1,
+          "changeSet": {
+            "contractVersion": 1,
+            "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
+            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             },
-            "files": [
-              {
-                "path": ".apiease/project.json",
-                "encoding": "utf-8",
-                "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_workflow_fixture\",\n  \"normalizedShopDomain\": \"workflow-fixture.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"3333333333333333333333333333333333333333\"\n  }\n}\n",
-                "digest": "sha256:a3db900fd3333884de827ad0d651c85bbf4b84f871bcb523a11e051e49dc5d56"
-              },
-              {
-                "path": "resources/functions/format-order.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"description\":\"Formats an order label.\",\"formatVersion\":1,\"handle\":\"format-order\",\"liquid\":\"{{ order.name | upcase }}\",\"name\":\"Format order\",\"parameters\":[{\"description\":\"Order payload\",\"name\":\"order\",\"type\":\"object\"}],\"resourceType\":\"function\",\"type\":\"liquid\"}\n",
-                "digest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-              },
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "encoding": "utf-8",
-                "content": "{\"address\":\"https://fixture.invalid/inventory\",\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-sync\",\"method\":\"POST\",\"name\":\"Inventory sync\",\"parameters\":[{\"name\":\"api-key\",\"sensitive\":true,\"type\":\"header\",\"value\":{\"mode\":\"preserve\"}}],\"resourceType\":\"request\",\"triggers\":[],\"type\":\"http\"}\n",
-                "digest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-              },
-              {
-                "path": "resources/variables/inventory-token-copy.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-token-copy\",\"name\":\"Inventory token copy\",\"resourceType\":\"variable\",\"sensitive\":true,\"value\":{\"mode\":\"preserve\"}}\n",
-                "digest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"disableJavascript\":true,\"externalJavascriptUrls\":[],\"formatVersion\":1,\"handle\":\"inventory-banner\",\"javascript\":\"\",\"liquid\":\"<p>Inventory fixture</p>\",\"name\":\"Inventory banner\",\"resourceType\":\"widget\"}\n",
-                "digest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-              }
-            ],
-            "resourceBindings": [
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "resourceType": "request",
-                "resourceId": "request_inventory_sync",
-                "originalHandle": "inventory-sync",
-                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "resourceType": "widget",
-                "resourceId": "widget_stock_banner",
-                "originalHandle": "stock-banner",
-                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-              }
-            ],
-            "deletions": [
+            "creates": [
               {
                 "resourceType": "function",
-                "resourceId": "function_legacy_transform",
-                "originalHandle": "legacy-transform",
-                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+                "handle": "format-order",
+                "source": {
+                  "contractVersion": 1,
+                  "description": "Formats an order label.",
+                  "formatVersion": 1,
+                  "handle": "format-order",
+                  "liquid": "{{ order.name | upcase }}",
+                  "name": "Format order",
+                  "parameters": [
+                    {
+                      "description": "Order payload",
+                      "name": "order",
+                      "type": "object"
+                    }
+                  ],
+                  "resourceType": "function",
+                  "type": "liquid"
+                }
+              },
+              {
+                "resourceType": "variable",
+                "handle": "inventory-token-copy",
+                "source": {
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-token-copy",
+                  "name": "Inventory token copy",
+                  "resourceType": "variable",
+                  "sensitive": true,
+                  "value": {
+                    "mode": "preserve"
+                  }
+                }
+              }
+            ],
+            "updates": [
+              {
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "source": {
+                  "address": "https://fixture.invalid/inventory",
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-sync",
+                  "method": "POST",
+                  "name": "Inventory sync",
+                  "parameters": [
+                    {
+                      "name": "api-key",
+                      "sensitive": true,
+                      "type": "header",
+                      "value": {
+                        "mode": "preserve"
+                      }
+                    }
+                  ],
+                  "resourceType": "request",
+                  "triggers": [],
+                  "type": "http"
+                },
+                "bindingId": "binding_request_inventory_sync"
+              },
+              {
+                "resourceType": "widget",
+                "handle": "inventory-banner",
+                "source": {
+                  "contractVersion": 1,
+                  "disableJavascript": true,
+                  "externalJavascriptUrls": [],
+                  "formatVersion": 1,
+                  "handle": "inventory-banner",
+                  "javascript": "",
+                  "liquid": "<p>Inventory fixture</p>",
+                  "name": "Inventory banner",
+                  "resourceType": "widget"
+                },
+                "bindingId": "binding_widget_stock_banner"
+              }
+            ],
+            "deletes": [
+              {
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "bindingId": "binding_function_legacy_transform"
               }
             ],
             "secureInputs": [
@@ -405,52 +556,31 @@
                 "sourceFieldPath": "parameters.api-key.value",
                 "sourceExpectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
               }
+            ],
+            "verifiedBindings": [
+              {
+                "bindingId": "binding_function_legacy_transform",
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "resourceId": "function_legacy_transform",
+                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+              },
+              {
+                "bindingId": "binding_request_inventory_sync",
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "resourceId": "request_inventory_sync",
+                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
+              {
+                "bindingId": "binding_widget_stock_banner",
+                "resourceType": "widget",
+                "handle": "stock-banner",
+                "resourceId": "widget_stock_banner",
+                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+              }
             ]
-          },
-          "operations": [
-            {
-              "operation": "create-if-absent",
-              "resourceType": "function",
-              "path": "resources/functions/format-order.json",
-              "handle": "format-order",
-              "sourceFileDigest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-            },
-            {
-              "operation": "delete",
-              "resourceType": "function",
-              "path": "resources/functions/legacy-transform.json",
-              "resourceId": "function_legacy_transform",
-              "originalHandle": "legacy-transform",
-              "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
-            },
-            {
-              "operation": "update",
-              "resourceType": "request",
-              "path": "resources/requests/inventory-sync.json",
-              "resourceId": "request_inventory_sync",
-              "originalHandle": "inventory-sync",
-              "handle": "inventory-sync",
-              "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "sourceFileDigest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-            },
-            {
-              "operation": "create-if-absent",
-              "resourceType": "variable",
-              "path": "resources/variables/inventory-token-copy.json",
-              "handle": "inventory-token-copy",
-              "sourceFileDigest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-            },
-            {
-              "operation": "update",
-              "resourceType": "widget",
-              "path": "resources/widgets/inventory-banner.json",
-              "resourceId": "widget_stock_banner",
-              "originalHandle": "stock-banner",
-              "handle": "inventory-banner",
-              "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-              "sourceFileDigest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-            }
-          ]
+          }
         }
       },
       "response": {
@@ -518,75 +648,98 @@
           "operationKey": "workflow-no-change-0001",
           "authorityMode": "personal",
           "requireApproval": false,
-          "candidate": {
-            "candidateFormatVersion": 1,
+          "changeSet": {
+            "contractVersion": 1,
+            "changeSetId": "change_set_32e6407f28065bd6bd2398dbff971019d88ca811923004bfa8e90d4316b76760",
+            "changeSetDigest": "sha256:c8818f056a46908f928cfb7811f4339b2aeaa2e9c9e6f78ebb4bd44560252d60",
             "baseline": {
               "liveRevision": 43,
               "snapshotDigest": "sha256:32e6407f28065bd6bd2398dbff971019d88ca811923004bfa8e90d4316b76760"
             },
-            "files": [
+            "creates": [],
+            "updates": [
               {
-                "path": ".apiease/project.json",
-                "encoding": "utf-8",
-                "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_workflow_fixture\",\n  \"normalizedShopDomain\": \"workflow-fixture.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"3333333333333333333333333333333333333333\"\n  }\n}\n",
-                "digest": "sha256:a3db900fd3333884de827ad0d651c85bbf4b84f871bcb523a11e051e49dc5d56"
-              },
-              {
-                "path": "resources/functions/format-order.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"description\":\"Formats an order label.\",\"formatVersion\":1,\"handle\":\"format-order\",\"liquid\":\"{{ order.name | upcase }}\",\"name\":\"Format order\",\"parameters\":[{\"description\":\"Order payload\",\"name\":\"order\",\"type\":\"object\"}],\"resourceType\":\"function\",\"type\":\"liquid\"}\n",
-                "digest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-              },
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "encoding": "utf-8",
-                "content": "{\"address\":\"https://fixture.invalid/inventory\",\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-sync\",\"method\":\"POST\",\"name\":\"Inventory sync\",\"parameters\":[{\"name\":\"api-key\",\"sensitive\":true,\"type\":\"header\",\"value\":{\"mode\":\"preserve\"}}],\"resourceType\":\"request\",\"triggers\":[],\"type\":\"http\"}\n",
-                "digest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-              },
-              {
-                "path": "resources/variables/inventory-token-copy.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-token-copy\",\"name\":\"Inventory token copy\",\"resourceType\":\"variable\",\"sensitive\":true,\"value\":{\"mode\":\"preserve\"}}\n",
-                "digest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"disableJavascript\":true,\"externalJavascriptUrls\":[],\"formatVersion\":1,\"handle\":\"inventory-banner\",\"javascript\":\"\",\"liquid\":\"<p>Inventory fixture</p>\",\"name\":\"Inventory banner\",\"resourceType\":\"widget\"}\n",
-                "digest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-              }
-            ],
-            "resourceBindings": [
-              {
-                "path": "resources/functions/format-order.json",
                 "resourceType": "function",
-                "resourceId": "function_format_order",
-                "originalHandle": "format-order",
-                "expectedResourceVersion": "rv1_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+                "handle": "format-order",
+                "source": {
+                  "contractVersion": 1,
+                  "description": "Formats an order label.",
+                  "formatVersion": 1,
+                  "handle": "format-order",
+                  "liquid": "{{ order.name | upcase }}",
+                  "name": "Format order",
+                  "parameters": [
+                    {
+                      "description": "Order payload",
+                      "name": "order",
+                      "type": "object"
+                    }
+                  ],
+                  "resourceType": "function",
+                  "type": "liquid"
+                },
+                "bindingId": "binding_function_format_order"
               },
               {
-                "path": "resources/requests/inventory-sync.json",
                 "resourceType": "request",
-                "resourceId": "request_inventory_sync",
-                "originalHandle": "inventory-sync",
-                "expectedResourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+                "handle": "inventory-sync",
+                "source": {
+                  "address": "https://fixture.invalid/inventory",
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-sync",
+                  "method": "POST",
+                  "name": "Inventory sync",
+                  "parameters": [
+                    {
+                      "name": "api-key",
+                      "sensitive": true,
+                      "type": "header",
+                      "value": {
+                        "mode": "preserve"
+                      }
+                    }
+                  ],
+                  "resourceType": "request",
+                  "triggers": [],
+                  "type": "http"
+                },
+                "bindingId": "binding_request_inventory_sync"
               },
               {
-                "path": "resources/variables/inventory-token-copy.json",
                 "resourceType": "variable",
-                "resourceId": "variable_inventory_token_copy",
-                "originalHandle": "inventory-token-copy",
-                "expectedResourceVersion": "rv1_FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+                "handle": "inventory-token-copy",
+                "source": {
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-token-copy",
+                  "name": "Inventory token copy",
+                  "resourceType": "variable",
+                  "sensitive": true,
+                  "value": {
+                    "mode": "preserve"
+                  }
+                },
+                "bindingId": "binding_variable_inventory_token_copy"
               },
               {
-                "path": "resources/widgets/inventory-banner.json",
                 "resourceType": "widget",
-                "resourceId": "widget_stock_banner",
-                "originalHandle": "inventory-banner",
-                "expectedResourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+                "handle": "inventory-banner",
+                "source": {
+                  "contractVersion": 1,
+                  "disableJavascript": true,
+                  "externalJavascriptUrls": [],
+                  "formatVersion": 1,
+                  "handle": "inventory-banner",
+                  "javascript": "",
+                  "liquid": "<p>Inventory fixture</p>",
+                  "name": "Inventory banner",
+                  "resourceType": "widget"
+                },
+                "bindingId": "binding_widget_inventory_banner"
               }
             ],
-            "deletions": [],
+            "deletes": [],
             "secureInputs": [
               {
                 "resourceType": "request",
@@ -600,9 +753,38 @@
                 "fieldPath": "value",
                 "mode": "preserve"
               }
+            ],
+            "verifiedBindings": [
+              {
+                "bindingId": "binding_function_format_order",
+                "resourceType": "function",
+                "handle": "format-order",
+                "resourceId": "function_format_order",
+                "expectedResourceVersion": "rv1_DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+              },
+              {
+                "bindingId": "binding_request_inventory_sync",
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "resourceId": "request_inventory_sync",
+                "expectedResourceVersion": "rv1_EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
+              },
+              {
+                "bindingId": "binding_variable_inventory_token_copy",
+                "resourceType": "variable",
+                "handle": "inventory-token-copy",
+                "resourceId": "variable_inventory_token_copy",
+                "expectedResourceVersion": "rv1_FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+              },
+              {
+                "bindingId": "binding_widget_inventory_banner",
+                "resourceType": "widget",
+                "handle": "inventory-banner",
+                "resourceId": "widget_stock_banner",
+                "expectedResourceVersion": "rv1_GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+              }
             ]
-          },
-          "operations": []
+          }
         }
       },
       "response": {
@@ -635,66 +817,101 @@
           "operationKey": "workflow-apply-0001",
           "authorityMode": "personal",
           "requireApproval": false,
-          "candidate": {
-            "candidateFormatVersion": 1,
+          "changeSet": {
+            "contractVersion": 1,
+            "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
+            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             },
-            "files": [
-              {
-                "path": ".apiease/project.json",
-                "encoding": "utf-8",
-                "content": "{\n  \"formatVersion\": 1,\n  \"managedPathContractVersion\": 1,\n  \"projectId\": \"project_workflow_fixture\",\n  \"normalizedShopDomain\": \"workflow-fixture.myshopify.com\",\n  \"template\": {\n    \"owner\": \"APIEase\",\n    \"ref\": \"main\",\n    \"repository\": \"apiease-template\",\n    \"sourceIdentity\": \"3333333333333333333333333333333333333333\"\n  }\n}\n",
-                "digest": "sha256:a3db900fd3333884de827ad0d651c85bbf4b84f871bcb523a11e051e49dc5d56"
-              },
-              {
-                "path": "resources/functions/format-order.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"description\":\"Formats an order label.\",\"formatVersion\":1,\"handle\":\"format-order\",\"liquid\":\"{{ order.name | upcase }}\",\"name\":\"Format order\",\"parameters\":[{\"description\":\"Order payload\",\"name\":\"order\",\"type\":\"object\"}],\"resourceType\":\"function\",\"type\":\"liquid\"}\n",
-                "digest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-              },
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "encoding": "utf-8",
-                "content": "{\"address\":\"https://fixture.invalid/inventory\",\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-sync\",\"method\":\"POST\",\"name\":\"Inventory sync\",\"parameters\":[{\"name\":\"api-key\",\"sensitive\":true,\"type\":\"header\",\"value\":{\"mode\":\"preserve\"}}],\"resourceType\":\"request\",\"triggers\":[],\"type\":\"http\"}\n",
-                "digest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-              },
-              {
-                "path": "resources/variables/inventory-token-copy.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"inventory-token-copy\",\"name\":\"Inventory token copy\",\"resourceType\":\"variable\",\"sensitive\":true,\"value\":{\"mode\":\"preserve\"}}\n",
-                "digest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "encoding": "utf-8",
-                "content": "{\"contractVersion\":1,\"disableJavascript\":true,\"externalJavascriptUrls\":[],\"formatVersion\":1,\"handle\":\"inventory-banner\",\"javascript\":\"\",\"liquid\":\"<p>Inventory fixture</p>\",\"name\":\"Inventory banner\",\"resourceType\":\"widget\"}\n",
-                "digest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-              }
-            ],
-            "resourceBindings": [
-              {
-                "path": "resources/requests/inventory-sync.json",
-                "resourceType": "request",
-                "resourceId": "request_inventory_sync",
-                "originalHandle": "inventory-sync",
-                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-              },
-              {
-                "path": "resources/widgets/inventory-banner.json",
-                "resourceType": "widget",
-                "resourceId": "widget_stock_banner",
-                "originalHandle": "stock-banner",
-                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
-              }
-            ],
-            "deletions": [
+            "creates": [
               {
                 "resourceType": "function",
-                "resourceId": "function_legacy_transform",
-                "originalHandle": "legacy-transform",
-                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+                "handle": "format-order",
+                "source": {
+                  "contractVersion": 1,
+                  "description": "Formats an order label.",
+                  "formatVersion": 1,
+                  "handle": "format-order",
+                  "liquid": "{{ order.name | upcase }}",
+                  "name": "Format order",
+                  "parameters": [
+                    {
+                      "description": "Order payload",
+                      "name": "order",
+                      "type": "object"
+                    }
+                  ],
+                  "resourceType": "function",
+                  "type": "liquid"
+                }
+              },
+              {
+                "resourceType": "variable",
+                "handle": "inventory-token-copy",
+                "source": {
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-token-copy",
+                  "name": "Inventory token copy",
+                  "resourceType": "variable",
+                  "sensitive": true,
+                  "value": {
+                    "mode": "preserve"
+                  }
+                }
+              }
+            ],
+            "updates": [
+              {
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "source": {
+                  "address": "https://fixture.invalid/inventory",
+                  "contractVersion": 1,
+                  "formatVersion": 1,
+                  "handle": "inventory-sync",
+                  "method": "POST",
+                  "name": "Inventory sync",
+                  "parameters": [
+                    {
+                      "name": "api-key",
+                      "sensitive": true,
+                      "type": "header",
+                      "value": {
+                        "mode": "preserve"
+                      }
+                    }
+                  ],
+                  "resourceType": "request",
+                  "triggers": [],
+                  "type": "http"
+                },
+                "bindingId": "binding_request_inventory_sync"
+              },
+              {
+                "resourceType": "widget",
+                "handle": "inventory-banner",
+                "source": {
+                  "contractVersion": 1,
+                  "disableJavascript": true,
+                  "externalJavascriptUrls": [],
+                  "formatVersion": 1,
+                  "handle": "inventory-banner",
+                  "javascript": "",
+                  "liquid": "<p>Inventory fixture</p>",
+                  "name": "Inventory banner",
+                  "resourceType": "widget"
+                },
+                "bindingId": "binding_widget_stock_banner"
+              }
+            ],
+            "deletes": [
+              {
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "bindingId": "binding_function_legacy_transform"
               }
             ],
             "secureInputs": [
@@ -714,52 +931,31 @@
                 "sourceFieldPath": "parameters.api-key.value",
                 "sourceExpectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
               }
+            ],
+            "verifiedBindings": [
+              {
+                "bindingId": "binding_function_legacy_transform",
+                "resourceType": "function",
+                "handle": "legacy-transform",
+                "resourceId": "function_legacy_transform",
+                "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+              },
+              {
+                "bindingId": "binding_request_inventory_sync",
+                "resourceType": "request",
+                "handle": "inventory-sync",
+                "resourceId": "request_inventory_sync",
+                "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+              },
+              {
+                "bindingId": "binding_widget_stock_banner",
+                "resourceType": "widget",
+                "handle": "stock-banner",
+                "resourceId": "widget_stock_banner",
+                "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+              }
             ]
-          },
-          "operations": [
-            {
-              "operation": "create-if-absent",
-              "resourceType": "function",
-              "path": "resources/functions/format-order.json",
-              "handle": "format-order",
-              "sourceFileDigest": "sha256:71cd5b42c985f5fd8ae88f86037c5ec038d536af6244d9c75dea25d93bede758"
-            },
-            {
-              "operation": "delete",
-              "resourceType": "function",
-              "path": "resources/functions/legacy-transform.json",
-              "resourceId": "function_legacy_transform",
-              "originalHandle": "legacy-transform",
-              "expectedResourceVersion": "rv1_CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
-            },
-            {
-              "operation": "update",
-              "resourceType": "request",
-              "path": "resources/requests/inventory-sync.json",
-              "resourceId": "request_inventory_sync",
-              "originalHandle": "inventory-sync",
-              "handle": "inventory-sync",
-              "expectedResourceVersion": "rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "sourceFileDigest": "sha256:7e77026d85862a438583045158ab33d01878f8e1ca385a5c238cae023e978ca6"
-            },
-            {
-              "operation": "create-if-absent",
-              "resourceType": "variable",
-              "path": "resources/variables/inventory-token-copy.json",
-              "handle": "inventory-token-copy",
-              "sourceFileDigest": "sha256:b5df0ff5718e795cf8aa10aa68862877b56959ea7f46f7db427ce87e0c6bf497"
-            },
-            {
-              "operation": "update",
-              "resourceType": "widget",
-              "path": "resources/widgets/inventory-banner.json",
-              "resourceId": "widget_stock_banner",
-              "originalHandle": "stock-banner",
-              "handle": "inventory-banner",
-              "expectedResourceVersion": "rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-              "sourceFileDigest": "sha256:bf4b0de55a209ea4a358fe068b54a440ff9f30586c5af363537485347671252a"
-            }
-          ]
+          }
         }
       },
       "response": {

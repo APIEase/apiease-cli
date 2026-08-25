@@ -46,30 +46,19 @@
       "document": {
         "contractVersion": 1,
         "operationKey": "proposal-operation-01",
-        "authorityMode": "worker",
+        "authorityMode": "personal",
         "requireApproval": true,
-        "proposalCheckpoint": {
-          "designSessionId": "design_session_01",
-          "proposalId": "proposal_01",
-          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
-          "commit": "1111111111111111111111111111111111111111"
-        },
-        "candidate": {
-          "candidateFormatVersion": 1,
+        "changeSet": {
+          "contractVersion": 1,
+          "changeSetId": "change_set_01",
+          "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "baseline": {
             "liveRevision": 42,
             "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
           },
-          "files": [
-            {
-              "path": ".apiease/project.json",
-              "encoding": "utf-8",
-              "content": "{}\n",
-              "digest": "sha256:ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356"
-            }
-          ],
-          "resourceBindings": [],
-          "deletions": [],
+          "creates": [],
+          "updates": [],
+          "deletes": [],
           "secureInputs": [
             {
               "resourceType": "variable",
@@ -77,9 +66,9 @@
               "fieldPath": "value",
               "mode": "defer"
             }
-          ]
-        },
-        "operations": []
+          ],
+          "verifiedBindings": []
+        }
       }
     },
     {
@@ -94,10 +83,23 @@
           "designSessionId": "design_session_01",
           "status": "pending",
           "replayed": false,
-          "branchName": "apiease/proposals/project_workflow_fixture/design_session_01",
-          "commit": "1111111111111111111111111111111111111111",
-          "candidateSnapshotDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
-          "operationDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "artifactBinding": {
+            "aggregateByteCount": 1024,
+            "artifactContractVersion": 1,
+            "artifactId": "artifact_01",
+            "artifactDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "baseline": {
+              "liveRevision": 42,
+              "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+            },
+            "changeSetId": "change_set_01",
+            "changeSetDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+            "chunkCount": 1,
+            "contentEncoding": "canonical-json-utf8",
+            "operationKey": "proposal-operation-01",
+            "projectId": "project_workflow_fixture"
+          },
+          "planDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
           "approvalBindingDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
           "requiredSecureValues": [
             {"resourceType": "variable", "handle": "inventory-token", "fieldPath": "value"}

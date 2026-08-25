@@ -25,8 +25,8 @@ describe('ProjectCandidateBuilder', () => {
       });
 
       // Assert
-      assert.deepEqual(firstResult.candidate, buildExpectedChangeSet(fixture));
-      assert.equal(JSON.stringify(firstResult.candidate), JSON.stringify(secondResult.candidate));
+      assert.deepEqual(firstResult.changeSet, buildExpectedChangeSet(fixture));
+      assert.equal(JSON.stringify(firstResult.changeSet), JSON.stringify(secondResult.changeSet));
       assert.equal(firstResult.candidateSnapshotDigest, CANDIDATE_DIGEST);
       assert.equal(secondResult.candidateSnapshotDigest, CANDIDATE_DIGEST);
       assert.deepEqual(firstResult.deletionIntents, fixture.deletionIntents);

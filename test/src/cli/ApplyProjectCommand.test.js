@@ -103,7 +103,7 @@ describe('ApplyProjectCommand', () => {
       ].join('\n'));
     });
 
-    it('should return accepted proposal metadata for an approval-required worker apply', async () => {
+    it('should return accepted proposal metadata for personal deferred approval', async () => {
       // Arrange
       const { ApplyProjectCommand } = await import(applyProjectCommandModuleUrl);
       const calls = [];
@@ -127,7 +127,11 @@ describe('ApplyProjectCommand', () => {
       // Assert
       assert.equal(exitCode, 0);
       assert.equal(calls[0][1].requireApproval, true);
-      assert.deepEqual(calls[0][1].configurationOptions, {});
+      assert.deepEqual(calls[0][1].configurationOptions, {
+        explicitApiBaseUrl: undefined,
+        explicitApiKey: undefined,
+        explicitShopDomain: undefined,
+      });
       assert.deepEqual(JSON.parse(stdoutChunks.join('')), {
         cliResultVersion: 1,
         command: 'apply',
@@ -143,7 +147,7 @@ describe('ApplyProjectCommand', () => {
       assert.equal(stderrChunks.join(''), '');
     });
 
-    it('should preserve personal configuration on approval-required apply for fail-closed rejection', async () => {
+    it('should preserve personal configuration on approval-required apply', async () => {
       // Arrange
       const { ApplyProjectCommand } = await import(applyProjectCommandModuleUrl);
       const calls = [];

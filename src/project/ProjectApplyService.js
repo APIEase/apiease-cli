@@ -25,7 +25,7 @@ const EXPECTED_PERSONAL_APPLY_OUTCOMES = new Set([
   'PROJECT_APPLY_NO_CHANGE',
   'PROJECT_APPLY_REPLAYED',
 ]);
-const EXPECTED_WORKER_APPLY_OUTCOMES = new Set([PROJECT_PROPOSAL_ACCEPTED_OUTCOME]);
+const EXPECTED_PERSONAL_DEFERRED_OUTCOMES = new Set([PROJECT_PROPOSAL_ACCEPTED_OUTCOME]);
 const PROJECT_APPLY_CONFLICT_OUTCOMES = new Set([
   'PROJECT_BASELINE_CONFLICT',
   'PROJECT_IDEMPOTENCY_CONFLICT',
@@ -120,7 +120,7 @@ class ProjectApplyService {
   }) {
     const planResponse = await this.apiEaseProjectApiClient.planProject({
       ...projectApiInvocation,
-      request: { contractVersion: 1, candidate: candidateBuildResult.candidate },
+      request: { contractVersion: 1, changeSet: candidateBuildResult.changeSet },
     });
     this.requireExpectedPlanOutcome(planResponse);
     if (!planResponse.ok) return this.buildPlanFailure(validationResult, planResponse);
@@ -152,7 +152,6 @@ class ProjectApplyService {
       request: this.buildApplyRequest({
         candidateBuildResult,
         operationKey,
-        planResponse,
         requestPolicy,
       }),
     });
@@ -168,31 +167,28 @@ class ProjectApplyService {
   }
 
   async submitRetainedApply(invocation) {
-    return invocation.request.authorityMode === 'worker'
-      ? await this.apiEaseProjectApiClient.submitProjectProposal(invocation)
-      : await this.apiEaseProjectApiClient.applyProject(invocation);
+    return await this.apiEaseProjectApiClient.applyProject(invocation);
   }
 
   requireExpectedApplyOutcome(applyResponse, requestPolicy) {
     if (!applyResponse.ok) return;
-    const expectedOutcomes = requestPolicy.authorityMode === 'worker'
-      ? EXPECTED_WORKER_APPLY_OUTCOMES
+    const expectedOutcomes = requestPolicy.applyRequestFields.requireApproval
+      ? EXPECTED_PERSONAL_DEFERRED_OUTCOMES
       : EXPECTED_PERSONAL_APPLY_OUTCOMES;
     if (!expectedOutcomes.has(applyResponse.outcome)) {
-      const errorCode = requestPolicy.authorityMode === 'worker'
+      const errorCode = requestPolicy.applyRequestFields.requireApproval
         ? 'PROJECT_PROPOSAL_SUBMISSION_OUTCOME_INVALID'
         : 'PROJECT_APPLY_OUTCOME_INVALID';
       throw buildServiceError(errorCode);
     }
   }
 
-  buildApplyRequest({ candidateBuildResult, operationKey, planResponse, requestPolicy }) {
+  buildApplyRequest({ candidateBuildResult, operationKey, requestPolicy }) {
     return {
       contractVersion: 1,
       operationKey,
       authorityMode: requestPolicy.authorityMode,
-      candidate: candidateBuildResult.candidate,
-      operations: planResponse.result.operations,
+      changeSet: candidateBuildResult.changeSet,
       ...requestPolicy.applyRequestFields,
     };
   }
@@ -204,7 +200,7 @@ class ProjectApplyService {
   async publishCommittedLocalTransitions({ applyReceipt, candidateBuildResult }) {
     const committedLocalState = this.projectLocalStateService.deriveCommittedLocalState({
       localState: candidateBuildResult.localState,
-      candidate: candidateBuildResult.candidate,
+      changeSet: candidateBuildResult.changeSet,
       applyReceipt,
       candidateSnapshotDigest: candidateBuildResult.candidateSnapshotDigest,
     });

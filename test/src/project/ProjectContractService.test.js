@@ -90,6 +90,25 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateProjectApiResponse', () => {
+    it('should accept a deferred proposal response from the apply endpoint', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const proposalFixture = await readJson('fixtures/project-proposal-workflow.json');
+      const proposalResponse = proposalFixture.fixtures.find(
+        fixture => fixture.name === 'proposal-accepted',
+      ).document;
+
+      // Act
+      const result = projectContractService.validateProjectApiResponse(
+        '/api/v1/projects/apply',
+        proposalResponse,
+      );
+
+      // Assert
+      assert.deepEqual(result, { ok: true });
+    });
+
     it('should validate every Project API fixture response for its endpoint and outcome', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
@@ -313,7 +332,7 @@ async function readFailureFixture(fixtureName) {
 async function readWorkflowCandidate() {
   const workflowFixture = await readJson('fixtures/project-workflow-success.json');
 
-  return structuredClone(workflowFixture.pairs[0].request.document.candidate);
+  return structuredClone(workflowFixture.pairs[0].request.document.changeSet);
 }
 
 async function readCanonicalResourceChangeSet() {

@@ -168,7 +168,7 @@ describe('ProjectLocalStateService', () => {
       // Act
       const committedLocalState = projectLocalStateService.deriveCommittedLocalState({
         localState,
-        candidate: applyPair.request.document.candidate,
+        changeSet: applyPair.request.document.changeSet,
         applyReceipt: applyPair.response.document.result,
         candidateSnapshotDigest: workflowFixture.resultingState.baseline.snapshotDigest,
       });
@@ -192,7 +192,7 @@ describe('ProjectLocalStateService', () => {
       // Act and Assert
       assert.throws(() => projectLocalStateService.deriveCommittedLocalState({
         localState: buildLocalState(),
-        candidate: {},
+        changeSet: {},
         applyReceipt: { outcome: 'PROJECT_PLAN_READY' },
         candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       }), { code: 'PROJECT_APPLY_RECEIPT_INVALID' });
@@ -204,12 +204,12 @@ describe('ProjectLocalStateService', () => {
       const noChangePair = workflowFixture.pairs.find(pair => pair.name === 'no-change');
       const projectLocalStateService = buildService();
       const localState = buildLocalState({
-        baseline: noChangePair.request.document.candidate.baseline,
-        resources: noChangePair.request.document.candidate.resourceBindings.map(binding => ({
-          path: binding.path,
+        baseline: noChangePair.request.document.changeSet.baseline,
+        resources: noChangePair.request.document.changeSet.verifiedBindings.map(binding => ({
+          path: buildResourcePath(binding.resourceType, binding.handle),
           resourceType: binding.resourceType,
           resourceId: binding.resourceId,
-          handle: binding.originalHandle,
+          handle: binding.handle,
           resourceVersion: binding.expectedResourceVersion,
         })),
       });
@@ -217,9 +217,9 @@ describe('ProjectLocalStateService', () => {
       // Act
       const committedLocalState = projectLocalStateService.deriveCommittedLocalState({
         localState,
-        candidate: noChangePair.request.document.candidate,
+        changeSet: noChangePair.request.document.changeSet,
         applyReceipt: noChangePair.response.document.result,
-        candidateSnapshotDigest: noChangePair.request.document.candidate.baseline.snapshotDigest,
+        candidateSnapshotDigest: noChangePair.request.document.changeSet.baseline.snapshotDigest,
       });
 
       // Assert

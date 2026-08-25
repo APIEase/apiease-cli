@@ -22,7 +22,7 @@ describe('ProjectValidationService', () => {
       });
 
       // Assert
-      assert.strictEqual(calls[0].request.candidate, candidateBuildResult.candidate);
+      assert.strictEqual(calls[0].request.changeSet, candidateBuildResult.changeSet);
       assert.strictEqual(validationResult.candidateBuildResult, candidateBuildResult);
       assert.equal(validationResult.outcome, 'PROJECT_VALID');
     });
@@ -148,7 +148,7 @@ describe('ProjectValidationService', () => {
       // Assert
       assert.deepEqual(calls, [
         { projectDirectoryPath: '/checkout/nested' },
-        { ...buildProjectApiInvocation(), request: { contractVersion: 1, candidate: candidateBuildResult.candidate } },
+        { ...buildProjectApiInvocation(), request: { contractVersion: 1, changeSet: candidateBuildResult.changeSet } },
       ]);
     });
 
@@ -205,7 +205,7 @@ function buildCandidateBuildResult() {
   return {
     repositoryTopLevelPath: '/checkout',
     localState: { stateFormatVersion: 1 },
-    candidate: { candidateFormatVersion: 1, files: [] },
+    changeSet: { contractVersion: 1, creates: [], updates: [], deletes: [] },
     candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     deletionIntents: [],
     requiredSecureValues: [],

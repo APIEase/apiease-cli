@@ -178,7 +178,6 @@ function buildProjectCommands({
   });
   const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({
     personalProjectAuthenticationAdapter,
-    approvalProjectContext: authenticationContext.approvalProjectContext,
   });
   const applyProjectCommand = new ApplyProjectCommand({
     personalProjectAuthenticationAdapter,

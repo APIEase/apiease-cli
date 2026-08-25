@@ -95,7 +95,7 @@ function verifyInstalledHelp(helpText) {
   for (const commandName of ['create', 'read', 'update', 'delete', 'init', 'upgrade', 'pull', 'design-context', 'validate', 'apply', 'rename']) {
     assert.match(helpText, new RegExp(`\\b${commandName}\\b`));
   }
-  assert.equal(helpText.includes('--require-approval'), false);
+  assert.equal(helpText.includes('--require-approval'), true);
 }
 
 function verifyNoninteractiveProjectCommand(executablePath, commandEnvironment, workingDirectoryPath) {

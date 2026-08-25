@@ -35,7 +35,7 @@ class ProjectValidationService {
   async validateCandidate({ candidateBuildResult, projectApiInvocation }) {
     const validationResponse = await this.apiEaseProjectApiClient.validateProject({
       ...projectApiInvocation,
-      request: { contractVersion: 1, candidate: candidateBuildResult.candidate },
+      request: { contractVersion: 1, changeSet: candidateBuildResult.changeSet },
     });
     this.requireExpectedSuccessOutcome(validationResponse);
 

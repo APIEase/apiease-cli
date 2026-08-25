@@ -47,7 +47,7 @@ apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop
 apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
 apiease design-context --project-requirements <json> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
 apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
-apiease apply [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
+apiease apply [--require-approval] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key> | --bearer-token <token>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
 apiease upgrade
 apiease upgrade [--check]
@@ -204,7 +204,7 @@ The forced command reports a bounded warning. Both forms preserve unmanaged file
 apiease validate
 ```
 
-`validate` builds the complete candidate, performs local schema, canonical path, size, UTF-8, canonical-byte, and digest checks, and then submits the candidate for authoritative server validation. It does not persist state, move deletion files, execute resources, call external providers, or verify runtime behavior.
+`validate` builds the complete Canonical Resource Change Set, performs local schema, canonical path, size, UTF-8, canonical-byte, and digest checks, and then submits the change set for authoritative server validation. It does not persist state, move deletion files, execute resources, call external providers, or verify runtime behavior.
 
 ### Apply a Project
 
@@ -212,7 +212,15 @@ apiease validate
 apiease apply
 ```
 
-Personal terminal apply is immediate and noninteractive. The CLI builds one complete candidate, validates it, requests a plan, displays the exact operations and summary, and submits that same candidate and exact plan for apply. It does not ask for confirmation. In JSON mode the plan is returned in `result.plan`.
+Personal terminal apply is immediate and noninteractive. The CLI builds one complete Canonical Resource Change Set containing the exact Mongo baseline, verified bindings, explicit deletion intent, and safe secure-input instructions. It validates and plans that change set, displays the exact plan, and submits the same change set for synchronous apply through the shared backend pipeline. It does not ask for confirmation. In JSON mode the plan is returned in `result.plan`.
+
+To submit the same personal change set for deferred review without mutating live resources:
+
+```bash
+apiease apply --require-approval
+```
+
+The server stores the exact immutable Project Change Artifact and creates a pending Project Proposal. The CLI returns proposal metadata and leaves local state and deletion files unchanged until a later approved apply commits the artifact. Git diff remains local presentation and is never the submitted artifact.
 
 After a committed or replayed receipt, the CLI updates ignored local state and archives receipt-proven deletion intent. It does not wait for asynchronous Git projection. Even after successful server validation and atomic persistence, a person must verify affected live resources through the established APIEase execution paths.
 

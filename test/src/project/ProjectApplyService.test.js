@@ -30,35 +30,15 @@ describe('ProjectApplyService', () => {
         'archive-deletions',
       ]);
       assert.strictEqual(fixture.validationCalls[0].candidateBuildResult, fixture.candidateBuildResult);
-      assert.strictEqual(fixture.planCalls[0].request.candidate, fixture.candidateBuildResult.candidate);
-      assert.strictEqual(fixture.applyCalls[0].request.candidate, fixture.candidateBuildResult.candidate);
-      assert.strictEqual(fixture.applyCalls[0].request.operations, fixture.planResponse.result.operations);
+      assert.strictEqual(fixture.planCalls[0].request.changeSet, fixture.candidateBuildResult.changeSet);
+      assert.strictEqual(fixture.applyCalls[0].request.changeSet, fixture.candidateBuildResult.changeSet);
       assert.equal(fixture.applyCalls[0].request.operationKey, 'opaque-operation-key');
-      assert.equal(Object.hasOwn(fixture.applyCalls[0].request, 'requireApproval'), false);
+      assert.equal(fixture.applyCalls[0].request.requireApproval, false);
+      assert.equal(fixture.applyCalls[0].request.authorityMode, 'personal');
+      assert.equal(Object.hasOwn(fixture.applyCalls[0].request, 'operations'), false);
       assert.strictEqual(result.plan, fixture.planResponse.result);
       assert.strictEqual(result.receipt, fixture.applyResponse.result);
       assert.deepEqual(result.guidance, [PROJECT_APPLY_RUNTIME_VERIFICATION_GUIDANCE]);
-    });
-
-    it('should fail approval-required policy before authentication or local and network work', async () => {
-      // Arrange
-      const policyFailure = {
-        ok: false,
-        error: { code: 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE', category: 'authorization' },
-        diagnostics: [{ code: 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE' }],
-      };
-      const fixture = buildServiceFixture({ policyFailure });
-
-      // Act
-      const result = await fixture.projectApplyService.applyProject({
-        ...buildInvocation(),
-        requireApproval: true,
-      });
-
-      // Assert
-      assert.equal(result.stage, 'policy');
-      assert.equal(result.error.code, 'PROJECT_WORKER_AUTHORITY_UNAVAILABLE');
-      assert.deepEqual(fixture.events, ['policy']);
     });
 
     it('should validate plan and submit an accepted proposal without local transitions', async () => {
@@ -73,7 +53,6 @@ describe('ProjectApplyService', () => {
       const result = await fixture.projectApplyService.applyProject({
         ...buildInvocation(),
         requireApproval: true,
-        configurationOptions: {},
       });
 
       // Assert
@@ -84,13 +63,30 @@ describe('ProjectApplyService', () => {
         'validate',
         'plan',
         'operation-key',
-        'proposal-submit',
+        'apply',
       ]);
-      assert.strictEqual(fixture.proposalCalls[0].request.candidate, fixture.candidateBuildResult.candidate);
-      assert.strictEqual(fixture.proposalCalls[0].request.operations, fixture.planResponse.result.operations);
-      assert.equal(fixture.proposalCalls[0].request.operationKey, 'opaque-operation-key');
-      assert.equal(fixture.proposalCalls[0].request.requireApproval, true);
-      assert.deepEqual(fixture.proposalCalls[0].request.proposalCheckpoint, buildProposalCheckpoint());
+      assert.strictEqual(fixture.applyCalls[0].request.changeSet, fixture.candidateBuildResult.changeSet);
+      assert.equal(fixture.applyCalls[0].request.operationKey, 'opaque-operation-key');
+      assert.equal(fixture.applyCalls[0].request.requireApproval, true);
+      assert.equal(fixture.applyCalls[0].request.authorityMode, 'personal');
+      assert.equal(Object.hasOwn(fixture.applyCalls[0].request, 'proposalCheckpoint'), false);
+      assert.equal(Object.hasOwn(fixture.applyCalls[0].request, 'operations'), false);
+      assert.deepEqual(fixture.applyCalls[0].request.changeSet.deletes, [{
+        bindingId: 'binding_request_inventory_sync',
+        handle: 'inventory-sync',
+        resourceType: 'request',
+      }]);
+      assert.deepEqual(fixture.applyCalls[0].request.changeSet.secureInputs, [{
+        fieldPath: 'parameters.api-key.value',
+        handle: 'inventory-sync',
+        mode: 'preserve',
+        resourceType: 'request',
+      }]);
+      assert.equal(fixture.applyCalls[0].request.changeSet.verifiedBindings.length, 1);
+      assert.deepEqual(fixture.applyCalls[0].request.changeSet.baseline, {
+        liveRevision: 7,
+        snapshotDigest: 'sha256:baseline',
+      });
       assert.equal(result.state, 'accepted');
       assert.strictEqual(result.proposal, proposalResponse.result);
       assert.equal(result.receipt, null);
@@ -107,7 +103,6 @@ describe('ProjectApplyService', () => {
         fixture.projectApplyService.applyProject({
           ...buildInvocation(),
           requireApproval: true,
-          configurationOptions: {},
         }),
         { code: 'PROJECT_PROPOSAL_SUBMISSION_OUTCOME_INVALID' },
       );
@@ -191,6 +186,7 @@ describe('ProjectApplyService', () => {
 
       // Assert
       assert.equal(result.outcome, 'PROJECT_APPLY_REPLAYED');
+      assert.strictEqual(fixture.deriveStateCalls[0].changeSet, fixture.candidateBuildResult.changeSet);
       assert.strictEqual(fixture.deriveStateCalls[0].applyReceipt, applyResponse.result);
       assert.strictEqual(fixture.archiveCalls[0].applyReceipt, applyResponse.result);
       assert.equal(fixture.events.at(-1), 'archive-deletions');
@@ -259,7 +255,6 @@ function buildServiceFixture({
   applyResponse = buildApplyResponse(),
   candidateBuildResult = buildCandidateBuildResult(),
   planResponse = buildPlanResponse(),
-  policyFailure,
   publishFailure,
   validationResult,
 } = {}) {
@@ -267,16 +262,12 @@ function buildServiceFixture({
   const validationCalls = [];
   const planCalls = [];
   const applyCalls = [];
-  const proposalCalls = [];
   const deriveStateCalls = [];
   const archiveCalls = [];
   const projectAuthenticationAdapter = {
     async resolveRequestConfiguration(configurationOptions) {
       events.push('authentication');
-      assert.deepEqual(
-        configurationOptions,
-        approvalRequired ? {} : buildInvocation().configurationOptions,
-      );
+      assert.deepEqual(configurationOptions, buildInvocation().configurationOptions);
       return {
         ok: true,
         apiBaseUrl: 'https://api.example.test',
@@ -287,14 +278,12 @@ function buildServiceFixture({
   const projectApplyRequestPolicy = {
     selectRequestPolicy({ requireApproval }) {
       events.push('policy');
-      assert.equal(requireApproval, approvalRequired || Boolean(policyFailure));
-      return policyFailure ?? {
+      assert.equal(requireApproval, approvalRequired);
+      return {
         ok: true,
-        authorityMode: approvalRequired ? 'worker' : 'personal',
+        authorityMode: 'personal',
         projectAuthenticationAdapter,
-        applyRequestFields: approvalRequired
-          ? { requireApproval: true, proposalCheckpoint: buildProposalCheckpoint() }
-          : {},
+        applyRequestFields: { requireApproval: approvalRequired },
       };
     },
     permitsCommittedLocalTransitions({ state, outcome }) {
@@ -314,11 +303,6 @@ function buildServiceFixture({
     async applyProject(invocation) {
       events.push('apply');
       applyCalls.push(invocation);
-      return applyResponse;
-    },
-    async submitProjectProposal(invocation) {
-      events.push('proposal-submit');
-      proposalCalls.push(invocation);
       return applyResponse;
     },
   };
@@ -374,18 +358,8 @@ function buildServiceFixture({
     events,
     planCalls,
     planResponse,
-    proposalCalls,
     projectApplyService,
     validationCalls,
-  };
-}
-
-function buildProposalCheckpoint() {
-  return {
-    designSessionId: 'design_session_01',
-    proposalId: 'proposal_01',
-    branchName: 'apiease/proposals/project_01/design_session_01',
-    commit: '1111111111111111111111111111111111111111',
   };
 }
 
@@ -405,7 +379,32 @@ function buildCandidateBuildResult({ deletionIntents = [{ deletePath: 'delete.js
   return {
     repositoryTopLevelPath: '/checkout',
     localState: { stateFormatVersion: 1 },
-    candidate: { candidateFormatVersion: 1, files: [] },
+    changeSet: {
+      contractVersion: 1,
+      changeSetId: 'change_set_01',
+      changeSetDigest: 'sha256:change-set',
+      baseline: { liveRevision: 7, snapshotDigest: 'sha256:baseline' },
+      creates: [],
+      updates: [],
+      deletes: [{
+        bindingId: 'binding_request_inventory_sync',
+        handle: 'inventory-sync',
+        resourceType: 'request',
+      }],
+      secureInputs: [{
+        fieldPath: 'parameters.api-key.value',
+        handle: 'inventory-sync',
+        mode: 'preserve',
+        resourceType: 'request',
+      }],
+      verifiedBindings: [{
+        bindingId: 'binding_request_inventory_sync',
+        expectedResourceVersion: 'rv1_fixture',
+        handle: 'inventory-sync',
+        resourceId: 'request_01',
+        resourceType: 'request',
+      }],
+    },
     candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     deletionIntents,
     requiredSecureValues: [],

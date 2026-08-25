@@ -1298,17 +1298,17 @@
         "result": {"$ref": "#/$defs/artifactPackage"}
       }
     },
-    "projectCandidateRequest": {
+    "projectChangeSetRequest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contractVersion", "candidate"],
+      "required": ["contractVersion", "changeSet"],
       "properties": {
         "contractVersion": {"const": 1},
-        "candidate": {"$ref": "#/$defs/projectCandidate"}
+        "changeSet": {"$ref": "#/$defs/canonicalResourceChangeSet"}
       }
     },
-    "projectValidateRequest": {"$ref": "#/$defs/projectCandidateRequest"},
-    "projectPlanRequest": {"$ref": "#/$defs/projectCandidateRequest"},
+    "projectValidateRequest": {"$ref": "#/$defs/projectChangeSetRequest"},
+    "projectPlanRequest": {"$ref": "#/$defs/projectChangeSetRequest"},
     "validationSummary": {
       "type": "object",
       "additionalProperties": false,
@@ -1461,32 +1461,21 @@
     "projectApplyRequest": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["contractVersion", "operationKey", "authorityMode", "requireApproval", "candidate", "operations"],
+      "required": ["contractVersion", "operationKey", "authorityMode", "requireApproval", "changeSet"],
       "properties": {
         "contractVersion": {"const": 1},
         "operationKey": {"$ref": "#/$defs/operationKey"},
-        "authorityMode": {"$ref": "#/$defs/authorizationMode"},
+        "authorityMode": {"const": "personal"},
         "requireApproval": {"type": "boolean"},
-        "proposalCheckpoint": {"$ref": "#/$defs/proposalCheckpointIdentity"},
-        "candidate": {"$ref": "#/$defs/projectCandidate"},
-        "operations": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/projectOperation"}}
-      },
-      "oneOf": [
-        {
-          "properties": {
-            "authorityMode": {"const": "personal"},
-            "requireApproval": {"const": false},
-            "proposalCheckpoint": false
-          }
-        },
-        {
-          "required": ["proposalCheckpoint"],
-          "properties": {
-            "authorityMode": {"const": "worker"},
-            "requireApproval": {"const": true}
-          }
+        "changeSet": {"$ref": "#/$defs/canonicalResourceChangeSet"},
+        "secureInputValues": {
+          "type": "object",
+          "propertyNames": {"type": "string", "minLength": 1, "maxLength": 1024},
+          "additionalProperties": {"type": "string", "maxLength": 65536}
         }
-      ]
+      },
+      "if": {"properties": {"requireApproval": {"const": true}}},
+      "then": {"properties": {"secureInputValues": false}}
     },
     "proposalCheckpointIdentity": {
       "type": "object",
@@ -1625,16 +1614,31 @@
         "result": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["proposalId", "designSessionId", "status", "replayed", "branchName", "commit", "candidateSnapshotDigest", "operationDigest", "approvalBindingDigest", "requiredSecureValues", "requiredSecureValuesWarning"],
+          "required": ["proposalId", "designSessionId", "status", "replayed", "artifactBinding", "planDigest", "approvalBindingDigest", "requiredSecureValues", "requiredSecureValuesWarning"],
           "properties": {
             "proposalId": {"$ref": "#/$defs/identity"},
             "designSessionId": {"$ref": "#/$defs/identity"},
             "status": {"const": "pending"},
             "replayed": {"type": "boolean"},
-            "branchName": {"type": "string", "maxLength": 255},
-            "commit": {"$ref": "#/$defs/gitCommit"},
-            "candidateSnapshotDigest": {"$ref": "#/$defs/digest"},
-            "operationDigest": {"$ref": "#/$defs/digest"},
+            "artifactBinding": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["aggregateByteCount", "artifactContractVersion", "artifactId", "artifactDigest", "baseline", "changeSetId", "changeSetDigest", "chunkCount", "contentEncoding", "operationKey", "projectId"],
+              "properties": {
+                "aggregateByteCount": {"type": "integer", "minimum": 1, "maximum": 25000000},
+                "artifactContractVersion": {"const": 1},
+                "artifactId": {"$ref": "#/$defs/identity"},
+                "artifactDigest": {"$ref": "#/$defs/digest"},
+                "baseline": {"$ref": "#/$defs/baseline"},
+                "changeSetId": {"$ref": "#/$defs/identity"},
+                "changeSetDigest": {"$ref": "#/$defs/digest"},
+                "chunkCount": {"type": "integer", "minimum": 1, "maximum": 1000},
+                "contentEncoding": {"type": "string", "minLength": 1, "maxLength": 128},
+                "operationKey": {"$ref": "#/$defs/operationKey"},
+                "projectId": {"$ref": "#/$defs/identity"}
+              }
+            },
+            "planDigest": {"$ref": "#/$defs/digest"},
             "approvalBindingDigest": {"$ref": "#/$defs/digest"},
             "requiredSecureValues": {"$ref": "#/$defs/requiredSecureValues"},
             "requiredSecureValuesWarning": {"$ref": "#/$defs/requiredSecureValuesWarning"}

@@ -72,7 +72,7 @@ class ProjectDesignContextService {
       bindings: serverContext.bindings.map(binding => this.copySafeBinding(binding)),
       localEdits: this.buildLocalEdits(candidateBuildResult, serverContext),
       deletions: candidateBuildResult.deletionIntents.map(intent => this.copySafeDeletion(intent)),
-      secureSelectors: candidateBuildResult.candidate.secureInputs,
+      secureSelectors: candidateBuildResult.changeSet.secureInputs,
       conflicts: this.buildBaselineConflicts(candidateBuildResult.localState, serverContext),
       limits: serverContext.limits,
       diagnostics: serverContext.diagnostics,
@@ -94,8 +94,8 @@ class ProjectDesignContextService {
       snapshotDigest: candidateBuildResult.candidateSnapshotDigest,
       hasManagedEdits: candidateBuildResult.candidateSnapshotDigest
         !== candidateBuildResult.localState.baseline.snapshotDigest,
-      creates: candidateBuildResult.candidate.creates,
-      updates: candidateBuildResult.candidate.updates.filter(update => (
+      creates: candidateBuildResult.changeSet.creates,
+      updates: candidateBuildResult.changeSet.updates.filter(update => (
         this.isChangedUpdate(update, serverSources)
       )),
     };

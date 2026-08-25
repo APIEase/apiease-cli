@@ -366,7 +366,7 @@ describe('TopLevelCliCommandRouter', () => {
         '  pull                              Pull verified Project API resources.',
         '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
         '  validate                          Validate the complete project without execution.',
-        '  apply                             Validate, plan, and immediately apply the project.',
+        '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
         '  upgrade                           Upgrade an existing APIEase project.',
         '',
@@ -375,13 +375,14 @@ describe('TopLevelCliCommandRouter', () => {
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
         '  --bearer-token <token>            Single-use Project API bearer token.',
+        '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
         '  --version                         Print the installed apiease CLI version.',
       ].join('\n'));
       assert.doesNotMatch(usageText, /apiease-cli/);
       assert.doesNotMatch(usageText, /\btest\b/);
-      assert.doesNotMatch(usageText, /--require-approval/);
+      assert.match(usageText, /--require-approval/);
       assert.match(usageText, /init \[project-name\] \[--from-existing-resources\]/);
     });
   });

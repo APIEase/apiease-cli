@@ -19,6 +19,7 @@ const PROJECT_SUCCESS_DEFINITION_BY_ENDPOINT_AND_OUTCOME = Object.freeze({
     PROJECT_APPLIED: 'projectAppliedResponse',
     PROJECT_APPLY_NO_CHANGE: 'projectApplyNoChangeResponse',
     PROJECT_APPLY_REPLAYED: 'projectApplyReplayedResponse',
+    PROJECT_PROPOSAL_ACCEPTED: 'projectProposalAcceptedResponse',
   }),
   '/api/v1/projects/bootstrap': Object.freeze({
     PROJECT_BOOTSTRAP_PENDING: 'projectBootstrapPendingResponse',

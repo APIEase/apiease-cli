@@ -61,19 +61,19 @@ class ProjectLocalStateService {
 
   deriveCommittedLocalState({
     localState,
-    candidate,
+    changeSet,
     applyReceipt,
     candidateSnapshotDigest,
   }) {
     this.requireValidLocalState(localState);
     this.requireCommittedApplyReceipt(applyReceipt);
-    this.requireValidCandidate(candidate);
-    const candidateFilePaths = new Set(candidate.files.map(file => file.path));
+    this.requireValidChangeSet(changeSet);
+    const changeSetResourcePaths = this.buildChangeSetResourcePaths(changeSet);
     const resources = applyReceipt.outcome === 'PROJECT_APPLY_NO_CHANGE'
       ? localState.resources.map(resource => ({ ...resource }))
       : applyReceipt.resources
         .filter(resource => resource.operation !== 'delete')
-        .map(resource => this.buildCommittedResource(resource, candidateFilePaths))
+        .map(resource => this.buildCommittedResource(resource, changeSetResourcePaths))
         .sort(compareResourcesByPath);
     const committedLocalState = {
       ...localState,
@@ -167,18 +167,25 @@ class ProjectLocalStateService {
     }
   }
 
-  requireValidCandidate(candidate) {
-    const validationResult = this.projectContractService.validateProjectCandidate(candidate);
+  requireValidChangeSet(changeSet) {
+    const validationResult = this.projectContractService
+      .validateCanonicalResourceChangeSet(changeSet);
 
     if (!validationResult.ok) {
-      throw buildServiceError('PROJECT_CANDIDATE_INVALID', validationResult.diagnostics);
+      throw buildServiceError('PROJECT_CHANGE_SET_INVALID', validationResult.diagnostics);
     }
   }
 
-  buildCommittedResource(appliedResource, candidateFilePaths) {
+  buildChangeSetResourcePaths(changeSet) {
+    return new Set([...changeSet.creates, ...changeSet.updates].map(operation => (
+      buildResourcePath(operation.resourceType, operation.handle)
+    )));
+  }
+
+  buildCommittedResource(appliedResource, changeSetResourcePaths) {
     const resourcePath = buildResourcePath(appliedResource.resourceType, appliedResource.handle);
 
-    if (!candidateFilePaths.has(resourcePath)) {
+    if (!changeSetResourcePaths.has(resourcePath)) {
       throw buildServiceError('PROJECT_APPLY_RECEIPT_RESOURCE_PATH_INVALID');
     }
 

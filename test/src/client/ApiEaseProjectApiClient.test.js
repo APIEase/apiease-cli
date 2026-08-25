@@ -337,6 +337,35 @@ describe('ApiEaseProjectApiClient', () => {
   });
 
   describe('applyProject', () => {
+    it('should submit personal deferred approval through the shared apply endpoint', async () => {
+      // Arrange
+      const requestBodies = [];
+      const proposalWorkflow = await readFixture('project-proposal-workflow.json');
+      const responseDocument = findFixture(
+        proposalWorkflow.fixtures,
+        'proposal-accepted',
+      ).document;
+      const apiEaseProjectApiClient = buildClient({
+        responses: [buildJsonResponse(202, responseDocument)],
+        requestBodies,
+      });
+      const changeSet = await readCanonicalChangeSetFixture();
+      const request = {
+        authorityMode: 'personal',
+        changeSet,
+        contractVersion: 1,
+        operationKey: 'personal-deferred-operation',
+        requireApproval: true,
+      };
+
+      // Act
+      const result = await apiEaseProjectApiClient.applyProject(buildInvocation(request));
+
+      // Assert
+      assert.equal(result.outcome, 'PROJECT_PROPOSAL_ACCEPTED');
+      assert.deepEqual(JSON.parse(requestBodies[0]), request);
+    });
+
     it('should retry an ambiguous apply with the identical operation key and body', async () => {
       // Arrange
       const workflow = await readFixture('project-workflow-success.json');
@@ -642,6 +671,15 @@ function buildClient({
     abortTimeoutImplementation,
     operationLimits,
   });
+}
+
+async function readCanonicalChangeSetFixture() {
+  const unifiedContracts = await readFixture('unified-project-contracts.json');
+
+  return structuredClone(findFixture(
+    unifiedContracts.fixtures,
+    'canonical-resource-change-set',
+  ).document);
 }
 
 function buildWorkerClient({

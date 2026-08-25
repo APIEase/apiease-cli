@@ -107,9 +107,7 @@ class ApplyProjectCommand {
     if (parseResult.bearerToken) {
       configurationOptions.explicitBearerToken = parseResult.bearerToken;
     }
-    return parseResult.requireApproval && Object.values(configurationOptions).every(
-      optionValue => optionValue === undefined,
-    ) ? {} : configurationOptions;
+    return configurationOptions;
   }
 
   resolveProjectApplyService() {

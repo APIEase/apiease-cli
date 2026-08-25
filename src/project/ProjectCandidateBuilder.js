@@ -42,19 +42,19 @@ class ProjectCandidateBuilder {
       parsedResourceSources,
       localState: checkout.localState,
     });
-    const candidate = this.buildCandidateValue({
+    const changeSet = this.buildCandidateValue({
       deletionResult,
       localState: checkout.localState,
       managedSnapshotDigest: managedNamespace.snapshotDigest,
       parsedResourceSources,
       secureInputResult,
     });
-    this.requireValidCandidate(candidate);
+    this.requireValidCandidate(changeSet);
 
     return {
       repositoryTopLevelPath: checkout.repositoryTopLevelPath,
       localState: checkout.localState,
-      candidate,
+      changeSet,
       candidateSnapshotDigest: managedNamespace.snapshotDigest,
       deletionIntents: deletionResult.deletionIntents,
       requiredSecureValues: secureInputResult.requiredSecureValues,

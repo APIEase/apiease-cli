@@ -154,7 +154,7 @@ function buildFixture() {
     resourceVersion: 'rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
     handle: 'updated-variable',
   };
-  const candidate = {
+  const changeSet = {
     creates: [{ resourceType: 'function', handle: 'new-function', source: createdSource }],
     updates: [
       { resourceType: 'variable', handle: 'existing-variable', source: unchangedSource },
@@ -185,7 +185,7 @@ function buildFixture() {
     },
     projectRequirements,
     candidateBuildResult: {
-      candidate,
+      changeSet,
       candidateSnapshotDigest: LOCAL_SNAPSHOT_DIGEST,
       localState: {
         projectIdentity: {
@@ -266,8 +266,8 @@ function buildExpectedContext(fixture) {
     localEdits: {
       snapshotDigest: LOCAL_SNAPSHOT_DIGEST,
       hasManagedEdits: true,
-      creates: [candidateResult.candidate.creates[0]],
-      updates: [candidateResult.candidate.updates[1]],
+      creates: [candidateResult.changeSet.creates[0]],
+      updates: [candidateResult.changeSet.updates[1]],
     },
     deletions: [{
       sourcePath: 'resources/requests/deleted-request.json',
@@ -276,7 +276,7 @@ function buildExpectedContext(fixture) {
       handle: 'deleted-request',
       sourceDigest: SOURCE_DIGEST,
     }],
-    secureSelectors: candidateResult.candidate.secureInputs,
+    secureSelectors: candidateResult.changeSet.secureInputs,
     conflicts: [{
       code: 'PROJECT_DESIGN_BASELINE_REVISION_CONFLICT',
       localLiveRevision: 6,
