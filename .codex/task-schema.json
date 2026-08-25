@@ -126,6 +126,15 @@
         "workingDirectory": {
           "type": "string"
         },
+        "additionalRepositories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "default": []
+        },
         "branchStrategy": {
           "type": "string",
           "enum": [

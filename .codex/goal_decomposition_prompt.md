@@ -85,6 +85,7 @@ Instructions:
    - text: task-specific task text
    - sequenceIndex: integer order for execution (0-based is fine; always include)
    - architecturalDecisions: required array of explicit material architectural decisions authorized for this task; use `[]` when none
+   - additionalRepositories: array of explicitly authorized sibling Git repository paths required by this task (optional; default to `[]`; never infer entries from prose that does not explicitly authorize them)
    - taskType: one of implementation, metadata, or user-checkup (optional; default to implementation)
    - verificationPrompt: concise instructions for human verification (required for user-checkup; omit otherwise)
    - context: array of strings (optional; default to [])
