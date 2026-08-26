@@ -533,11 +533,11 @@ describe('apiease-cli', () => {
       );
     });
 
-    it('should wire one resolved authentication adapter without worker proposal context', async () => {
+    it('should wire one resolved personal authentication adapter', async () => {
       // Arrange
       const { buildProjectCommands } = await import(entrypointModuleUrl);
       const projectAuthenticationAdapter = {
-        readAuthorityMode: () => 'bearer',
+        readAuthorityMode: () => 'personal',
       };
       const projectCommandAuthenticationContextResolver = {
         resolveContext: () => ({
@@ -600,7 +600,6 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
-        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
@@ -645,7 +644,6 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
-        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
@@ -690,7 +688,6 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
-        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
@@ -735,7 +732,6 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
-        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',
@@ -780,7 +776,6 @@ describe('apiease-cli', () => {
         '  --base-url <url>                  APIEase base URL.',
         '  --shop-domain <shop-domain>       Shopify shop domain.',
         '  --api-key <api-key>               APIEase API key.',
-        '  --bearer-token <token>            Single-use Project API bearer token.',
         '  --require-approval                Submit an immutable proposal without live mutation.',
         '  --json                            Emit one JSON result document.',
         '  --help                            Show this help.',

@@ -24,7 +24,7 @@ describe('ProjectApplyRequestPolicy', () => {
       });
     });
 
-    it('should select personal deferred approval without worker context', () => {
+    it('should select personal deferred approval', () => {
       // Arrange
       const personalProjectAuthenticationAdapter = { readAuthorityMode: () => 'personal' };
       const projectApplyRequestPolicy = new ProjectApplyRequestPolicy({

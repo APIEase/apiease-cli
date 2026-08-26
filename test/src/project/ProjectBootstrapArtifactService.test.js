@@ -70,7 +70,6 @@ describe('ProjectBootstrapArtifactService', () => {
       assert.equal(verifiedArtifact.localState.baseline.liveRevision, 42);
       assert.deepEqual(verifiedArtifact.localState.projectIdentity, bootstrapResponse.result.projectIdentity);
       assert.deepEqual(verifiedArtifact.localState.resources, bootstrapResponse.result.bindings);
-      assert.equal(Object.hasOwn(verifiedArtifact.localState, 'sourceMainCommit'), false);
     });
 
     it('should preserve validated skipped-resource diagnostics', async () => {

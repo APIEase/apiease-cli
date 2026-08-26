@@ -8,7 +8,6 @@ const FORCE_FLAG = '--force';
 const JSON_FLAG = '--json';
 const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
-  '--bearer-token': 'bearerToken',
   '--base-url': 'apiBaseUrl',
   '--shop-domain': 'shopDomain',
 });
@@ -107,9 +106,6 @@ class PullProjectCommand {
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
     };
-    if (parseResult.bearerToken) {
-      configurationOptions.explicitBearerToken = parseResult.bearerToken;
-    }
     return await this.personalProjectAuthenticationAdapter
       .resolveRequestConfiguration(configurationOptions);
   }

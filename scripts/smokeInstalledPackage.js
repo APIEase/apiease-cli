@@ -12,7 +12,6 @@ const expectedExportNames = Object.freeze([
   'ApiEaseProjectApiClient',
     'ApiEaseReadRequestClient',
   'ApiEaseUpdateRequestClient',
-  'BearerProjectAuthenticationAdapter',
   'DesignContextCommand',
   'PersonalProjectAuthenticationAdapter',
   'ProjectAuthenticationAdapter',

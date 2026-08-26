@@ -69,7 +69,6 @@ describe('ProjectApplyService', () => {
       assert.equal(fixture.applyCalls[0].request.operationKey, 'opaque-operation-key');
       assert.equal(fixture.applyCalls[0].request.requireApproval, true);
       assert.equal(fixture.applyCalls[0].request.authorityMode, 'personal');
-      assert.equal(Object.hasOwn(fixture.applyCalls[0].request, 'proposalCheckpoint'), false);
       assert.equal(Object.hasOwn(fixture.applyCalls[0].request, 'operations'), false);
       assert.deepEqual(fixture.applyCalls[0].request.changeSet.deletes, [{
         bindingId: 'binding_request_inventory_sync',

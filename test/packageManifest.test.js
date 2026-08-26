@@ -93,7 +93,6 @@ describe('package manifest', () => {
         'ApiEaseProjectApiClient',
         'ApiEaseReadRequestClient',
         'ApiEaseUpdateRequestClient',
-        'BearerProjectAuthenticationAdapter',
         'DesignContextCommand',
         'PersonalProjectAuthenticationAdapter',
         'ProjectAuthenticationAdapter',

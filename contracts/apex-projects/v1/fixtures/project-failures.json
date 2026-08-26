@@ -61,23 +61,6 @@
       }
     },
     {
-      "name": "worker-authority-fail-closed",
-      "method": "POST",
-      "endpoint": "/api/v1/projects/apply",
-      "httpStatus": 403,
-      "schemaDefinition": "projectErrorResponse",
-      "document": {
-        "contractVersion": 1,
-        "ok": false,
-        "outcome": "PROJECT_WORKER_AUTHORITY_UNAVAILABLE",
-        "error": {
-          "code": "PROJECT_WORKER_AUTHORITY_UNAVAILABLE",
-          "message": "Worker authority is unavailable for this project operation.",
-          "diagnostics": []
-        }
-      }
-    },
-    {
       "name": "path-traversal",
       "method": "POST",
       "endpoint": "/api/v1/projects/validate",

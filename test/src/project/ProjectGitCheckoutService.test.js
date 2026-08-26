@@ -227,7 +227,6 @@ function buildLocalState() {
       liveRevision: 1,
       snapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     },
-    sourceMainCommit: '0123456789abcdef0123456789abcdef01234567',
     resources: [],
   };
 }

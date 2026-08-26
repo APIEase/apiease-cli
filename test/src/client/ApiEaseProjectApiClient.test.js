@@ -10,9 +10,6 @@ import {
   DEFAULT_PROJECT_API_OPERATION_LIMITS,
   DEFAULT_PROJECT_API_RETRY_SETTINGS,
 } from '../../../src/client/ApiEaseProjectApiClient.js';
-import {
-  PROJECT_BEARER_AUTHENTICATION_ACTIONS,
-} from '../../../src/auth/ProjectBearerAuthenticationContract.js';
 import { ProjectContractService } from '../../../src/project/ProjectContractService.js';
 
 const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
@@ -67,8 +64,12 @@ describe('ApiEaseProjectApiClient', () => {
 
     it('should reject an obsolete projection-pending response without polling', async () => {
       // Arrange
-      const bootstrapFixtures = await readFixture('bootstrap-synchronized.json');
-      const pendingResponse = findFixture(bootstrapFixtures.fixtures, 'bootstrap-pending').document;
+      const pendingResponse = {
+        contractVersion: 1,
+        ok: true,
+        outcome: 'PROJECT_BOOTSTRAP_PENDING',
+        result: {},
+      };
       const fetchCalls = [];
       const delays = [];
       const apiEaseProjectApiClient = buildClient({
@@ -84,7 +85,7 @@ describe('ApiEaseProjectApiClient', () => {
 
       // Assert
       assert.equal(result.outcome, 'CONTRACT_INVALID');
-      assert.deepEqual(result.error.diagnostics, [{ code: 'PROJECT_RESPONSE_STATUS_INVALID' }]);
+      assert.deepEqual(result.error.diagnostics, [{ code: 'PROJECT_RESPONSE_CONTRACT_INVALID' }]);
       assert.equal(fetchCalls.length, 1);
       assert.deepEqual(delays, []);
     });
@@ -441,147 +442,6 @@ describe('ApiEaseProjectApiClient', () => {
     });
   });
 
-  describe('worker transport', () => {
-    it('should publish a checkpoint with a freshly resolved publication capability', async () => {
-      // Arrange
-      const contractCalls = [];
-      const authenticationHeaderCalls = [];
-      const request = { contractVersion: 1, checkpoint: 'publish' };
-      const response = buildWorkerSuccessResponse('PROJECT_CHECKPOINT_PUBLISHED');
-      const apiEaseProjectApiClient = buildWorkerClient({
-        responses: [buildJsonResponse(200, response)],
-        contractCalls,
-        authenticationHeaderCalls,
-      });
-
-      // Act
-      const result = await apiEaseProjectApiClient.publishProjectCheckpoint(
-        buildInvocation(request),
-      );
-
-      // Assert
-      assert.equal(result.outcome, response.outcome);
-      assert.deepEqual(authenticationHeaderCalls, [{
-        authenticationContext,
-        action: PROJECT_BEARER_AUTHENTICATION_ACTIONS.checkpointPublish,
-      }]);
-      assert.deepEqual(contractCalls.map(({ endpoint }) => endpoint), [
-        '/api/v1/projects/checkpoints/publish',
-        '/api/v1/projects/checkpoints/publish',
-      ]);
-    });
-
-    it('should retrieve a checkpoint through the shared strict envelope path', async () => {
-      // Arrange
-      const fetchCalls = [];
-      const authenticationHeaderCalls = [];
-      const request = { contractVersion: 1, checkpoint: 'retrieve' };
-      const response = buildWorkerSuccessResponse('PROJECT_CHECKPOINT_RETRIEVED');
-      const apiEaseProjectApiClient = buildWorkerClient({
-        responses: [buildJsonResponse(200, response)],
-        fetchCalls,
-        authenticationHeaderCalls,
-      });
-
-      // Act
-      const result = await apiEaseProjectApiClient.retrieveProjectCheckpoint(
-        buildInvocation(request),
-      );
-
-      // Assert
-      assert.equal(result.outcome, response.outcome);
-      assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/projects/checkpoints/retrieve');
-      assert.equal(
-        authenticationHeaderCalls[0].action,
-        PROJECT_BEARER_AUTHENTICATION_ACTIONS.checkpointRetrieve,
-      );
-    });
-
-    it('should preserve a durable accepted proposal response from HTTP 202', async () => {
-      // Arrange
-      const authenticationHeaderCalls = [];
-      const request = { contractVersion: 1, proposal: 'submit' };
-      const response = buildWorkerSuccessResponse('PROJECT_PROPOSAL_ACCEPTED');
-      const apiEaseProjectApiClient = buildWorkerClient({
-        responses: [buildJsonResponse(202, response)],
-        authenticationHeaderCalls,
-      });
-
-      // Act
-      const result = await apiEaseProjectApiClient.submitProjectProposal(
-        buildInvocation(request),
-      );
-
-      // Assert
-      assert.equal(result.status, 202);
-      assert.equal(result.outcome, response.outcome);
-      assert.equal(
-        authenticationHeaderCalls[0].action,
-        PROJECT_BEARER_AUTHENTICATION_ACTIONS.proposalSubmit,
-      );
-    });
-
-    it('should obtain a new single-use capability when retrying a service failure', async () => {
-      // Arrange
-      const authenticationHeaderCalls = [];
-      const fetchCalls = [];
-      const requestBodies = [];
-      const response = buildWorkerSuccessResponse('PROJECT_PROPOSAL_ACCEPTED');
-      const apiEaseProjectApiClient = buildWorkerClient({
-        responses: [
-          buildJsonResponse(503, buildErrorResponse('SERVICE_UNAVAILABLE')),
-          buildJsonResponse(202, response),
-        ],
-        authenticationHeaderCalls,
-        fetchCalls,
-        requestBodies,
-      });
-
-      // Act
-      const result = await apiEaseProjectApiClient.submitProjectProposal(
-        buildInvocation({ contractVersion: 1, proposal: 'submit' }),
-      );
-
-      // Assert
-      assert.equal(result.outcome, response.outcome);
-      assert.equal(authenticationHeaderCalls.length, 2);
-      assert.notEqual(
-        fetchCalls[0].options.headers.authorization,
-        fetchCalls[1].options.headers.authorization,
-      );
-      assert.equal(requestBodies[0], requestBodies[1]);
-      assert.equal(JSON.parse(requestBodies[0]).proposal, 'submit');
-    });
-
-    for (const [outcome, status] of [
-      ['PROJECT_PROPOSAL_REJECTED', 200],
-      ['PROJECT_PROPOSAL_STALE', 409],
-      ['PROJECT_PROPOSAL_CANCELLED', 409],
-      ['WORKER_CAPABILITY_STALE_FENCE', 403],
-    ]) {
-      it(`should preserve ${outcome} without retrying`, async () => {
-        // Arrange
-        const fetchCalls = [];
-        const response = status === 200
-          ? buildWorkerSuccessResponse(outcome)
-          : buildErrorResponse(outcome);
-        const apiEaseProjectApiClient = buildWorkerClient({
-          responses: [buildJsonResponse(status, response)],
-          fetchCalls,
-        });
-
-        // Act
-        const result = await apiEaseProjectApiClient.submitProjectProposal(
-          buildInvocation({ contractVersion: 1, proposal: 'submit' }),
-        );
-
-        // Assert
-        assert.equal(result.outcome, outcome);
-        assert.equal(fetchCalls.length, 1);
-      });
-    }
-  });
-
   describe('request limits', () => {
     it('should inject operation-specific timeout signals and stop at the overall deadline', async () => {
       // Arrange
@@ -680,47 +540,6 @@ async function readCanonicalChangeSetFixture() {
     unifiedContracts.fixtures,
     'canonical-resource-change-set',
   ).document);
-}
-
-function buildWorkerClient({
-  responses,
-  fetchCalls = [],
-  requestBodies = [],
-  authenticationHeaderCalls = [],
-  contractCalls = [],
-} = {}) {
-  let capabilitySequence = 0;
-  const projectAuthenticationAdapter = {
-    async buildRequestHeaders(receivedAuthenticationContext, { action }) {
-      authenticationHeaderCalls.push({
-        authenticationContext: receivedAuthenticationContext,
-        action,
-      });
-      capabilitySequence += 1;
-      return { authorization: `Bearer header.payload.signature${capabilitySequence}` };
-    },
-    readAuthorityMode() {
-      return 'bearer';
-    },
-  };
-  const projectContractService = {
-    validateProjectApiRequest(endpoint, document) {
-      contractCalls.push({ endpoint, document, type: 'request' });
-      return { ok: true };
-    },
-    validateProjectApiResponse(endpoint, document) {
-      contractCalls.push({ endpoint, document, type: 'response' });
-      return { ok: true };
-    },
-  };
-
-  return buildClientWithCollaborators({
-    responses,
-    fetchCalls,
-    requestBodies,
-    projectAuthenticationAdapter,
-    projectContractService,
-  });
 }
 
 function buildClientWithCollaborators({
@@ -839,15 +658,6 @@ function buildProjectDesignContextResponse() {
 
 function buildTextDigest(value) {
   return `sha256:${createHash('sha256').update(value, 'utf8').digest('hex')}`;
-}
-
-function buildWorkerSuccessResponse(outcome) {
-  return {
-    contractVersion: 1,
-    ok: true,
-    outcome,
-    result: { safe: true },
-  };
 }
 
 function findFixture(fixtures, name) {

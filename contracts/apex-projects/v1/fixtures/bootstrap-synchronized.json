@@ -2,24 +2,6 @@
   "schemaId": "https://apiease.com/contracts/apex-projects/v1/project-api-compatibility.schema.json",
   "fixtures": [
     {
-      "name": "bootstrap-pending",
-      "schemaDefinition": "projectBootstrapPendingResponse",
-      "document": {
-        "contractVersion": 1,
-        "ok": true,
-        "outcome": "PROJECT_BOOTSTRAP_PENDING",
-        "result": {
-          "project": {
-            "projectId": "project_pending",
-            "lifecycle": "activation-pending",
-            "repositoryVerified": false,
-            "synchronized": false
-          },
-          "retryAfterMilliseconds": 5000
-        }
-      }
-    },
-    {
       "name": "bootstrap-synchronized",
       "schemaDefinition": "projectBootstrapSynchronizedResponse",
       "fileByteLengths": [

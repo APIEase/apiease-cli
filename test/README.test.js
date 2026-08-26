@@ -20,6 +20,14 @@ describe('README', () => {
       assert.match(readme, /apiease --version/);
       assert.doesNotMatch(readme, /npm install -g apiease-cli/);
     });
+
+    it('should document only personal Project API authentication', async () => {
+      // Arrange
+      const readme = await fs.readFile(readmeFilePath, 'utf8');
+
+      // Assert
+      assert.doesNotMatch(readme, /bearer|worker|checkpoint|proposal branch/iu);
+    });
   });
 
   describe('CRUD resource documentation', () => {

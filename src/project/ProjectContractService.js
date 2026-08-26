@@ -22,7 +22,6 @@ const PROJECT_SUCCESS_DEFINITION_BY_ENDPOINT_AND_OUTCOME = Object.freeze({
     PROJECT_PROPOSAL_ACCEPTED: 'projectProposalAcceptedResponse',
   }),
   '/api/v1/projects/bootstrap': Object.freeze({
-    PROJECT_BOOTSTRAP_PENDING: 'projectBootstrapPendingResponse',
     PROJECT_BOOTSTRAP_SYNCHRONIZED: 'projectBootstrapSynchronizedResponse',
     PROJECT_BOOTSTRAP_SYNCHRONIZED_NO_RESOURCES:
       'projectBootstrapSynchronizedNoResourcesResponse',

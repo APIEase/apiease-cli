@@ -99,6 +99,20 @@ describe('Apex Project contract assets', () => {
       // Assert
       assert.doesNotMatch(serializedContract, /candidate|workerCapability|checkpoint|branchName/u);
     });
+
+    it('should keep worker and checkpoint vocabulary out of the CLI Project API contract', async () => {
+      // Arrange
+      const contractSchema = await readJson('project-api-compatibility.schema.json');
+
+      // Act
+      const serializedContract = JSON.stringify(contractSchema);
+
+      // Assert
+      assert.doesNotMatch(
+        serializedContract,
+        /worker|checkpoint|bearer|capability|branchName|sourceMainCommit/iu,
+      );
+    });
   });
 });
 
