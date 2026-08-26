@@ -202,7 +202,7 @@ class ValidateProjectCommand {
   }
 
   isLocalValidationErrorCode(errorCode = '') {
-    return /^(?:CANONICAL_RESOURCE_SOURCE_|PROJECT_(?:CANDIDATE|DELETION|SECURE_INPUT))/.test(errorCode)
+    return /^(?:CANONICAL_RESOURCE_SOURCE_|PROJECT_(?:CHANGE_SET|DELETION|SECURE_INPUT))/.test(errorCode)
       || errorCode === 'PROJECT_MANAGED_PATH_INVALID';
   }
 

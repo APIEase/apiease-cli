@@ -44,9 +44,9 @@ describe('ProjectCommandResultService', () => {
       const normalizedResult = service.normalizeResult({
         command: 'validate',
         state: 'failure',
-        outcome: 'PROJECT_CANDIDATE_INVALID',
+        outcome: 'PROJECT_CHANGE_SET_INVALID',
         error: {
-          code: 'PROJECT_CANDIDATE_INVALID',
+          code: 'PROJECT_CHANGE_SET_INVALID',
           category: 'validation',
           message: 'arbitrary server text',
           stack: 'secret stack',
@@ -56,7 +56,7 @@ describe('ProjectCommandResultService', () => {
 
       // Assert
       assert.deepEqual(normalizedResult.error, {
-        code: 'PROJECT_CANDIDATE_INVALID',
+        code: 'PROJECT_CHANGE_SET_INVALID',
         category: 'validation',
       });
       assert.deepEqual(normalizedResult.diagnostics, [
@@ -204,12 +204,12 @@ describe('ProjectCommandResultService', () => {
       failureService.renderResult(failureService.normalizeResult({
         command: 'validate',
         state: 'failure',
-        error: { code: 'PROJECT_CANDIDATE_INVALID', category: 'validation' },
+        error: { code: 'PROJECT_CHANGE_SET_INVALID', category: 'validation' },
       }));
 
       // Assert
       assert.match(successStdoutChunks.join(''), /PROJECT_BOOTSTRAP_SYNCHRONIZED/);
-      assert.match(failureStderrChunks.join(''), /PROJECT_CANDIDATE_INVALID/);
+      assert.match(failureStderrChunks.join(''), /PROJECT_CHANGE_SET_INVALID/);
     });
   });
 

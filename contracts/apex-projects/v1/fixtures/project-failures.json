@@ -69,10 +69,10 @@
       "document": {
         "contractVersion": 1,
         "ok": false,
-        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "outcome": "PROJECT_CHANGE_SET_INVALID",
         "error": {
-          "code": "PROJECT_CANDIDATE_INVALID",
-          "message": "The candidate project is invalid.",
+          "code": "PROJECT_CHANGE_SET_INVALID",
+          "message": "The canonical change set is invalid.",
           "diagnostics": [
             {
               "code": "UNSAFE_MANAGED_PATH",
@@ -91,10 +91,10 @@
       "document": {
         "contractVersion": 1,
         "ok": false,
-        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "outcome": "PROJECT_CHANGE_SET_INVALID",
         "error": {
-          "code": "PROJECT_CANDIDATE_INVALID",
-          "message": "The candidate project is invalid.",
+          "code": "PROJECT_CHANGE_SET_INVALID",
+          "message": "The canonical change set is invalid.",
           "diagnostics": [
             {
               "code": "DUPLICATE_MANAGED_PATH",
@@ -113,10 +113,10 @@
       "document": {
         "contractVersion": 1,
         "ok": false,
-        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "outcome": "PROJECT_CHANGE_SET_INVALID",
         "error": {
-          "code": "PROJECT_CANDIDATE_INVALID",
-          "message": "The candidate project is invalid.",
+          "code": "PROJECT_CHANGE_SET_INVALID",
+          "message": "The canonical change set is invalid.",
           "diagnostics": [
             {
               "code": "MANAGED_FILE_ENCODING_UNSUPPORTED",
@@ -189,7 +189,7 @@
         "outcome": "PROJECT_DEPENDENCY_INVALID",
         "error": {
           "code": "PROJECT_DEPENDENCY_INVALID",
-          "message": "The candidate project has an invalid resource dependency.",
+          "message": "The canonical change set has an invalid resource dependency.",
           "diagnostics": [
             {
               "code": "PROJECT_RESOURCE_DEPENDENCY_MISSING",
@@ -213,7 +213,7 @@
         "outcome": "PROJECT_SECURE_INPUT_INVALID",
         "error": {
           "code": "PROJECT_SECURE_INPUT_INVALID",
-          "message": "The candidate project has an invalid protected-input instruction.",
+          "message": "The canonical change set has an invalid protected-input instruction.",
           "diagnostics": [
             {
               "code": "PROJECT_PROTECTED_INPUT_INVALID",
@@ -234,10 +234,10 @@
       "document": {
         "contractVersion": 1,
         "ok": false,
-        "outcome": "PROJECT_CANDIDATE_INVALID",
+        "outcome": "PROJECT_CHANGE_SET_INVALID",
         "error": {
-          "code": "PROJECT_CANDIDATE_INVALID",
-          "message": "The candidate project is invalid.",
+          "code": "PROJECT_CHANGE_SET_INVALID",
+          "message": "The canonical change set is invalid.",
           "diagnostics": [
             {
               "code": "MANAGED_FILE_DIGEST_MISMATCH",

@@ -10,7 +10,7 @@ import { ProjectSecureInputService } from './ProjectSecureInputService.js';
 const PROJECT_METADATA_PATH = '.apiease/project.json';
 const CHANGE_SET_DIGEST_DOMAIN = 'apiease-canonical-resource-change-set-v1';
 
-class ProjectCandidateBuilder {
+class ProjectChangeSetBuilder {
   constructor({
     projectCanonicalArtifactService = new ProjectCanonicalArtifactService(),
     projectContractService = new ProjectContractService(),
@@ -27,7 +27,7 @@ class ProjectCandidateBuilder {
     this.projectSecureInputService = projectSecureInputService;
   }
 
-  async buildCandidate({ projectDirectoryPath } = {}) {
+  async buildChangeSet({ projectDirectoryPath } = {}) {
     const checkout = await this.projectGitCheckoutService
       .validateProjectCheckout(projectDirectoryPath);
     const managedNamespace = await this.discoverManagedNamespace(checkout);
@@ -42,20 +42,20 @@ class ProjectCandidateBuilder {
       parsedResourceSources,
       localState: checkout.localState,
     });
-    const changeSet = this.buildCandidateValue({
+    const changeSet = this.buildChangeSetValue({
       deletionResult,
       localState: checkout.localState,
       managedSnapshotDigest: managedNamespace.snapshotDigest,
       parsedResourceSources,
       secureInputResult,
     });
-    this.requireValidCandidate(changeSet);
+    this.requireValidChangeSet(changeSet);
 
     return {
       repositoryTopLevelPath: checkout.repositoryTopLevelPath,
       localState: checkout.localState,
       changeSet,
-      candidateSnapshotDigest: managedNamespace.snapshotDigest,
+      changeSetSnapshotDigest: managedNamespace.snapshotDigest,
       deletionIntents: deletionResult.deletionIntents,
       requiredSecureValues: secureInputResult.requiredSecureValues,
     };
@@ -69,7 +69,7 @@ class ProjectCandidateBuilder {
 
   requireMatchingRepositoryRoot(checkout, managedNamespace) {
     if (managedNamespace.repositoryTopLevelPath !== checkout.repositoryTopLevelPath) {
-      throwServiceError('PROJECT_CANDIDATE_CHECKOUT_MISMATCH');
+      throwServiceError('PROJECT_CHANGE_SET_CHECKOUT_MISMATCH');
     }
   }
 
@@ -91,7 +91,7 @@ class ProjectCandidateBuilder {
       }));
   }
 
-  buildCandidateValue({
+  buildChangeSetValue({
     deletionResult,
     localState,
     managedSnapshotDigest,
@@ -152,7 +152,7 @@ class ProjectCandidateBuilder {
       const binding = [...bindingByPath.values()].find(value => (
         value.resourceId === deletion.resourceId
       ));
-      if (!binding) throwServiceError('PROJECT_CANDIDATE_BINDING_MISMATCH');
+      if (!binding) throwServiceError('PROJECT_CHANGE_SET_BINDING_MISMATCH');
       return {
         resourceType: binding.resourceType,
         handle: binding.handle,
@@ -163,8 +163,8 @@ class ProjectCandidateBuilder {
 
   requireMatchingBinding(localResource, source) {
     if (localResource.resourceType !== source.resourceType) {
-      throwServiceError('PROJECT_CANDIDATE_BINDING_MISMATCH', [{
-        code: 'PROJECT_CANDIDATE_BINDING_MISMATCH',
+      throwServiceError('PROJECT_CHANGE_SET_BINDING_MISMATCH', [{
+        code: 'PROJECT_CHANGE_SET_BINDING_MISMATCH',
         path: localResource.path,
       }]);
     }
@@ -189,7 +189,7 @@ class ProjectCandidateBuilder {
   }
 
   throwMissingBoundFile(resourcePath) {
-    const code = 'PROJECT_CANDIDATE_BOUND_FILE_MISSING';
+    const code = 'PROJECT_CHANGE_SET_BOUND_FILE_MISSING';
     throwServiceError(code, [{ code, path: resourcePath }]);
   }
 
@@ -211,11 +211,11 @@ class ProjectCandidateBuilder {
       ));
   }
 
-  requireValidCandidate(candidate) {
+  requireValidChangeSet(changeSet) {
     const validationResult = this.projectContractService
-      .validateCanonicalResourceChangeSet(candidate);
+      .validateCanonicalResourceChangeSet(changeSet);
     if (!validationResult.ok) {
-      throwServiceError('PROJECT_CANDIDATE_INVALID', validationResult.diagnostics);
+      throwServiceError('PROJECT_CHANGE_SET_INVALID', validationResult.diagnostics);
     }
   }
 }
@@ -248,4 +248,4 @@ function throwServiceError(code, diagnostics = [{ code }]) {
   throw error;
 }
 
-export { ProjectCandidateBuilder };
+export { ProjectChangeSetBuilder };

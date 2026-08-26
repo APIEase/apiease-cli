@@ -1,4 +1,4 @@
-import { ProjectCandidateBuilder } from './ProjectCandidateBuilder.js';
+import { ProjectChangeSetBuilder } from './ProjectChangeSetBuilder.js';
 
 const MAXIMUM_PROJECT_VALIDATION_ITEMS = 100;
 const PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE =
@@ -18,28 +18,28 @@ const SAFE_SECURE_VALUE_FIELDS = Object.freeze(['resourceType', 'handle', 'field
 class ProjectValidationService {
   constructor({
     apiEaseProjectApiClient,
-    projectCandidateBuilder = new ProjectCandidateBuilder(),
+    projectChangeSetBuilder = new ProjectChangeSetBuilder(),
   } = {}) {
     this.apiEaseProjectApiClient = apiEaseProjectApiClient;
-    this.projectCandidateBuilder = projectCandidateBuilder;
+    this.projectChangeSetBuilder = projectChangeSetBuilder;
   }
 
   async buildAndValidateProject({ projectDirectoryPath, projectApiInvocation }) {
-    const candidateBuildResult = await this.projectCandidateBuilder.buildCandidate({
+    const changeSetBuildResult = await this.projectChangeSetBuilder.buildChangeSet({
       projectDirectoryPath,
     });
 
-    return await this.validateCandidate({ candidateBuildResult, projectApiInvocation });
+    return await this.validateChangeSet({ changeSetBuildResult, projectApiInvocation });
   }
 
-  async validateCandidate({ candidateBuildResult, projectApiInvocation }) {
+  async validateChangeSet({ changeSetBuildResult, projectApiInvocation }) {
     const validationResponse = await this.apiEaseProjectApiClient.validateProject({
       ...projectApiInvocation,
-      request: { contractVersion: 1, changeSet: candidateBuildResult.changeSet },
+      request: { contractVersion: 1, changeSet: changeSetBuildResult.changeSet },
     });
     this.requireExpectedSuccessOutcome(validationResponse);
 
-    return this.buildValidationResult(candidateBuildResult, validationResponse);
+    return this.buildValidationResult(changeSetBuildResult, validationResponse);
   }
 
   requireExpectedSuccessOutcome(validationResponse) {
@@ -48,15 +48,15 @@ class ProjectValidationService {
     throw buildValidationError('PROJECT_VALIDATION_OUTCOME_INVALID');
   }
 
-  buildValidationResult(candidateBuildResult, validationResponse) {
+  buildValidationResult(changeSetBuildResult, validationResponse) {
     const diagnostics = this.normalizeDiagnostics(validationResponse);
     const requiredSecureValues = this.normalizeRequiredSecureValues(
-      candidateBuildResult,
+      changeSetBuildResult,
       validationResponse,
     );
 
     return {
-      candidateBuildResult,
+      changeSetBuildResult,
       validationResponse,
       ok: validationResponse.ok,
       outcome: validationResponse.outcome,
@@ -82,9 +82,9 @@ class ProjectValidationService {
     return normalizeSafeItems(diagnostics, SAFE_DIAGNOSTIC_FIELDS);
   }
 
-  normalizeRequiredSecureValues(candidateBuildResult, validationResponse) {
+  normalizeRequiredSecureValues(changeSetBuildResult, validationResponse) {
     return normalizeSafeItems([
-      ...(candidateBuildResult.requiredSecureValues ?? []),
+      ...(changeSetBuildResult.requiredSecureValues ?? []),
       ...(validationResponse.result?.requiredSecureValues ?? []),
       ...(validationResponse.error?.requiredSecureValues ?? []),
     ], SAFE_SECURE_VALUE_FIELDS);

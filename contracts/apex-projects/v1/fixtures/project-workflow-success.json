@@ -193,7 +193,7 @@
           "ok": true,
           "outcome": "PROJECT_VALID",
           "result": {
-            "candidateFormatVersion": 1,
+            "changeSetContractVersion": 1,
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"

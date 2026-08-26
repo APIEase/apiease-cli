@@ -1,4 +1,4 @@
-import { ProjectCandidateBuilder } from './ProjectCandidateBuilder.js';
+import { ProjectChangeSetBuilder } from './ProjectChangeSetBuilder.js';
 import { ProjectCanonicalArtifactService } from './ProjectCanonicalArtifactService.js';
 
 const PROJECT_DESIGN_WORKFLOW_GUIDANCE = Object.freeze([
@@ -11,11 +11,11 @@ const PROJECT_DESIGN_WORKFLOW_GUIDANCE = Object.freeze([
 class ProjectDesignContextService {
   constructor({
     apiEaseProjectApiClient,
-    projectCandidateBuilder = new ProjectCandidateBuilder(),
+    projectChangeSetBuilder = new ProjectChangeSetBuilder(),
     projectCanonicalArtifactService = new ProjectCanonicalArtifactService(),
   } = {}) {
     this.apiEaseProjectApiClient = apiEaseProjectApiClient;
-    this.projectCandidateBuilder = projectCandidateBuilder;
+    this.projectChangeSetBuilder = projectChangeSetBuilder;
     this.projectCanonicalArtifactService = projectCanonicalArtifactService;
   }
 
@@ -24,28 +24,28 @@ class ProjectDesignContextService {
     projectApiInvocation,
     projectRequirements,
   } = {}) {
-    const candidateBuildResult = await this.projectCandidateBuilder.buildCandidate({
+    const changeSetBuildResult = await this.projectChangeSetBuilder.buildChangeSet({
       projectDirectoryPath,
     });
     const serverResponse = await this.retrieveServerContext({
-      candidateBuildResult,
+      changeSetBuildResult,
       projectApiInvocation,
       projectRequirements,
     });
     if (!serverResponse.ok) return serverResponse;
-    this.requireMatchingProjectIdentity(candidateBuildResult.localState, serverResponse.result);
+    this.requireMatchingProjectIdentity(changeSetBuildResult.localState, serverResponse.result);
 
-    return this.buildCombinedContext(candidateBuildResult, serverResponse);
+    return this.buildCombinedContext(changeSetBuildResult, serverResponse);
   }
 
   async retrieveServerContext({
-    candidateBuildResult,
+    changeSetBuildResult,
     projectApiInvocation,
     projectRequirements,
   }) {
     return await this.apiEaseProjectApiClient.retrieveProjectDesignContext({
       ...projectApiInvocation,
-      request: this.buildServerRequest(candidateBuildResult.localState, projectRequirements),
+      request: this.buildServerRequest(changeSetBuildResult.localState, projectRequirements),
     });
   }
 
@@ -58,7 +58,7 @@ class ProjectDesignContextService {
     };
   }
 
-  buildCombinedContext(candidateBuildResult, serverResponse) {
+  buildCombinedContext(changeSetBuildResult, serverResponse) {
     const serverContext = serverResponse.result;
     return {
       ok: true,
@@ -66,14 +66,14 @@ class ProjectDesignContextService {
       protocol: serverContext.protocol,
       projectRequirements: serverContext.projectRequirements,
       serverBaseline: serverContext.snapshot,
-      localBaseline: this.buildLocalBaseline(candidateBuildResult.localState),
+      localBaseline: this.buildLocalBaseline(changeSetBuildResult.localState),
       inventory: serverContext.inventory,
       canonicalBodies: serverContext.canonicalBodies,
       bindings: serverContext.bindings.map(binding => this.copySafeBinding(binding)),
-      localEdits: this.buildLocalEdits(candidateBuildResult, serverContext),
-      deletions: candidateBuildResult.deletionIntents.map(intent => this.copySafeDeletion(intent)),
-      secureSelectors: candidateBuildResult.changeSet.secureInputs,
-      conflicts: this.buildBaselineConflicts(candidateBuildResult.localState, serverContext),
+      localEdits: this.buildLocalEdits(changeSetBuildResult, serverContext),
+      deletions: changeSetBuildResult.deletionIntents.map(intent => this.copySafeDeletion(intent)),
+      secureSelectors: changeSetBuildResult.changeSet.secureInputs,
+      conflicts: this.buildBaselineConflicts(changeSetBuildResult.localState, serverContext),
       limits: serverContext.limits,
       diagnostics: serverContext.diagnostics,
       workflowGuidance: [...PROJECT_DESIGN_WORKFLOW_GUIDANCE],
@@ -88,14 +88,14 @@ class ProjectDesignContextService {
     };
   }
 
-  buildLocalEdits(candidateBuildResult, serverContext) {
+  buildLocalEdits(changeSetBuildResult, serverContext) {
     const serverSources = this.buildServerSourcesByIdentity(serverContext.canonicalBodies);
     return {
-      snapshotDigest: candidateBuildResult.candidateSnapshotDigest,
-      hasManagedEdits: candidateBuildResult.candidateSnapshotDigest
-        !== candidateBuildResult.localState.baseline.snapshotDigest,
-      creates: candidateBuildResult.changeSet.creates,
-      updates: candidateBuildResult.changeSet.updates.filter(update => (
+      snapshotDigest: changeSetBuildResult.changeSetSnapshotDigest,
+      hasManagedEdits: changeSetBuildResult.changeSetSnapshotDigest
+        !== changeSetBuildResult.localState.baseline.snapshotDigest,
+      creates: changeSetBuildResult.changeSet.creates,
+      updates: changeSetBuildResult.changeSet.updates.filter(update => (
         this.isChangedUpdate(update, serverSources)
       )),
     };

@@ -248,7 +248,7 @@ resources/variables/archive/<handle>.json
 resources/widgets/archive/<handle>.json
 ```
 
-Delete and archive files are source-controlled workflow artifacts. They are excluded from canonical candidates and snapshot digests, survive pull, and are never archived by validation, planning, conflicts, or transport failures.
+Delete and archive files are source-controlled workflow artifacts. They are excluded from canonical change sets and snapshot digests, survive pull, and are never archived by validation, planning, conflicts, or transport failures.
 
 ### Protected and Deferred Values
 

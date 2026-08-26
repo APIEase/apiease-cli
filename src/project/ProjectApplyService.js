@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 
 import { ApiEaseProjectApiClient } from '../client/ApiEaseProjectApiClient.js';
 import { ProjectApplyRequestPolicy } from './ProjectApplyRequestPolicy.js';
-import { ProjectCandidateBuilder } from './ProjectCandidateBuilder.js';
+import { ProjectChangeSetBuilder } from './ProjectChangeSetBuilder.js';
 import { ProjectDeletionIntentService } from './ProjectDeletionIntentService.js';
 import { ProjectLocalStateService } from './ProjectLocalStateService.js';
 import {
@@ -37,7 +37,7 @@ const PROJECT_APPLY_CONFLICT_OUTCOMES = new Set([
 class ProjectApplyService {
   constructor({
     projectApplyRequestPolicy = new ProjectApplyRequestPolicy(),
-    projectCandidateBuilder = new ProjectCandidateBuilder(),
+    projectChangeSetBuilder = new ProjectChangeSetBuilder(),
     apiEaseProjectApiClient,
     projectValidationService,
     projectLocalStateService = new ProjectLocalStateService(),
@@ -45,7 +45,7 @@ class ProjectApplyService {
     operationKeyFactory = () => crypto.randomUUID(),
   } = {}) {
     this.projectApplyRequestPolicy = projectApplyRequestPolicy;
-    this.projectCandidateBuilder = projectCandidateBuilder;
+    this.projectChangeSetBuilder = projectChangeSetBuilder;
     this.apiEaseProjectApiClient = apiEaseProjectApiClient
       ?? new ApiEaseProjectApiClient({
         projectAuthenticationAdapter:
@@ -54,7 +54,7 @@ class ProjectApplyService {
     this.projectValidationService = projectValidationService
       ?? new ProjectValidationService({
         apiEaseProjectApiClient: this.apiEaseProjectApiClient,
-        projectCandidateBuilder,
+        projectChangeSetBuilder,
       });
     this.projectLocalStateService = projectLocalStateService;
     this.projectDeletionIntentService = projectDeletionIntentService;
@@ -81,19 +81,19 @@ class ProjectApplyService {
   }
 
   async executeImmediateApply({ projectDirectoryPath, requestConfiguration, requestPolicy }) {
-    const candidateBuildResult = await this.projectCandidateBuilder.buildCandidate({
+    const changeSetBuildResult = await this.projectChangeSetBuilder.buildChangeSet({
       projectDirectoryPath,
     });
     const projectApiInvocation = this.buildProjectApiInvocation(requestConfiguration);
-    const validationResult = await this.projectValidationService.validateCandidate({
-      candidateBuildResult,
+    const validationResult = await this.projectValidationService.validateChangeSet({
+      changeSetBuildResult,
       projectApiInvocation,
     });
     this.requireExpectedValidationOutcome(validationResult);
     if (!validationResult.ok) return this.buildValidationFailure(validationResult);
 
     return await this.planAndApply({
-      candidateBuildResult,
+      changeSetBuildResult,
       projectApiInvocation,
       requestPolicy,
       validationResult,
@@ -113,20 +113,20 @@ class ProjectApplyService {
   }
 
   async planAndApply({
-    candidateBuildResult,
+    changeSetBuildResult,
     projectApiInvocation,
     requestPolicy,
     validationResult,
   }) {
     const planResponse = await this.apiEaseProjectApiClient.planProject({
       ...projectApiInvocation,
-      request: { contractVersion: 1, changeSet: candidateBuildResult.changeSet },
+      request: { contractVersion: 1, changeSet: changeSetBuildResult.changeSet },
     });
     this.requireExpectedPlanOutcome(planResponse);
     if (!planResponse.ok) return this.buildPlanFailure(validationResult, planResponse);
 
     return await this.applyRetainedPlan({
-      candidateBuildResult,
+      changeSetBuildResult,
       planResponse,
       projectApiInvocation,
       requestPolicy,
@@ -140,7 +140,7 @@ class ProjectApplyService {
   }
 
   async applyRetainedPlan({
-    candidateBuildResult,
+    changeSetBuildResult,
     planResponse,
     projectApiInvocation,
     requestPolicy,
@@ -150,7 +150,7 @@ class ProjectApplyService {
     const applyResponse = await this.submitRetainedApply({
       ...projectApiInvocation,
       request: this.buildApplyRequest({
-        candidateBuildResult,
+        changeSetBuildResult,
         operationKey,
         requestPolicy,
       }),
@@ -161,7 +161,7 @@ class ProjectApplyService {
 
     result.localTransitions = await this.publishCommittedLocalTransitions({
       applyReceipt: applyResponse.result,
-      candidateBuildResult,
+      changeSetBuildResult,
     });
     return result;
   }
@@ -183,12 +183,12 @@ class ProjectApplyService {
     }
   }
 
-  buildApplyRequest({ candidateBuildResult, operationKey, requestPolicy }) {
+  buildApplyRequest({ changeSetBuildResult, operationKey, requestPolicy }) {
     return {
       contractVersion: 1,
       operationKey,
       authorityMode: requestPolicy.authorityMode,
-      changeSet: candidateBuildResult.changeSet,
+      changeSet: changeSetBuildResult.changeSet,
       ...requestPolicy.applyRequestFields,
     };
   }
@@ -197,28 +197,28 @@ class ProjectApplyService {
     return this.projectApplyRequestPolicy.permitsCommittedLocalTransitions(result);
   }
 
-  async publishCommittedLocalTransitions({ applyReceipt, candidateBuildResult }) {
+  async publishCommittedLocalTransitions({ applyReceipt, changeSetBuildResult }) {
     const committedLocalState = this.projectLocalStateService.deriveCommittedLocalState({
-      localState: candidateBuildResult.localState,
-      changeSet: candidateBuildResult.changeSet,
+      localState: changeSetBuildResult.localState,
+      changeSet: changeSetBuildResult.changeSet,
       applyReceipt,
-      candidateSnapshotDigest: candidateBuildResult.candidateSnapshotDigest,
+      changeSetSnapshotDigest: changeSetBuildResult.changeSetSnapshotDigest,
     });
     const localStateLocation = await this.projectLocalStateService.publishLocalState({
-      projectDirectoryPath: candidateBuildResult.repositoryTopLevelPath,
+      projectDirectoryPath: changeSetBuildResult.repositoryTopLevelPath,
       localState: committedLocalState,
     });
-    const deletionArchive = candidateBuildResult.deletionIntents.length > 0
-      ? await this.archiveCommittedDeletions({ applyReceipt, candidateBuildResult })
+    const deletionArchive = changeSetBuildResult.deletionIntents.length > 0
+      ? await this.archiveCommittedDeletions({ applyReceipt, changeSetBuildResult })
       : { archivedPaths: [], alreadyArchivedPaths: [] };
 
     return { localStateLocation, deletionArchive };
   }
 
-  async archiveCommittedDeletions({ applyReceipt, candidateBuildResult }) {
+  async archiveCommittedDeletions({ applyReceipt, changeSetBuildResult }) {
     return await this.projectDeletionIntentService.archiveCommittedDeletionIntents({
-      repositoryTopLevelPath: candidateBuildResult.repositoryTopLevelPath,
-      deletionIntents: candidateBuildResult.deletionIntents,
+      repositoryTopLevelPath: changeSetBuildResult.repositoryTopLevelPath,
+      deletionIntents: changeSetBuildResult.deletionIntents,
       applyReceipt,
     });
   }

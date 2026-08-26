@@ -13,7 +13,7 @@ const validateProjectCommandModuleUrl = pathToFileURL(
 
 describe('ValidateProjectCommand', () => {
   describe('run', () => {
-    it('should resolve personal authentication and validate the complete project candidate', async () => {
+    it('should resolve personal authentication and validate the complete project change set', async () => {
       // Arrange
       const { ValidateProjectCommand } = await import(validateProjectCommandModuleUrl);
       const calls = [];
@@ -62,7 +62,7 @@ describe('ValidateProjectCommand', () => {
         state: 'success',
         outcome: 'PROJECT_VALID',
         result: buildValidationSuccess().result,
-        diagnostics: [{ code: 'NOTICE', path: '/candidate/files/0' }],
+        diagnostics: [{ code: 'NOTICE', path: '/changeSet/files/0' }],
         requiredSecureValues: [{
           resourceType: 'request',
           handle: 'inventory-sync',
@@ -115,26 +115,26 @@ describe('ValidateProjectCommand', () => {
       // Assert
       assert.equal(exitCode, 4);
       const envelope = JSON.parse(stdoutChunks.join(''));
-      assert.equal(envelope.outcome, 'PROJECT_CANDIDATE_INVALID');
+      assert.equal(envelope.outcome, 'PROJECT_CHANGE_SET_INVALID');
       assert.deepEqual(envelope.error, {
-        code: 'PROJECT_CANDIDATE_INVALID',
+        code: 'PROJECT_CHANGE_SET_INVALID',
         category: 'validation',
       });
       assert.deepEqual(envelope.diagnostics, [{
-        code: 'PROJECT_CANDIDATE_INVALID',
-        path: '/candidate/files',
+        code: 'PROJECT_CHANGE_SET_INVALID',
+        path: '/changeSet/files',
       }]);
       assert.equal(stderrChunks.join(''), `${PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE}\n`);
     });
 
-    it('should use exit code four for a local candidate contract failure', async () => {
+    it('should use exit code four for a local change-set contract failure', async () => {
       // Arrange
       const { ValidateProjectCommand } = await import(validateProjectCommandModuleUrl);
       const calls = [];
       const stdoutChunks = [];
       const stderrChunks = [];
       const validationError = Object.assign(new Error('sensitive source details'), {
-        code: 'PROJECT_CANDIDATE_INVALID',
+        code: 'PROJECT_CHANGE_SET_INVALID',
         diagnostics: [{ code: 'CONTRACT_REQUIRED', path: '/files' }],
       });
       const validateProjectCommand = buildValidateProjectCommand({
@@ -151,7 +151,7 @@ describe('ValidateProjectCommand', () => {
       // Assert
       assert.equal(exitCode, 4);
       assert.deepEqual(JSON.parse(stdoutChunks.join('')).error, {
-        code: 'PROJECT_CANDIDATE_INVALID',
+        code: 'PROJECT_CHANGE_SET_INVALID',
         category: 'contract',
       });
       assert.equal(stdoutChunks.join('').includes('sensitive source details'), false);
@@ -269,7 +269,7 @@ function buildValidationSuccess() {
     ok: true,
     outcome: 'PROJECT_VALID',
     result: {
-      candidateFormatVersion: 1,
+      changeSetContractVersion: 1,
       summary: {
         fileCount: 2,
         resourceCount: 1,
@@ -279,7 +279,7 @@ function buildValidationSuccess() {
         totalBytes: 512,
       },
     },
-    diagnostics: [{ code: 'NOTICE', path: '/candidate/files/0' }],
+    diagnostics: [{ code: 'NOTICE', path: '/changeSet/files/0' }],
     requiredSecureValues: [{
       resourceType: 'request',
       handle: 'inventory-sync',
@@ -292,12 +292,12 @@ function buildValidationSuccess() {
 function buildValidationFailure() {
   return {
     ok: false,
-    outcome: 'PROJECT_CANDIDATE_INVALID',
+    outcome: 'PROJECT_CHANGE_SET_INVALID',
     error: {
-      code: 'PROJECT_CANDIDATE_INVALID',
-      diagnostics: [{ code: 'PROJECT_CANDIDATE_INVALID', path: '/candidate/files' }],
+      code: 'PROJECT_CHANGE_SET_INVALID',
+      diagnostics: [{ code: 'PROJECT_CHANGE_SET_INVALID', path: '/changeSet/files' }],
     },
-    diagnostics: [{ code: 'PROJECT_CANDIDATE_INVALID', path: '/candidate/files' }],
+    diagnostics: [{ code: 'PROJECT_CHANGE_SET_INVALID', path: '/changeSet/files' }],
     requiredSecureValues: [],
     guidance: [PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE],
     validationResponse: { status: 422 },

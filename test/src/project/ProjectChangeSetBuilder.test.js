@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { ProjectCandidateBuilder } from '../../../src/project/ProjectCandidateBuilder.js';
+import { ProjectChangeSetBuilder } from '../../../src/project/ProjectChangeSetBuilder.js';
 import { ProjectContractService } from '../../../src/project/ProjectContractService.js';
 
 const BASELINE_DIGEST = 'sha256:1111111111111111111111111111111111111111111111111111111111111111';
@@ -9,26 +9,26 @@ const CANDIDATE_DIGEST = 'sha256:22222222222222222222222222222222222222222222222
 const REQUEST_VERSION = 'rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
 const VARIABLE_VERSION = 'rv1_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
 
-describe('ProjectCandidateBuilder', () => {
-  describe('buildCandidate', () => {
+describe('ProjectChangeSetBuilder', () => {
+  describe('buildChangeSet', () => {
     it('should build one deterministic Canonical Resource Change Set from local files', async () => {
       // Arrange
       const fixture = buildFixture();
-      const projectCandidateBuilder = buildCandidateBuilder(fixture);
+      const projectChangeSetBuilder = buildChangeSetBuilder(fixture);
 
       // Act
-      const firstResult = await projectCandidateBuilder.buildCandidate({
+      const firstResult = await projectChangeSetBuilder.buildChangeSet({
         projectDirectoryPath: '/checkout/nested',
       });
-      const secondResult = await projectCandidateBuilder.buildCandidate({
+      const secondResult = await projectChangeSetBuilder.buildChangeSet({
         projectDirectoryPath: '/checkout/nested',
       });
 
       // Assert
       assert.deepEqual(firstResult.changeSet, buildExpectedChangeSet(fixture));
       assert.equal(JSON.stringify(firstResult.changeSet), JSON.stringify(secondResult.changeSet));
-      assert.equal(firstResult.candidateSnapshotDigest, CANDIDATE_DIGEST);
-      assert.equal(secondResult.candidateSnapshotDigest, CANDIDATE_DIGEST);
+      assert.equal(firstResult.changeSetSnapshotDigest, CANDIDATE_DIGEST);
+      assert.equal(secondResult.changeSetSnapshotDigest, CANDIDATE_DIGEST);
       assert.deepEqual(firstResult.deletionIntents, fixture.deletionIntents);
     });
 
@@ -53,15 +53,15 @@ describe('ProjectCandidateBuilder', () => {
         handle: 'existing-widget',
         resourceVersion: REQUEST_VERSION,
       });
-      const projectCandidateBuilder = buildCandidateBuilder(fixture);
+      const projectChangeSetBuilder = buildChangeSetBuilder(fixture);
 
       // Act and Assert
-      await assert.rejects(projectCandidateBuilder.buildCandidate({
+      await assert.rejects(projectChangeSetBuilder.buildChangeSet({
         projectDirectoryPath: '/checkout',
       }), error => {
-        assert.equal(error.code, 'PROJECT_CANDIDATE_BOUND_FILE_MISSING');
+        assert.equal(error.code, 'PROJECT_CHANGE_SET_BOUND_FILE_MISSING');
         assert.deepEqual(error.diagnostics, [{
-          code: 'PROJECT_CANDIDATE_BOUND_FILE_MISSING',
+          code: 'PROJECT_CHANGE_SET_BOUND_FILE_MISSING',
           path: 'resources/widgets/existing-widget.json',
         }]);
         return true;
@@ -72,18 +72,18 @@ describe('ProjectCandidateBuilder', () => {
       // Arrange
       const fixture = buildFixture();
       fixture.localState.resources[0].resourceType = 'widget';
-      const projectCandidateBuilder = buildCandidateBuilder(fixture);
+      const projectChangeSetBuilder = buildChangeSetBuilder(fixture);
 
       // Act and Assert
-      await assert.rejects(projectCandidateBuilder.buildCandidate({
+      await assert.rejects(projectChangeSetBuilder.buildChangeSet({
         projectDirectoryPath: '/checkout',
-      }), { code: 'PROJECT_CANDIDATE_BINDING_MISMATCH' });
+      }), { code: 'PROJECT_CHANGE_SET_BINDING_MISMATCH' });
     });
 
-    it('should reject a complete candidate that fails the authoritative local schema', async () => {
+    it('should reject a complete change set that fails the authoritative local schema', async () => {
       // Arrange
       const fixture = buildFixture();
-      const projectCandidateBuilder = buildCandidateBuilder(fixture, {
+      const projectChangeSetBuilder = buildChangeSetBuilder(fixture, {
         candidateValidationResult: {
           ok: false,
           diagnostics: [{ code: 'CONTRACT_REQUIRED', path: '/files' }],
@@ -91,10 +91,10 @@ describe('ProjectCandidateBuilder', () => {
       });
 
       // Act and Assert
-      await assert.rejects(projectCandidateBuilder.buildCandidate({
+      await assert.rejects(projectChangeSetBuilder.buildChangeSet({
         projectDirectoryPath: '/checkout',
       }), error => {
-        assert.equal(error.code, 'PROJECT_CANDIDATE_INVALID');
+        assert.equal(error.code, 'PROJECT_CHANGE_SET_INVALID');
         assert.deepEqual(error.diagnostics, [{ code: 'CONTRACT_REQUIRED', path: '/files' }]);
         return true;
       });
@@ -102,10 +102,10 @@ describe('ProjectCandidateBuilder', () => {
   });
 });
 
-function buildCandidateBuilder(fixture, {
+function buildChangeSetBuilder(fixture, {
   candidateValidationResult,
 } = {}) {
-  return new ProjectCandidateBuilder({
+  return new ProjectChangeSetBuilder({
     projectCanonicalArtifactService: {
       parseResourceSource: ({ content }) => JSON.parse(content),
       serializeCanonicalValue: value => JSON.stringify(sortCanonicalValue(value)),

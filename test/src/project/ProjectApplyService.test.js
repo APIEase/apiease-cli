@@ -9,7 +9,7 @@ import {
 
 describe('ProjectApplyService', () => {
   describe('applyProject', () => {
-    it('should retain one candidate, exact plan operations, and one operation key through committed apply', async () => {
+    it('should retain one change set, exact plan operations, and one operation key through committed apply', async () => {
       // Arrange
       const fixture = buildServiceFixture();
 
@@ -29,9 +29,9 @@ describe('ProjectApplyService', () => {
         'publish-state',
         'archive-deletions',
       ]);
-      assert.strictEqual(fixture.validationCalls[0].candidateBuildResult, fixture.candidateBuildResult);
-      assert.strictEqual(fixture.planCalls[0].request.changeSet, fixture.candidateBuildResult.changeSet);
-      assert.strictEqual(fixture.applyCalls[0].request.changeSet, fixture.candidateBuildResult.changeSet);
+      assert.strictEqual(fixture.validationCalls[0].changeSetBuildResult, fixture.changeSetBuildResult);
+      assert.strictEqual(fixture.planCalls[0].request.changeSet, fixture.changeSetBuildResult.changeSet);
+      assert.strictEqual(fixture.applyCalls[0].request.changeSet, fixture.changeSetBuildResult.changeSet);
       assert.equal(fixture.applyCalls[0].request.operationKey, 'opaque-operation-key');
       assert.equal(fixture.applyCalls[0].request.requireApproval, false);
       assert.equal(fixture.applyCalls[0].request.authorityMode, 'personal');
@@ -65,7 +65,7 @@ describe('ProjectApplyService', () => {
         'operation-key',
         'apply',
       ]);
-      assert.strictEqual(fixture.applyCalls[0].request.changeSet, fixture.candidateBuildResult.changeSet);
+      assert.strictEqual(fixture.applyCalls[0].request.changeSet, fixture.changeSetBuildResult.changeSet);
       assert.equal(fixture.applyCalls[0].request.operationKey, 'opaque-operation-key');
       assert.equal(fixture.applyCalls[0].request.requireApproval, true);
       assert.equal(fixture.applyCalls[0].request.authorityMode, 'personal');
@@ -119,7 +119,7 @@ describe('ProjectApplyService', () => {
 
       // Assert
       assert.equal(result.stage, 'validation');
-      assert.equal(result.outcome, 'PROJECT_CANDIDATE_INVALID');
+      assert.equal(result.outcome, 'PROJECT_CHANGE_SET_INVALID');
       assert.deepEqual(fixture.events, ['policy', 'authentication', 'candidate', 'validate']);
     });
 
@@ -185,7 +185,7 @@ describe('ProjectApplyService', () => {
 
       // Assert
       assert.equal(result.outcome, 'PROJECT_APPLY_REPLAYED');
-      assert.strictEqual(fixture.deriveStateCalls[0].changeSet, fixture.candidateBuildResult.changeSet);
+      assert.strictEqual(fixture.deriveStateCalls[0].changeSet, fixture.changeSetBuildResult.changeSet);
       assert.strictEqual(fixture.deriveStateCalls[0].applyReceipt, applyResponse.result);
       assert.strictEqual(fixture.archiveCalls[0].applyReceipt, applyResponse.result);
       assert.equal(fixture.events.at(-1), 'archive-deletions');
@@ -196,11 +196,11 @@ describe('ProjectApplyService', () => {
       const applyResponse = buildApplyResponse({ outerOutcome: 'PROJECT_APPLY_NO_CHANGE' });
       applyResponse.result.outcome = 'PROJECT_APPLY_NO_CHANGE';
       applyResponse.result.resources = [];
-      const candidateBuildResult = buildCandidateBuildResult({ deletionIntents: [] });
+      const changeSetBuildResult = buildChangeSetBuildResult({ deletionIntents: [] });
       const planResponse = buildPlanResponse();
       planResponse.outcome = 'PROJECT_PLAN_NO_CHANGE';
       planResponse.result.operations = [];
-      const fixture = buildServiceFixture({ applyResponse, candidateBuildResult, planResponse });
+      const fixture = buildServiceFixture({ applyResponse, changeSetBuildResult, planResponse });
 
       // Act
       const result = await fixture.projectApplyService.applyProject(buildInvocation());
@@ -213,14 +213,14 @@ describe('ProjectApplyService', () => {
 
     it('should return safe required-value selectors with APIEase UI guidance', async () => {
       // Arrange
-      const candidateBuildResult = buildCandidateBuildResult();
-      const validationResult = buildValidationSuccess(candidateBuildResult);
+      const changeSetBuildResult = buildChangeSetBuildResult();
+      const validationResult = buildValidationSuccess(changeSetBuildResult);
       validationResult.requiredSecureValues = [{
         resourceType: 'request',
         handle: 'inventory-sync',
         fieldPath: 'parameters.api-key.value',
       }];
-      const fixture = buildServiceFixture({ candidateBuildResult, validationResult });
+      const fixture = buildServiceFixture({ changeSetBuildResult, validationResult });
 
       // Act
       const result = await fixture.projectApplyService.applyProject(buildInvocation());
@@ -252,7 +252,7 @@ describe('ProjectApplyService', () => {
 function buildServiceFixture({
   approvalRequired = false,
   applyResponse = buildApplyResponse(),
-  candidateBuildResult = buildCandidateBuildResult(),
+  changeSetBuildResult = buildChangeSetBuildResult(),
   planResponse = buildPlanResponse(),
   publishFailure,
   validationResult,
@@ -307,18 +307,18 @@ function buildServiceFixture({
   };
   const projectApplyService = new ProjectApplyService({
     projectApplyRequestPolicy,
-    projectCandidateBuilder: {
-      async buildCandidate({ projectDirectoryPath }) {
+    projectChangeSetBuilder: {
+      async buildChangeSet({ projectDirectoryPath }) {
         events.push('candidate');
         assert.equal(projectDirectoryPath, '/checkout/nested');
-        return candidateBuildResult;
+        return changeSetBuildResult;
       },
     },
     projectValidationService: {
-      async validateCandidate(invocation) {
+      async validateChangeSet(invocation) {
         events.push('validate');
         validationCalls.push(invocation);
-        return validationResult ?? buildValidationSuccess(candidateBuildResult);
+        return validationResult ?? buildValidationSuccess(changeSetBuildResult);
       },
     },
     apiEaseProjectApiClient,
@@ -352,7 +352,7 @@ function buildServiceFixture({
     applyCalls,
     applyResponse,
     archiveCalls,
-    candidateBuildResult,
+    changeSetBuildResult,
     deriveStateCalls,
     events,
     planCalls,
@@ -374,7 +374,7 @@ function buildInvocation() {
   };
 }
 
-function buildCandidateBuildResult({ deletionIntents = [{ deletePath: 'delete.json' }] } = {}) {
+function buildChangeSetBuildResult({ deletionIntents = [{ deletePath: 'delete.json' }] } = {}) {
   return {
     repositoryTopLevelPath: '/checkout',
     localState: { stateFormatVersion: 1 },
@@ -404,17 +404,17 @@ function buildCandidateBuildResult({ deletionIntents = [{ deletePath: 'delete.js
         resourceType: 'request',
       }],
     },
-    candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    changeSetSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     deletionIntents,
     requiredSecureValues: [],
   };
 }
 
-function buildValidationSuccess(candidateBuildResult) {
+function buildValidationSuccess(changeSetBuildResult) {
   return {
     ok: true,
     outcome: 'PROJECT_VALID',
-    candidateBuildResult,
+    changeSetBuildResult,
     validationResponse: { ok: true, outcome: 'PROJECT_VALID' },
     result: { diagnostics: [] },
     diagnostics: [],
@@ -424,7 +424,7 @@ function buildValidationSuccess(candidateBuildResult) {
 }
 
 function buildValidationFailure() {
-  const validationResponse = buildFailureResponse('PROJECT_CANDIDATE_INVALID', 422);
+  const validationResponse = buildFailureResponse('PROJECT_CHANGE_SET_INVALID', 422);
   return {
     ok: false,
     outcome: validationResponse.outcome,
@@ -477,7 +477,7 @@ function buildProposalAcceptedResponse() {
       replayed: false,
       branchName: 'apiease/proposals/project_01/design_session_01',
       commit: '1111111111111111111111111111111111111111',
-      candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      changeSetSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       operationDigest: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
       approvalBindingDigest: 'sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
       requiredSecureValues: [],

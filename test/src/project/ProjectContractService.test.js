@@ -169,10 +169,10 @@ describe('ProjectContractService', () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
-      const candidate = await readCanonicalResourceChangeSet();
+      const changeSet = await readCanonicalResourceChangeSet();
 
       // Act
-      const validationResult = projectContractService.validateCanonicalResourceChangeSet(candidate);
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(changeSet);
 
       // Assert
       assert.deepEqual(validationResult, { ok: true });
@@ -182,11 +182,11 @@ describe('ProjectContractService', () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
-      const candidate = await readCanonicalResourceChangeSet();
-      candidate.contractVersion = 2;
+      const changeSet = await readCanonicalResourceChangeSet();
+      changeSet.contractVersion = 2;
 
       // Act
-      const validationResult = projectContractService.validateCanonicalResourceChangeSet(candidate);
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(changeSet);
 
       // Assert
       assert.equal(validationResult.ok, false);
@@ -329,7 +329,7 @@ async function readFailureFixture(fixtureName) {
   return structuredClone(failureFixture.fixtures.find(fixture => fixture.name === fixtureName));
 }
 
-async function readWorkflowCandidate() {
+async function readWorkflowChangeSet() {
   const workflowFixture = await readJson('fixtures/project-workflow-success.json');
 
   return structuredClone(workflowFixture.pairs[0].request.document.changeSet);

@@ -63,7 +63,7 @@ class ProjectLocalStateService {
     localState,
     changeSet,
     applyReceipt,
-    candidateSnapshotDigest,
+    changeSetSnapshotDigest,
   }) {
     this.requireValidLocalState(localState);
     this.requireCommittedApplyReceipt(applyReceipt);
@@ -79,7 +79,7 @@ class ProjectLocalStateService {
       ...localState,
       baseline: {
         liveRevision: applyReceipt.resultingLiveRevision,
-        snapshotDigest: candidateSnapshotDigest,
+        snapshotDigest: changeSetSnapshotDigest,
       },
       resources,
     };

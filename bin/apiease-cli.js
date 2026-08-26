@@ -28,7 +28,7 @@ import { ProjectCommandResultService } from '../src/cli/ProjectCommandResultServ
 import { ProjectApplyRequestPolicy } from '../src/project/ProjectApplyRequestPolicy.js';
 import { ProjectApplyService } from '../src/project/ProjectApplyService.js';
 import { ProjectBootstrapArtifactService } from '../src/project/ProjectBootstrapArtifactService.js';
-import { ProjectCandidateBuilder } from '../src/project/ProjectCandidateBuilder.js';
+import { ProjectChangeSetBuilder } from '../src/project/ProjectChangeSetBuilder.js';
 import { ProjectCanonicalArtifactService } from '../src/project/ProjectCanonicalArtifactService.js';
 import { ProjectContractService } from '../src/project/ProjectContractService.js';
 import { ProjectDeletionIntentService } from '../src/project/ProjectDeletionIntentService.js';
@@ -123,7 +123,7 @@ function buildProjectCommands({
     projectContractService,
   });
   const projectGitCheckoutService = new ProjectGitCheckoutService({ projectLocalStateService });
-  const projectCandidateBuilder = new ProjectCandidateBuilder({
+  const projectChangeSetBuilder = new ProjectChangeSetBuilder({
     projectCanonicalArtifactService,
     projectContractService,
     projectDeletionIntentService,
@@ -133,7 +133,7 @@ function buildProjectCommands({
   });
   const projectValidationService = new ProjectValidationService({
     apiEaseProjectApiClient,
-    projectCandidateBuilder,
+    projectChangeSetBuilder,
   });
   const projectSynchronizationService = new ProjectSynchronizationService({
     apiEaseProjectApiClient,
@@ -171,7 +171,7 @@ function buildProjectCommands({
     personalProjectAuthenticationAdapter,
     projectDesignContextService: new ProjectDesignContextService({
       apiEaseProjectApiClient,
-      projectCandidateBuilder,
+      projectChangeSetBuilder,
       projectCanonicalArtifactService,
     }),
     projectCommandResultService,
@@ -183,7 +183,7 @@ function buildProjectCommands({
     personalProjectAuthenticationAdapter,
     projectApplyService: new ProjectApplyService({
       projectApplyRequestPolicy,
-      projectCandidateBuilder,
+      projectChangeSetBuilder,
       apiEaseProjectApiClient,
       projectValidationService,
       projectLocalStateService,

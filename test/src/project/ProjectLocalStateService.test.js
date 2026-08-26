@@ -154,7 +154,7 @@ describe('ProjectLocalStateService', () => {
   });
 
   describe('deriveCommittedLocalState', () => {
-    it('should use receipt versions and candidate paths while preserving project identity', async () => {
+    it('should use receipt versions and change-set paths while preserving project identity', async () => {
       // Arrange
       const workflowFixture = await readWorkflowFixture();
       const applyPair = workflowFixture.pairs.find(pair => pair.name === 'apply');
@@ -170,7 +170,7 @@ describe('ProjectLocalStateService', () => {
         localState,
         changeSet: applyPair.request.document.changeSet,
         applyReceipt: applyPair.response.document.result,
-        candidateSnapshotDigest: workflowFixture.resultingState.baseline.snapshotDigest,
+        changeSetSnapshotDigest: workflowFixture.resultingState.baseline.snapshotDigest,
       });
 
       // Assert
@@ -194,7 +194,7 @@ describe('ProjectLocalStateService', () => {
         localState: buildLocalState(),
         changeSet: {},
         applyReceipt: { outcome: 'PROJECT_PLAN_READY' },
-        candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        changeSetSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       }), { code: 'PROJECT_APPLY_RECEIPT_INVALID' });
     });
 
@@ -219,7 +219,7 @@ describe('ProjectLocalStateService', () => {
         localState,
         changeSet: noChangePair.request.document.changeSet,
         applyReceipt: noChangePair.response.document.result,
-        candidateSnapshotDigest: noChangePair.request.document.changeSet.baseline.snapshotDigest,
+        changeSetSnapshotDigest: noChangePair.request.document.changeSet.baseline.snapshotDigest,
       });
 
       // Assert

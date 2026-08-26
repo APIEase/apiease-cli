@@ -134,8 +134,8 @@ function buildService(fixture) {
         return fixture.serverResponse;
       },
     },
-    projectCandidateBuilder: {
-      buildCandidate: async () => fixture.candidateBuildResult,
+    projectChangeSetBuilder: {
+      buildChangeSet: async () => fixture.changeSetBuildResult,
     },
     projectCanonicalArtifactService: {
       serializeCanonicalValue: value => JSON.stringify(sortCanonicalValue(value)),
@@ -184,9 +184,9 @@ function buildFixture() {
       authenticationContext: { opaque: true },
     },
     projectRequirements,
-    candidateBuildResult: {
+    changeSetBuildResult: {
       changeSet,
-      candidateSnapshotDigest: LOCAL_SNAPSHOT_DIGEST,
+      changeSetSnapshotDigest: LOCAL_SNAPSHOT_DIGEST,
       localState: {
         projectIdentity: {
           normalizedShopDomain: 'shop.myshopify.com',
@@ -245,7 +245,7 @@ function buildFixture() {
 
 function buildExpectedContext(fixture) {
   const serverResult = fixture.serverResponse.result;
-  const candidateResult = fixture.candidateBuildResult;
+  const candidateResult = fixture.changeSetBuildResult;
   return {
     ok: true,
     outcome: 'PROJECT_DESIGN_CONTEXT_READY',

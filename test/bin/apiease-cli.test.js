@@ -508,8 +508,8 @@ describe('apiease-cli', () => {
         validateProjectCommand.projectValidationService.apiEaseProjectApiClient,
       );
       assert.equal(
-        designContextCommand.projectDesignContextService.projectCandidateBuilder,
-        validateProjectCommand.projectValidationService.projectCandidateBuilder,
+        designContextCommand.projectDesignContextService.projectChangeSetBuilder,
+        validateProjectCommand.projectValidationService.projectChangeSetBuilder,
       );
       assert.equal(
         applyProjectCommand.personalProjectAuthenticationAdapter,
@@ -520,8 +520,8 @@ describe('apiease-cli', () => {
         initProjectCommand.projectSynchronizationService.apiEaseProjectApiClient,
       );
       assert.equal(
-        applyProjectCommand.projectApplyService.projectCandidateBuilder,
-        validateProjectCommand.projectValidationService.projectCandidateBuilder,
+        applyProjectCommand.projectApplyService.projectChangeSetBuilder,
+        validateProjectCommand.projectValidationService.projectChangeSetBuilder,
       );
       assert.equal(
         renameProjectResourceCommand.projectRenameService.projectLocalStateService,

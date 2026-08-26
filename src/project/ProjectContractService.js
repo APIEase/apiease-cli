@@ -66,10 +66,6 @@ class ProjectContractService {
     return this.validateMatchingErrorCode(document);
   }
 
-  validateProjectCandidate(candidate) {
-    return this.validateFixtureDocument('projectCandidate', candidate);
-  }
-
   validateCanonicalResourceChangeSet(changeSet) {
     return this.validateFixtureDocument('canonicalResourceChangeSet', changeSet);
   }

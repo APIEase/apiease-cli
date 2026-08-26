@@ -8,22 +8,22 @@ import {
 } from '../../../src/project/ProjectValidationService.js';
 
 describe('ProjectValidationService', () => {
-  describe('validateCandidate', () => {
-    it('should submit the exact retained candidate for authoritative validation', async () => {
+  describe('validateChangeSet', () => {
+    it('should submit the exact retained change set for authoritative validation', async () => {
       // Arrange
-      const candidateBuildResult = buildCandidateBuildResult();
+      const changeSetBuildResult = buildChangeSetBuildResult();
       const calls = [];
       const projectValidationService = buildValidationService({ calls });
 
       // Act
-      const validationResult = await projectValidationService.validateCandidate({
-        candidateBuildResult,
+      const validationResult = await projectValidationService.validateChangeSet({
+        changeSetBuildResult,
         projectApiInvocation: buildProjectApiInvocation(),
       });
 
       // Assert
-      assert.strictEqual(calls[0].request.changeSet, candidateBuildResult.changeSet);
-      assert.strictEqual(validationResult.candidateBuildResult, candidateBuildResult);
+      assert.strictEqual(calls[0].request.changeSet, changeSetBuildResult.changeSet);
+      assert.strictEqual(validationResult.changeSetBuildResult, changeSetBuildResult);
       assert.equal(validationResult.outcome, 'PROJECT_VALID');
     });
 
@@ -33,15 +33,15 @@ describe('ProjectValidationService', () => {
       const projectValidationService = buildValidationService({ authoritativeFailure });
 
       // Act
-      const validationResult = await projectValidationService.validateCandidate({
-        candidateBuildResult: buildCandidateBuildResult(),
+      const validationResult = await projectValidationService.validateChangeSet({
+        changeSetBuildResult: buildChangeSetBuildResult(),
         projectApiInvocation: buildProjectApiInvocation(),
       });
 
       // Assert
       assert.strictEqual(validationResult.validationResponse, authoritativeFailure);
-      assert.equal(validationResult.outcome, 'PROJECT_CANDIDATE_INVALID');
-      assert.equal(validationResult.error.code, 'PROJECT_CANDIDATE_INVALID');
+      assert.equal(validationResult.outcome, 'PROJECT_CHANGE_SET_INVALID');
+      assert.equal(validationResult.error.code, 'PROJECT_CHANGE_SET_INVALID');
     });
 
     it('should fail closed when a successful response is not PROJECT_VALID', async () => {
@@ -57,8 +57,8 @@ describe('ProjectValidationService', () => {
 
       // Act and Assert
       await assert.rejects(
-        projectValidationService.validateCandidate({
-          candidateBuildResult: buildCandidateBuildResult(),
+        projectValidationService.validateChangeSet({
+          changeSetBuildResult: buildChangeSetBuildResult(),
           projectApiInvocation: buildProjectApiInvocation(),
         }),
         { code: 'PROJECT_VALIDATION_OUTCOME_INVALID' },
@@ -80,8 +80,8 @@ describe('ProjectValidationService', () => {
       });
 
       // Act
-      const validationResult = await projectValidationService.validateCandidate({
-        candidateBuildResult: buildCandidateBuildResult(),
+      const validationResult = await projectValidationService.validateChangeSet({
+        changeSetBuildResult: buildChangeSetBuildResult(),
         projectApiInvocation: buildProjectApiInvocation(),
       });
 
@@ -99,8 +99,8 @@ describe('ProjectValidationService', () => {
       const projectValidationService = buildValidationService();
 
       // Act
-      const validationResult = await projectValidationService.validateCandidate({
-        candidateBuildResult: buildCandidateBuildResult(),
+      const validationResult = await projectValidationService.validateChangeSet({
+        changeSetBuildResult: buildChangeSetBuildResult(),
         projectApiInvocation: buildProjectApiInvocation(),
       });
 
@@ -110,17 +110,17 @@ describe('ProjectValidationService', () => {
 
     it('should direct deferred secure-value configuration to the authenticated APIEase UI', async () => {
       // Arrange
-      const candidateBuildResult = buildCandidateBuildResult();
-      candidateBuildResult.requiredSecureValues = [{
+      const changeSetBuildResult = buildChangeSetBuildResult();
+      changeSetBuildResult.requiredSecureValues = [{
         resourceType: 'variable',
         handle: 'new-token',
         fieldPath: 'value',
       }];
-      const projectValidationService = buildValidationService({ candidateBuildResult });
+      const projectValidationService = buildValidationService({ changeSetBuildResult });
 
       // Act
-      const validationResult = await projectValidationService.validateCandidate({
-        candidateBuildResult,
+      const validationResult = await projectValidationService.validateChangeSet({
+        changeSetBuildResult,
         projectApiInvocation: buildProjectApiInvocation(),
       });
 
@@ -133,11 +133,11 @@ describe('ProjectValidationService', () => {
   });
 
   describe('buildAndValidateProject', () => {
-    it('should build once and submit every locally valid complete candidate', async () => {
+    it('should build once and submit every locally valid complete change set', async () => {
       // Arrange
-      const candidateBuildResult = buildCandidateBuildResult();
+      const changeSetBuildResult = buildChangeSetBuildResult();
       const calls = [];
-      const projectValidationService = buildValidationService({ candidateBuildResult, calls });
+      const projectValidationService = buildValidationService({ changeSetBuildResult, calls });
 
       // Act
       await projectValidationService.buildAndValidateProject({
@@ -148,15 +148,15 @@ describe('ProjectValidationService', () => {
       // Assert
       assert.deepEqual(calls, [
         { projectDirectoryPath: '/checkout/nested' },
-        { ...buildProjectApiInvocation(), request: { contractVersion: 1, changeSet: candidateBuildResult.changeSet } },
+        { ...buildProjectApiInvocation(), request: { contractVersion: 1, changeSet: changeSetBuildResult.changeSet } },
       ]);
     });
 
-    it('should preserve a local candidate failure without calling the API', async () => {
+    it('should preserve a local change-set failure without calling the API', async () => {
       // Arrange
       const calls = [];
-      const localFailure = Object.assign(new Error('PROJECT_CANDIDATE_INVALID'), {
-        code: 'PROJECT_CANDIDATE_INVALID',
+      const localFailure = Object.assign(new Error('PROJECT_CHANGE_SET_INVALID'), {
+        code: 'PROJECT_CHANGE_SET_INVALID',
         diagnostics: [{ code: 'CONTRACT_REQUIRED', path: '/files' }],
       });
       const projectValidationService = buildValidationService({ calls, localFailure });
@@ -181,15 +181,15 @@ function buildValidationService({
   authoritativeFailure,
   authoritativeResponse,
   calls = [],
-  candidateBuildResult = buildCandidateBuildResult(),
+  changeSetBuildResult = buildChangeSetBuildResult(),
   localFailure,
 } = {}) {
   return new ProjectValidationService({
-    projectCandidateBuilder: {
-      async buildCandidate(invocation) {
+    projectChangeSetBuilder: {
+      async buildChangeSet(invocation) {
         calls.push(invocation);
         if (localFailure) throw localFailure;
-        return candidateBuildResult;
+        return changeSetBuildResult;
       },
     },
     apiEaseProjectApiClient: {
@@ -201,12 +201,12 @@ function buildValidationService({
   });
 }
 
-function buildCandidateBuildResult() {
+function buildChangeSetBuildResult() {
   return {
     repositoryTopLevelPath: '/checkout',
     localState: { stateFormatVersion: 1 },
     changeSet: { contractVersion: 1, creates: [], updates: [], deletes: [] },
-    candidateSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    changeSetSnapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
     deletionIntents: [],
     requiredSecureValues: [],
   };
@@ -221,7 +221,7 @@ function buildProjectApiInvocation() {
 
 function buildAuthoritativeSuccess({ diagnostics = [], requiredSecureValues } = {}) {
   const result = {
-    candidateFormatVersion: 1,
+    changeSetContractVersion: 1,
     baseline: {
       liveRevision: 1,
       snapshotDigest: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
@@ -246,11 +246,11 @@ function buildAuthoritativeFailure() {
     status: 422,
     contractVersion: 1,
     ok: false,
-    outcome: 'PROJECT_CANDIDATE_INVALID',
+    outcome: 'PROJECT_CHANGE_SET_INVALID',
     error: {
-      code: 'PROJECT_CANDIDATE_INVALID',
-      message: 'The candidate is invalid.',
-      diagnostics: [{ code: 'PROJECT_CANDIDATE_INVALID', path: '/candidate/files' }],
+      code: 'PROJECT_CHANGE_SET_INVALID',
+      message: 'The canonical change set is invalid.',
+      diagnostics: [{ code: 'PROJECT_CHANGE_SET_INVALID', path: '/changeSet/files' }],
     },
   };
 }
