@@ -40,9 +40,12 @@ describe('ApiEaseHandleBasedCreateOrUpdateService', () => {
             return {
               status: 200,
               ok: true,
-              widget: {
-                id: 'widget-1',
-                handle: 'featured-products',
+              result: {
+                resource: {
+                  id: 'widget-1',
+                  handle: 'featured-products',
+                  resourceVersion: 'rv1_current',
+                },
               },
             };
           },
@@ -102,6 +105,7 @@ describe('ApiEaseHandleBasedCreateOrUpdateService', () => {
             shopDomain: 'cool-shop.myshopify.com',
             resourceHandle: 'featured-products',
             resource,
+            expectedResourceVersion: 'rv1_current',
             failureErrorCode: 'WIDGET_UPDATE_FAILED',
           },
         },

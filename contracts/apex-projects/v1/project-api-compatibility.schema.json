@@ -2671,6 +2671,7 @@
       "required": [
         "artifactEnvelopeVersion",
         "projectApiVersion",
+        "changeSetContractVersion",
         "template",
         "projectIdentity",
         "bindings",
@@ -2687,6 +2688,9 @@
           "const": 1
         },
         "projectApiVersion": {
+          "const": 1
+        },
+        "changeSetContractVersion": {
           "const": 1
         },
         "template": {

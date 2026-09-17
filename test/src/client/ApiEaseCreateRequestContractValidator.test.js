@@ -80,6 +80,66 @@ test('ApiEaseCreateRequestContractValidator validate should allow handle source 
   });
 });
 
+test('ApiEaseCreateRequestContractValidator validate should allow an empty description', async () => {
+  const { ApiEaseCreateRequestContractValidator } = await import(validatorModuleUrl);
+  const validator = new ApiEaseCreateRequestContractValidator();
+
+  const result = validator.validate({
+    type: 'liquid',
+    liquid: 'ok',
+    description: '',
+  });
+
+  assert.equal(result.isValid, true);
+});
+
+test('ApiEaseCreateRequestContractValidator validate should allow a description at the public code-point bound', async () => {
+  const { ApiEaseCreateRequestContractValidator } = await import(validatorModuleUrl);
+  const validator = new ApiEaseCreateRequestContractValidator();
+
+  const result = validator.validate({
+    type: 'liquid',
+    liquid: 'ok',
+    description: '😀'.repeat(65_536),
+  });
+
+  assert.equal(result.isValid, true);
+});
+
+test('ApiEaseCreateRequestContractValidator validate should reject a non-string description', async () => {
+  const { ApiEaseCreateRequestContractValidator } = await import(validatorModuleUrl);
+  const validator = new ApiEaseCreateRequestContractValidator();
+
+  const result = validator.validate({
+    type: 'liquid',
+    liquid: 'ok',
+    description: null,
+  });
+
+  assert.deepEqual(result.fieldErrors, [{
+    path: 'description',
+    code: 'INVALID_TYPE',
+    message: 'Field must be a string',
+  }]);
+});
+
+test('ApiEaseCreateRequestContractValidator validate should reject a description above the public code-point bound', async () => {
+  const { ApiEaseCreateRequestContractValidator } = await import(validatorModuleUrl);
+  const validator = new ApiEaseCreateRequestContractValidator();
+
+  const result = validator.validate({
+    type: 'liquid',
+    liquid: 'ok',
+    description: '😀'.repeat(65_537),
+  });
+
+  assert.deepEqual(result.fieldErrors, [{
+    path: 'description',
+    code: 'MAX_LENGTH',
+    message: 'Must contain at most 65536 Unicode code points',
+  }]);
+});
+
 test('ApiEaseCreateRequestContractValidator validate should reject unsupported top-level fields with field paths', async () => {
   // Arrange
   const { ApiEaseCreateRequestContractValidator } = await import(validatorModuleUrl);

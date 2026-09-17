@@ -90,6 +90,40 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateProjectApiResponse', () => {
+    it('should accept the authoritative change-set contract version in bootstrap artifacts', async () => {
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const bootstrapFixture = await readJson('fixtures/bootstrap-synchronized.json');
+      const bootstrapResponse = bootstrapFixture.fixtures[0].document;
+      bootstrapResponse.result.changeSetContractVersion = 1;
+
+      const validationResult = projectContractService.validateProjectApiResponse(
+        '/api/v1/projects/bootstrap',
+        bootstrapResponse,
+      );
+
+      assert.deepEqual(validationResult, { ok: true });
+    });
+
+    it('should reject an unsupported change-set contract version in bootstrap artifacts', async () => {
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const bootstrapFixture = await readJson('fixtures/bootstrap-synchronized.json');
+      const bootstrapResponse = bootstrapFixture.fixtures[0].document;
+      bootstrapResponse.result.changeSetContractVersion = 2;
+
+      const validationResult = projectContractService.validateProjectApiResponse(
+        '/api/v1/projects/bootstrap',
+        bootstrapResponse,
+      );
+
+      assert.equal(validationResult.ok, false);
+      assert.deepEqual(validationResult.diagnostics, [{
+        code: 'CONTRACT_CONST',
+        path: '/result/changeSetContractVersion',
+      }]);
+    });
+
     it('should accept a deferred proposal response from the apply endpoint', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);

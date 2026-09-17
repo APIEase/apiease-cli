@@ -2,6 +2,8 @@ import { CrudResourceDefinitionCollection } from '../crud/CrudResourceDefinition
 
 const JSON_CONTENT_TYPE = 'application/json';
 const DEFAULT_FAILURE_STATUS = 500;
+const RESOURCE_API_CONTRACT_VERSION = 1;
+const CREATE_IF_ABSENT_OPERATION = 'create-if-absent';
 
 class ApiEaseCrudResourceClient {
   constructor({
@@ -26,7 +28,7 @@ class ApiEaseCrudResourceClient {
       apiBaseUrl,
       apiKey,
       shopDomain,
-      resource,
+      resource: this.buildCreateEnvelope(resource),
       failureErrorCode,
     });
   }
@@ -75,8 +77,22 @@ class ApiEaseCrudResourceClient {
     shopDomain,
     resourceIdentifier,
     resource,
+    expectedResourceVersion,
     failureErrorCode,
   } = {}) {
+    const versionResult = await this.resolveExpectedResourceVersion({
+      resourceName,
+      apiBaseUrl,
+      apiKey,
+      shopDomain,
+      resourceIdentifier,
+      expectedResourceVersion,
+      failureErrorCode,
+    });
+    if (!versionResult.ok) {
+      return versionResult;
+    }
+
     return await this.sendResourceRequest({
       method: 'PUT',
       resourceName,
@@ -84,7 +100,7 @@ class ApiEaseCrudResourceClient {
       apiKey,
       shopDomain,
       resourceIdentifier,
-      resource,
+      resource: this.buildUpdateEnvelope(resource, versionResult.expectedResourceVersion),
       failureErrorCode,
     });
   }
@@ -96,6 +112,7 @@ class ApiEaseCrudResourceClient {
     shopDomain,
     resourceHandle,
     resource,
+    expectedResourceVersion,
     failureErrorCode,
   } = {}) {
     return await this.updateResource({
@@ -105,6 +122,7 @@ class ApiEaseCrudResourceClient {
       shopDomain,
       resourceIdentifier: resourceHandle,
       resource,
+      expectedResourceVersion,
       failureErrorCode,
     });
   }
@@ -115,8 +133,22 @@ class ApiEaseCrudResourceClient {
     apiKey,
     shopDomain,
     resourceIdentifier,
+    expectedResourceVersion,
     failureErrorCode,
   } = {}) {
+    const versionResult = await this.resolveExpectedResourceVersion({
+      resourceName,
+      apiBaseUrl,
+      apiKey,
+      shopDomain,
+      resourceIdentifier,
+      expectedResourceVersion,
+      failureErrorCode,
+    });
+    if (!versionResult.ok) {
+      return versionResult;
+    }
+
     return await this.sendResourceRequest({
       method: 'DELETE',
       resourceName,
@@ -124,8 +156,64 @@ class ApiEaseCrudResourceClient {
       apiKey,
       shopDomain,
       resourceIdentifier,
+      resource: this.buildDeleteEnvelope(versionResult.expectedResourceVersion),
       failureErrorCode,
     });
+  }
+
+  buildCreateEnvelope(resource) {
+    return {
+      contractVersion: RESOURCE_API_CONTRACT_VERSION,
+      operation: CREATE_IF_ABSENT_OPERATION,
+      resource,
+    };
+  }
+
+  buildUpdateEnvelope(resource, expectedResourceVersion) {
+    return {
+      contractVersion: RESOURCE_API_CONTRACT_VERSION,
+      expectedResourceVersion,
+      resource,
+    };
+  }
+
+  buildDeleteEnvelope(expectedResourceVersion) {
+    return {
+      contractVersion: RESOURCE_API_CONTRACT_VERSION,
+      expectedResourceVersion,
+    };
+  }
+
+  async resolveExpectedResourceVersion(options) {
+    if (this.isResourceVersion(options.expectedResourceVersion)) {
+      return { ok: true, expectedResourceVersion: options.expectedResourceVersion };
+    }
+
+    const readResult = await this.readResource(options);
+    if (!readResult.ok) {
+      return readResult;
+    }
+
+    return this.buildVersionResult(readResult, options.failureErrorCode);
+  }
+
+  buildVersionResult(readResult, failureErrorCode) {
+    const expectedResourceVersion = readResult?.result?.resource?.resourceVersion;
+    if (this.isResourceVersion(expectedResourceVersion)) {
+      return { ok: true, expectedResourceVersion };
+    }
+
+    return {
+      status: DEFAULT_FAILURE_STATUS,
+      ok: false,
+      errorCode: failureErrorCode,
+      message: 'API response did not include a resource version',
+      fieldErrors: [],
+    };
+  }
+
+  isResourceVersion(value) {
+    return typeof value === 'string' && value.length > 0;
   }
 
   async sendResourceRequest({

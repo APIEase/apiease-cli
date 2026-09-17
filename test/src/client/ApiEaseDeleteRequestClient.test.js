@@ -25,7 +25,7 @@ describe('ApiEaseDeleteRequestClient', () => {
   });
 
   describe('deleteRequest', () => {
-    it('should delete the request from the versioned requests resource item endpoint without a request body', async () => {
+    it('should delete the request from the versioned requests resource item endpoint with a versioned body', async () => {
       // Arrange
       const { ApiEaseDeleteRequestClient } = await import(clientModuleUrl);
       const fetchCalls = [];
@@ -38,6 +38,14 @@ describe('ApiEaseDeleteRequestClient', () => {
       };
       const fetchImplementation = async (url, options) => {
         fetchCalls.push({ url, options });
+        if (options.method === 'GET') {
+          return {
+            status: 200,
+            async json() {
+              return { ok: true, result: { resource: { resourceVersion: 'rv1_current' } } };
+            },
+          };
+        }
         return {
           status: 200,
           async json() {
@@ -62,12 +70,15 @@ describe('ApiEaseDeleteRequestClient', () => {
       });
 
       // Assert
-      assert.equal(fetchCalls.length, 1);
-      assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/requests/request%2F1%20%26%202');
-      assert.equal(fetchCalls[0].options.method, 'DELETE');
-      assert.equal(fetchCalls[0].options.headers['x-apiease-api-key'], 'api-key-1');
-      assert.equal(fetchCalls[0].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
-      assert.equal(fetchCalls[0].options.body, undefined);
+      assert.equal(fetchCalls.length, 2);
+      assert.equal(fetchCalls[1].url, 'https://apiease.example.com/root/api/v1/resources/requests/request%2F1%20%26%202');
+      assert.equal(fetchCalls[1].options.method, 'DELETE');
+      assert.equal(fetchCalls[1].options.headers['x-apiease-api-key'], 'api-key-1');
+      assert.equal(fetchCalls[1].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,

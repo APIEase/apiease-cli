@@ -50,6 +50,14 @@ describe('ApiEaseUpdateRequestClient', () => {
       };
       const fetchImplementation = async (url, options) => {
         fetchCalls.push({ url, options });
+        if (options.method === 'GET') {
+          return {
+            status: 200,
+            async json() {
+              return { ok: true, result: { resource: { resourceVersion: 'rv1_current' } } };
+            },
+          };
+        }
         return {
           status: 200,
           async json() {
@@ -80,13 +88,17 @@ describe('ApiEaseUpdateRequestClient', () => {
 
       // Assert
       assert.deepEqual(validationCalls, [request]);
-      assert.equal(fetchCalls.length, 1);
-      assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/requests/request%2F1%20%26%202');
-      assert.equal(fetchCalls[0].options.method, 'PUT');
-      assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
-      assert.equal(fetchCalls[0].options.headers['x-apiease-api-key'], 'api-key-1');
-      assert.equal(fetchCalls[0].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(request));
+      assert.equal(fetchCalls.length, 2);
+      assert.equal(fetchCalls[1].url, 'https://apiease.example.com/root/api/v1/resources/requests/request%2F1%20%26%202');
+      assert.equal(fetchCalls[1].options.method, 'PUT');
+      assert.equal(fetchCalls[1].options.headers['content-type'], 'application/json');
+      assert.equal(fetchCalls[1].options.headers['x-apiease-api-key'], 'api-key-1');
+      assert.equal(fetchCalls[1].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: request,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -181,6 +193,14 @@ describe('ApiEaseUpdateRequestClient', () => {
         },
         fetchImplementation: async (url, options) => {
           fetchCalls.push({ url, options });
+          if (options.method === 'GET') {
+            return {
+              status: 200,
+              async json() {
+                return { ok: true, result: { resource: { resourceVersion: 'rv1_current' } } };
+              },
+            };
+          }
           return {
             status: 200,
             async json() {
@@ -216,7 +236,11 @@ describe('ApiEaseUpdateRequestClient', () => {
           ],
         },
       ]);
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(validationCalls[0]));
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: validationCalls[0],
+      }));
       assert.deepEqual(request, {
         name: 'Cart flow',
         type: 'flow',

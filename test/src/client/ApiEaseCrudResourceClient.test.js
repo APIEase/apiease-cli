@@ -69,7 +69,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
       assert.equal(fetchCalls[0].options.headers['x-apiease-api-key'], 'api-key-1');
       assert.equal(fetchCalls[0].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(widget));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        operation: 'create-if-absent',
+        resource: widget,
+      }));
       assert.deepEqual(result, {
         status: 201,
         ok: true,
@@ -118,7 +122,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls.length, 1);
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/functions');
       assert.equal(fetchCalls[0].options.method, 'POST');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(functionDefinition));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        operation: 'create-if-absent',
+        resource: functionDefinition,
+      }));
       assert.deepEqual(result, {
         status: 201,
         ok: true,
@@ -469,6 +477,68 @@ describe('ApiEaseCrudResourceClient', () => {
   });
 
   describe('updateResource', () => {
+    it('should read the current version and put a version-bound update envelope', async () => {
+      const { ApiEaseCrudResourceClient } = await import(clientModuleUrl);
+      const resource = { handle: 'featured-products', description: 'Updated purpose.' };
+      const fetchCalls = [];
+      const apiEaseCrudResourceClient = new ApiEaseCrudResourceClient({
+        fetchImplementation: async (url, options) => {
+          fetchCalls.push({ url, options });
+          return fetchCalls.length === 1
+            ? { status: 200, async json() { return { ok: true, result: { resource: { resourceVersion: 'rv1_current' } } }; } }
+            : { status: 200, async json() { return { ok: true }; } };
+        },
+      });
+
+      const result = await apiEaseCrudResourceClient.updateResource({
+        resourceName: 'widget',
+        apiBaseUrl: 'https://apiease.example.com',
+        apiKey: 'api-key-1',
+        shopDomain: 'cool-shop.myshopify.com',
+        resourceIdentifier: 'featured-products',
+        resource,
+        failureErrorCode: 'WIDGET_UPDATE_FAILED',
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(fetchCalls[0].options.method, 'GET');
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource,
+      }));
+    });
+
+    it('should not update when the current read omits the resource version', async () => {
+      const { ApiEaseCrudResourceClient } = await import(clientModuleUrl);
+      const fetchCalls = [];
+      const apiEaseCrudResourceClient = new ApiEaseCrudResourceClient({
+        fetchImplementation: async (url, options) => {
+          fetchCalls.push({ url, options });
+          return { status: 200, async json() { return { ok: true, result: { resource: {} } }; } };
+        },
+      });
+
+      const result = await apiEaseCrudResourceClient.updateResource({
+        resourceName: 'widget',
+        apiBaseUrl: 'https://apiease.example.com',
+        apiKey: 'api-key-1',
+        shopDomain: 'cool-shop.myshopify.com',
+        resourceIdentifier: 'featured-products',
+        resource: { description: 'Updated purpose.' },
+        failureErrorCode: 'WIDGET_UPDATE_FAILED',
+      });
+
+      assert.equal(fetchCalls.length, 1);
+      assert.deepEqual(result, {
+        status: 500,
+        ok: false,
+        errorCode: 'WIDGET_UPDATE_FAILED',
+        message: 'API response did not include a resource version',
+        fieldErrors: [],
+      });
+    });
+
     it('should put the payload to the versioned widget item endpoint', async () => {
       // Arrange
       const { ApiEaseCrudResourceClient } = await import(clientModuleUrl);
@@ -504,6 +574,7 @@ describe('ApiEaseCrudResourceClient', () => {
         shopDomain: 'cool-shop.myshopify.com',
         resourceIdentifier: 'widget/1 & 2',
         resource: widget,
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'WIDGET_UPDATE_FAILED',
       });
 
@@ -514,7 +585,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
       assert.equal(fetchCalls[0].options.headers['x-apiease-api-key'], 'api-key-1');
       assert.equal(fetchCalls[0].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(widget));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: widget,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -556,6 +631,7 @@ describe('ApiEaseCrudResourceClient', () => {
         shopDomain: 'cool-shop.myshopify.com',
         resourceIdentifier: 'function/1 & 2',
         resource: functionDefinition,
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'FUNCTION_UPDATE_FAILED',
       });
 
@@ -563,7 +639,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls.length, 1);
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/functions/function%2F1%20%26%202');
       assert.equal(fetchCalls[0].options.method, 'PUT');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(functionDefinition));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: functionDefinition,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -608,6 +688,7 @@ describe('ApiEaseCrudResourceClient', () => {
         shopDomain: 'cool-shop.myshopify.com',
         resourceHandle: 'featured-products',
         resource: widget,
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'WIDGET_UPDATE_FAILED',
       });
 
@@ -616,7 +697,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/widgets/featured-products');
       assert.equal(fetchCalls[0].options.method, 'PUT');
       assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(widget));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: widget,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -662,6 +747,7 @@ describe('ApiEaseCrudResourceClient', () => {
         shopDomain: 'cool-shop.myshopify.com',
         resourceHandle: 'sale-banner',
         resource: variable,
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'VARIABLE_UPDATE_FAILED',
       });
 
@@ -670,7 +756,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/variables/sale-banner');
       assert.equal(fetchCalls[0].options.method, 'PUT');
       assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(variable));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: variable,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -716,6 +806,7 @@ describe('ApiEaseCrudResourceClient', () => {
         shopDomain: 'cool-shop.myshopify.com',
         resourceHandle: 'order-total',
         resource: functionDefinition,
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'FUNCTION_UPDATE_FAILED',
       });
 
@@ -724,7 +815,11 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/functions/order-total');
       assert.equal(fetchCalls[0].options.method, 'PUT');
       assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(functionDefinition));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: functionDefinition,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -737,7 +832,36 @@ describe('ApiEaseCrudResourceClient', () => {
   });
 
   describe('deleteResource', () => {
-    it('should delete the resource from the versioned variable item endpoint without a request body', async () => {
+    it('should read the current version and send a version-bound delete envelope', async () => {
+      const { ApiEaseCrudResourceClient } = await import(clientModuleUrl);
+      const fetchCalls = [];
+      const apiEaseCrudResourceClient = new ApiEaseCrudResourceClient({
+        fetchImplementation: async (url, options) => {
+          fetchCalls.push({ url, options });
+          return fetchCalls.length === 1
+            ? { status: 200, async json() { return { ok: true, result: { resource: { resourceVersion: 'rv1_current' } } }; } }
+            : { status: 200, async json() { return { ok: true }; } };
+        },
+      });
+
+      const result = await apiEaseCrudResourceClient.deleteResource({
+        resourceName: 'variable',
+        apiBaseUrl: 'https://apiease.example.com',
+        apiKey: 'api-key-1',
+        shopDomain: 'cool-shop.myshopify.com',
+        resourceIdentifier: 'sale-banner',
+        failureErrorCode: 'VARIABLE_DELETE_FAILED',
+      });
+
+      assert.equal(result.ok, true);
+      assert.equal(fetchCalls[0].options.method, 'GET');
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+      }));
+    });
+
+    it('should delete the resource from the versioned variable item endpoint with a versioned body', async () => {
       // Arrange
       const { ApiEaseCrudResourceClient } = await import(clientModuleUrl);
       const fetchCalls = [];
@@ -767,6 +891,7 @@ describe('ApiEaseCrudResourceClient', () => {
         apiKey: 'api-key-1',
         shopDomain: 'cool-shop.myshopify.com',
         resourceIdentifier: 'sale banner',
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'VARIABLE_DELETE_FAILED',
       });
 
@@ -776,7 +901,10 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls[0].options.method, 'DELETE');
       assert.equal(fetchCalls[0].options.headers['x-apiease-api-key'], 'api-key-1');
       assert.equal(fetchCalls[0].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
-      assert.equal(fetchCalls[0].options.body, undefined);
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -784,7 +912,7 @@ describe('ApiEaseCrudResourceClient', () => {
       });
     });
 
-    it('should delete the resource from the versioned function item endpoint without a request body', async () => {
+    it('should delete the resource from the versioned function item endpoint with a versioned body', async () => {
       // Arrange
       const { ApiEaseCrudResourceClient } = await import(clientModuleUrl);
       const fetchCalls = [];
@@ -814,6 +942,7 @@ describe('ApiEaseCrudResourceClient', () => {
         apiKey: 'api-key-1',
         shopDomain: 'cool-shop.myshopify.com',
         resourceIdentifier: 'function/1 & 2',
+        expectedResourceVersion: 'rv1_current',
         failureErrorCode: 'FUNCTION_DELETE_FAILED',
       });
 
@@ -821,7 +950,10 @@ describe('ApiEaseCrudResourceClient', () => {
       assert.equal(fetchCalls.length, 1);
       assert.equal(fetchCalls[0].url, 'https://apiease.example.com/root/api/v1/resources/functions/function%2F1%20%26%202');
       assert.equal(fetchCalls[0].options.method, 'DELETE');
-      assert.equal(fetchCalls[0].options.body, undefined);
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,

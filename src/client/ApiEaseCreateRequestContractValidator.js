@@ -1,9 +1,10 @@
 import { ApiEaseWebhookEventService } from './ApiEaseWebhookEventService.js';
 
 const REQUEST_TYPES = ['http', 'flow', 'liquid', 'system'];
+const MAXIMUM_DESCRIPTION_CODE_POINTS = 65_536;
 const PARAMETER_TYPES = ['body', 'flow', 'header', 'liquid', 'path', 'query', 'system'];
 const TRIGGER_TYPES = ['webhook', 'cron', 'proxyEndpoint'];
-const TOP_LEVEL_FIELDS = ['id', 'handle', 'name', 'type', 'method', 'address', 'liquid', 'parameters', 'triggers'];
+const TOP_LEVEL_FIELDS = ['id', 'handle', 'name', 'description', 'type', 'method', 'address', 'liquid', 'parameters', 'triggers'];
 const PARAMETER_FIELDS = ['type', 'name', 'value', 'sensitive'];
 const TRIGGER_FIELDS = ['type', 'webhook', 'cron', 'proxyEndpoint'];
 const WEBHOOK_FIELDS = ['event'];
@@ -56,6 +57,7 @@ class ApiEaseCreateRequestContractValidator {
     this.addOptionalStringFieldError(payload, 'id', fieldErrors);
     this.addOptionalStringFieldError(payload, 'handle', fieldErrors);
     this.addOptionalStringFieldError(payload, 'name', fieldErrors);
+    this.addOptionalBoundedDescriptionError(payload, fieldErrors);
     this.addOptionalStringFieldError(payload, 'method', fieldErrors);
     this.addOptionalStringFieldError(payload, 'address', fieldErrors);
     this.addOptionalStringFieldError(payload, 'liquid', fieldErrors);
@@ -280,6 +282,25 @@ class ApiEaseCreateRequestContractValidator {
     const fieldPath = this.joinPath(basePath, fieldName);
     if (typeof fieldValue !== 'string') {
       fieldErrors.push(this.buildFieldError(fieldPath, 'INVALID_TYPE', 'Field must be a string'));
+    }
+  }
+
+  addOptionalBoundedDescriptionError(payload, fieldErrors) {
+    if (!this.hasOwnProperty(payload, 'description')) {
+      return;
+    }
+
+    if (typeof payload.description !== 'string') {
+      fieldErrors.push(this.buildFieldError('description', 'INVALID_TYPE', 'Field must be a string'));
+      return;
+    }
+
+    if ([...payload.description].length > MAXIMUM_DESCRIPTION_CODE_POINTS) {
+      fieldErrors.push(this.buildFieldError(
+        'description',
+        'MAX_LENGTH',
+        'Must contain at most 65536 Unicode code points',
+      ));
     }
   }
 

@@ -36,6 +36,7 @@ describe('ApiEaseCreateRequestClient', () => {
       };
       const request = {
         name: 'Create product',
+        description: 'Creates a product in the connected catalog.',
         type: 'http',
         method: 'POST',
         address: 'https://api.example.com/products',
@@ -85,7 +86,11 @@ describe('ApiEaseCreateRequestClient', () => {
       assert.equal(fetchCalls[0].options.headers['content-type'], 'application/json');
       assert.equal(fetchCalls[0].options.headers['x-apiease-api-key'], 'api-key-1');
       assert.equal(fetchCalls[0].options.headers['x-shop-myshopify-domain'], 'cool-shop.myshopify.com');
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(request));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        operation: 'create-if-absent',
+        resource: request,
+      }));
       assert.deepEqual(result, {
         status: 201,
         ok: true,
@@ -214,7 +219,11 @@ describe('ApiEaseCreateRequestClient', () => {
           ],
         },
       ]);
-      assert.equal(fetchCalls[0].options.body, JSON.stringify(validationCalls[0]));
+      assert.equal(fetchCalls[0].options.body, JSON.stringify({
+        contractVersion: 1,
+        operation: 'create-if-absent',
+        resource: validationCalls[0],
+      }));
       assert.deepEqual(request, {
         name: 'Cart flow',
         type: 'flow',
@@ -378,9 +387,12 @@ describe('ApiEaseCreateRequestClient', () => {
           if (options.method === 'GET') {
             return createJsonResponse(200, {
               ok: true,
-              request: {
-                id: 'server-request-1',
-                handle: 'create-product',
+              result: {
+                resource: {
+                  id: 'server-request-1',
+                  handle: 'create-product',
+                  resourceVersion: 'rv1_current',
+                },
               },
             });
           }
@@ -409,7 +421,11 @@ describe('ApiEaseCreateRequestClient', () => {
       assert.equal(fetchCalls[0].options.method, 'GET');
       assert.equal(fetchCalls[1].url, 'https://apiease.example.com/root/api/v1/resources/requests/create-product');
       assert.equal(fetchCalls[1].options.method, 'PUT');
-      assert.equal(fetchCalls[1].options.body, JSON.stringify(request));
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        expectedResourceVersion: 'rv1_current',
+        resource: request,
+      }));
       assert.deepEqual(result, {
         status: 200,
         ok: true,
@@ -469,7 +485,11 @@ describe('ApiEaseCreateRequestClient', () => {
       assert.equal(fetchCalls[0].options.method, 'GET');
       assert.equal(fetchCalls[1].url, 'https://apiease.example.com/root/api/v1/resources/requests');
       assert.equal(fetchCalls[1].options.method, 'POST');
-      assert.equal(fetchCalls[1].options.body, JSON.stringify(request));
+      assert.equal(fetchCalls[1].options.body, JSON.stringify({
+        contractVersion: 1,
+        operation: 'create-if-absent',
+        resource: request,
+      }));
       assert.deepEqual(result, {
         status: 201,
         ok: true,

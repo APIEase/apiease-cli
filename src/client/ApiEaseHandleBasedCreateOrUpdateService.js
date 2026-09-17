@@ -14,7 +14,7 @@ class ApiEaseHandleBasedCreateOrUpdateService {
   async createOrUpdateResourceByHandle(options = {}) {
     const lookupResult = await this.readResourceByHandle(options);
     if (lookupResult.ok) {
-      return await this.updateExistingResourceByHandle(options);
+      return await this.updateExistingResourceByHandle(options, lookupResult);
     }
 
     if (lookupResult.status === NOT_FOUND_STATUS) {
@@ -42,10 +42,11 @@ class ApiEaseHandleBasedCreateOrUpdateService {
     });
   }
 
-  async updateExistingResourceByHandle(options) {
+  async updateExistingResourceByHandle(options, lookupResult) {
     const result = await this.apiEaseCrudResourceClient.updateResourceByHandle({
       ...this.buildSharedWriteOptions(options),
       resourceHandle: options.resourceHandle,
+      expectedResourceVersion: lookupResult.result.resource.resourceVersion,
       failureErrorCode: options.updateFailureErrorCode,
     });
 

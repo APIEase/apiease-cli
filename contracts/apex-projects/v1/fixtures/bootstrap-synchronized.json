@@ -21,6 +21,7 @@
         "result": {
           "artifactEnvelopeVersion": 1,
           "projectApiVersion": 1,
+          "changeSetContractVersion": 1,
           "template": {
             "owner": "APIEase",
             "repository": "apiease-template",
@@ -137,6 +138,7 @@
         "result": {
           "artifactEnvelopeVersion": 1,
           "projectApiVersion": 1,
+          "changeSetContractVersion": 1,
           "template": {
             "owner": "APIEase",
             "repository": "apiease-template",
