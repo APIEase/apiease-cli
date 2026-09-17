@@ -447,6 +447,9 @@
         "name": {
           "$ref": "#/$defs/shortString"
         },
+        "description": {
+          "$ref": "#/$defs/boundedString"
+        },
         "type": {
           "$ref": "#/$defs/shortString"
         },
@@ -508,6 +511,9 @@
         "name": {
           "$ref": "#/$defs/shortString"
         },
+        "description": {
+          "$ref": "#/$defs/boundedString"
+        },
         "liquid": {
           "$ref": "#/$defs/boundedString"
         },
@@ -553,6 +559,9 @@
         },
         "name": {
           "$ref": "#/$defs/shortString"
+        },
+        "description": {
+          "$ref": "#/$defs/boundedString"
         },
         "sensitive": {
           "type": "boolean"

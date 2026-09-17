@@ -98,6 +98,28 @@ describe('ProjectBootstrapArtifactService', () => {
       assert.deepEqual(verifiedArtifact.skippedResources, [skippedResource]);
     });
 
+    it('should preserve description-bearing source bytes for every resource family', async () => {
+      // Arrange
+      const projectBootstrapArtifactService = new ProjectBootstrapArtifactService();
+      const bootstrapResponse = await readBootstrapResponse();
+      const sourceCases = buildDescribedSourceCases();
+
+      // Act
+      const verifiedSources = sourceCases.map(source => {
+        const response = replaceOnlyResourceSource(bootstrapResponse, source);
+        const verifiedArtifact = projectBootstrapArtifactService.verifySynchronizedArtifact(response);
+        const resourceFile = verifiedArtifact.files.find(file => file.path.startsWith('resources/'));
+
+        return JSON.parse(resourceFile.content.toString('utf8'));
+      });
+
+      // Assert
+      assert.deepEqual(
+        verifiedSources.map(source => source.description),
+        sourceCases.map(source => source.description),
+      );
+    });
+
     it('should reject a synchronized artifact without skipped-resource disclosure', async () => {
       // Arrange
       const projectBootstrapArtifactService = new ProjectBootstrapArtifactService();
@@ -317,5 +339,76 @@ function refreshArtifactEvidence(bootstrapResponse) {
     0,
   );
   manifest.snapshotDigest = projectCanonicalArtifactService.computeResourceSnapshotDigest(files);
+  bootstrapResponse.result.snapshotDigest = manifest.snapshotDigest;
   localState.baseline.snapshotDigest = manifest.snapshotDigest;
+}
+
+function replaceOnlyResourceSource(bootstrapResponse, source) {
+  const response = structuredClone(bootstrapResponse);
+  const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+  const resourcePath = `resources/${source.resourceType}s/${source.handle}.json`;
+  const content = projectCanonicalArtifactService.serializeParsedResourceSource(source);
+  const mapping = {
+    path: resourcePath,
+    resourceType: source.resourceType,
+    resourceId: `${source.resourceType}_01`,
+    handle: source.handle,
+    resourceVersion: 'rv1_AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+  };
+  response.result.files[1] = { path: resourcePath, encoding: 'utf-8', content, digest: '' };
+  response.result.bindings = [mapping];
+  response.result.manifest.resources = [mapping];
+  response.result.localState.resources = [mapping];
+  refreshArtifactEvidence(response);
+
+  return response;
+}
+
+function buildDescribedSourceCases() {
+  const common = { contractVersion: 1, formatVersion: 1 };
+
+  return [
+    {
+      ...common,
+      resourceType: 'request',
+      handle: 'fetch-products',
+      name: 'Fetch products',
+      description: 'Fetches products.',
+      type: 'http',
+      method: 'GET',
+      address: 'https://example.invalid/products',
+      parameters: [],
+      triggers: [],
+    },
+    {
+      ...common,
+      resourceType: 'widget',
+      handle: 'product-card',
+      name: 'Product card',
+      description: 'Renders a product card.',
+      liquid: '<p>Product</p>',
+      javascript: '',
+      externalJavascriptUrls: [],
+      disableJavascript: true,
+    },
+    {
+      ...common,
+      resourceType: 'variable',
+      handle: 'api-origin',
+      name: 'API origin',
+      description: 'Selects the API origin.',
+      sensitive: false,
+      value: 'https://example.invalid',
+    },
+    {
+      ...common,
+      resourceType: 'function',
+      handle: 'format-product',
+      name: 'Format product',
+      description: 'Formats a product.',
+      type: 'liquid',
+      liquid: '{{ product.title }}',
+      parameters: [],
+    },
+  ];
 }

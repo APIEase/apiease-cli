@@ -133,6 +133,26 @@ describe('ProjectValidationService', () => {
   });
 
   describe('buildAndValidateProject', () => {
+    it('should retain every resource-family description in authoritative validation', async () => {
+      // Arrange
+      const changeSetBuildResult = buildChangeSetBuildResult();
+      changeSetBuildResult.changeSet.creates = buildDescribedCreates();
+      const calls = [];
+      const projectValidationService = buildValidationService({ changeSetBuildResult, calls });
+
+      // Act
+      await projectValidationService.buildAndValidateProject({
+        projectDirectoryPath: '/checkout',
+        projectApiInvocation: buildProjectApiInvocation(),
+      });
+
+      // Assert
+      assert.deepEqual(
+        calls[1].request.changeSet.creates.map(create => create.source.description),
+        buildDescribedCreates().map(create => create.source.description),
+      );
+    });
+
     it('should build once and submit every locally valid complete change set', async () => {
       // Arrange
       const changeSetBuildResult = buildChangeSetBuildResult();
@@ -217,6 +237,18 @@ function buildProjectApiInvocation() {
     apiBaseUrl: 'https://api.example.test',
     authenticationContext: { opaque: true },
   };
+}
+
+function buildDescribedCreates() {
+  return ['request', 'widget', 'variable', 'function'].map(resourceType => ({
+    resourceType,
+    handle: `${resourceType}-fixture`,
+    source: {
+      resourceType,
+      handle: `${resourceType}-fixture`,
+      description: `${resourceType} purpose`,
+    },
+  }));
 }
 
 function buildAuthoritativeSuccess({ diagnostics = [], requiredSecureValues } = {}) {

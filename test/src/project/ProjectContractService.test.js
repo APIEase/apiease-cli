@@ -165,6 +165,57 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateCanonicalResourceChangeSet', () => {
+    it('should accept optional descriptions for every resource family', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const changeSet = await readCanonicalResourceChangeSet();
+      changeSet.creates = buildDescribedCreates();
+      changeSet.updates = [];
+
+      // Act
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(changeSet);
+
+      // Assert
+      assert.deepEqual(validationResult, { ok: true });
+    });
+
+    it('should reject null descriptions for every resource family', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const changeSet = await readCanonicalResourceChangeSet();
+      changeSet.creates = buildDescribedCreates().map(create => ({
+        ...create,
+        source: { ...create.source, description: null },
+      }));
+      changeSet.updates = [];
+
+      // Act
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(changeSet);
+
+      // Assert
+      assert.equal(validationResult.ok, false);
+    });
+
+    it('should accept explicit empty descriptions for every resource family', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const changeSet = await readCanonicalResourceChangeSet();
+      changeSet.creates = buildDescribedCreates().map(create => ({
+        ...create,
+        source: { ...create.source, description: '' },
+      }));
+      changeSet.updates = [];
+
+      // Act
+      const validationResult = projectContractService.validateCanonicalResourceChangeSet(changeSet);
+
+      // Assert
+      assert.deepEqual(validationResult, { ok: true });
+    });
+
     it('should validate the Canonical Resource Change Set from the authoritative fixture', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
@@ -238,6 +289,55 @@ describe('ProjectContractService', () => {
     });
   });
 });
+
+function buildDescribedCreates() {
+  const common = { contractVersion: 1, formatVersion: 1 };
+
+  return [
+    buildCreate('request', 'fetch-products', {
+      ...common,
+      name: 'Fetch products',
+      description: 'Fetches products.',
+      type: 'http',
+      method: 'GET',
+      address: 'https://example.invalid/products',
+      parameters: [],
+      triggers: [],
+    }),
+    buildCreate('widget', 'product-card', {
+      ...common,
+      name: 'Product card',
+      description: 'Renders a product card.',
+      liquid: '<p>Product</p>',
+      javascript: '',
+      externalJavascriptUrls: [],
+      disableJavascript: true,
+    }),
+    buildCreate('variable', 'api-origin', {
+      ...common,
+      name: 'API origin',
+      description: 'Selects the API origin.',
+      sensitive: false,
+      value: 'https://example.invalid',
+    }),
+    buildCreate('function', 'format-product', {
+      ...common,
+      name: 'Format product',
+      description: 'Formats a product.',
+      type: 'liquid',
+      liquid: '{{ product.title }}',
+      parameters: [],
+    }),
+  ];
+}
+
+function buildCreate(resourceType, handle, source) {
+  return {
+    resourceType,
+    handle,
+    source: { ...source, resourceType, handle },
+  };
+}
 
 async function readJson(relativePath) {
   const fileContent = await fs.readFile(path.join(contractDirectoryPath, relativePath), 'utf8');

@@ -41,6 +41,33 @@ describe('ProjectApplyService', () => {
       assert.deepEqual(result.guidance, [PROJECT_APPLY_RUNTIME_VERIFICATION_GUIDANCE]);
     });
 
+    it('should retain every resource-family description through validate plan and apply', async () => {
+      // Arrange
+      const changeSetBuildResult = buildChangeSetBuildResult();
+      changeSetBuildResult.changeSet.creates = buildDescribedCreates();
+      const fixture = buildServiceFixture({ changeSetBuildResult });
+
+      // Act
+      await fixture.projectApplyService.applyProject(buildInvocation());
+
+      // Assert
+      const expectedDescriptions = buildDescribedCreates()
+        .map(create => create.source.description);
+      assert.deepEqual(
+        fixture.validationCalls[0].changeSetBuildResult.changeSet.creates
+          .map(create => create.source.description),
+        expectedDescriptions,
+      );
+      assert.deepEqual(
+        fixture.planCalls[0].request.changeSet.creates.map(create => create.source.description),
+        expectedDescriptions,
+      );
+      assert.deepEqual(
+        fixture.applyCalls[0].request.changeSet.creates.map(create => create.source.description),
+        expectedDescriptions,
+      );
+    });
+
     it('should validate plan and submit an accepted proposal without local transitions', async () => {
       // Arrange
       const proposalResponse = buildProposalAcceptedResponse();
@@ -372,6 +399,18 @@ function buildInvocation() {
       explicitShopDomain: 'fixture.myshopify.com',
     },
   };
+}
+
+function buildDescribedCreates() {
+  return ['request', 'widget', 'variable', 'function'].map(resourceType => ({
+    resourceType,
+    handle: `${resourceType}-fixture`,
+    source: {
+      resourceType,
+      handle: `${resourceType}-fixture`,
+      description: `${resourceType} purpose`,
+    },
+  }));
 }
 
 function buildChangeSetBuildResult({ deletionIntents = [{ deletePath: 'delete.json' }] } = {}) {

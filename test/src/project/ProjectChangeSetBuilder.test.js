@@ -148,6 +148,7 @@ function buildFixture() {
     resourceType: 'request',
     handle: 'renamed-request',
     name: 'Renamed request',
+    description: 'Synchronizes renamed request data.',
     type: 'http',
     parameters: [],
     triggers: [],
@@ -219,7 +220,7 @@ function buildExpectedChangeSet(fixture) {
   return {
     contractVersion: 1,
     changeSetId: `change_set_${CANDIDATE_DIGEST.slice('sha256:'.length)}`,
-    changeSetDigest: 'sha256:d0f93117b970def4dfc07a9bd89c914287edb42c0b95287496216f3352c4347b',
+    changeSetDigest: 'sha256:7d5638878df3400366e5d177e265a192dee7dd71c8c17f02e563f9f5a0506111',
     baseline: { liveRevision: 42, snapshotDigest: BASELINE_DIGEST },
     creates: [{
       resourceType: 'function',

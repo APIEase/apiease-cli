@@ -75,6 +75,95 @@ describe('ProjectCanonicalArtifactService', () => {
   });
 
   describe('serializeResourceSource', () => {
+    it('should preserve descriptions for every canonical resource family', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const resourceCases = buildDescribedResourceCases();
+
+      // Act
+      const descriptions = resourceCases.map(({ resourceType, resource }) => JSON.parse(
+        projectCanonicalArtifactService.serializeResourceSource({ resourceType, resource }),
+      ).description);
+
+      // Assert
+      assert.deepEqual(descriptions, resourceCases.map(({ resource }) => resource.description));
+    });
+
+    it('should keep absent legacy descriptions absent for every canonical resource family', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const resourceCases = buildDescribedResourceCases()
+        .filter(({ resourceType }) => resourceType !== 'function')
+        .map(({ resourceType, resource }) => {
+          const legacyResource = { ...resource };
+          delete legacyResource.description;
+          return { resourceType, resource: legacyResource };
+        });
+
+      // Act
+      const sources = resourceCases.map(({ resourceType, resource }) => JSON.parse(
+        projectCanonicalArtifactService.serializeResourceSource({ resourceType, resource }),
+      ));
+
+      // Assert
+      assert.equal(sources.every(source => !Object.hasOwn(source, 'description')), true);
+    });
+
+    it('should accept explicit empty descriptions for every canonical resource family', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const resourceCases = buildDescribedResourceCases().map(({ resourceType, resource }) => ({
+        resourceType,
+        resource: { ...resource, description: '' },
+      }));
+
+      // Act
+      const sources = resourceCases.map(({ resourceType, resource }) => JSON.parse(
+        projectCanonicalArtifactService.serializeResourceSource({ resourceType, resource }),
+      ));
+
+      // Assert
+      assert.equal(sources.every(source => source.description === ''), true);
+    });
+
+    it('should reject null descriptions for every canonical resource family', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const resourceCases = buildDescribedResourceCases().map(({ resourceType, resource }) => ({
+        resourceType,
+        resource: { ...resource, description: null },
+      }));
+
+      // Act and Assert
+      resourceCases.forEach(({ resourceType, resource }) => assert.throws(
+        () => projectCanonicalArtifactService.serializeResourceSource({ resourceType, resource }),
+        error => error.code === PROJECT_CANONICAL_ARTIFACT_ERROR_CODES.invalidContent,
+      ));
+    });
+
+    it('should enforce the public Unicode code-point description bound', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const maximumDescription = 'a'.repeat(65_535) + '😀';
+      const requestResource = buildRequestResource({ description: maximumDescription });
+
+      // Act
+      const acceptedSource = JSON.parse(projectCanonicalArtifactService.serializeResourceSource({
+        resourceType: 'request',
+        resource: requestResource,
+      }));
+
+      // Assert
+      assert.equal(acceptedSource.description, maximumDescription);
+      assert.throws(
+        () => projectCanonicalArtifactService.serializeResourceSource({
+          resourceType: 'request',
+          resource: { ...requestResource, description: `${maximumDescription}a` },
+        }),
+        error => error.code === PROJECT_CANONICAL_ARTIFACT_ERROR_CODES.invalidContent,
+      );
+    });
+
     it('should deterministically sort request parameters and triggers by canonical JSON value', () => {
       // Arrange
       const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
@@ -257,6 +346,49 @@ describe('ProjectCanonicalArtifactService', () => {
   });
 
   describe('digests', () => {
+    it('should exclude project metadata from the resource snapshot digest', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const resourceFile = { path: 'resources/requests/orders.json', content: '{}\n' };
+      const firstFiles = [
+        { path: '.apiease/project.json', content: '{"template":"first"}\n' },
+        resourceFile,
+      ];
+      const secondFiles = [
+        { path: '.apiease/project.json', content: '{"template":"second"}\n' },
+        resourceFile,
+      ];
+
+      // Act
+      const firstDigest = projectCanonicalArtifactService.computeResourceSnapshotDigest(firstFiles);
+      const secondDigest = projectCanonicalArtifactService.computeResourceSnapshotDigest(secondFiles);
+
+      // Assert
+      assert.equal(secondDigest, firstDigest);
+    });
+
+    it('should include canonical resource content in the resource snapshot digest', () => {
+      // Arrange
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const originalFiles = [
+        { path: '.apiease/project.json', content: '{}\n' },
+        { path: 'resources/requests/orders.json', content: '{"name":"Orders"}\n' },
+      ];
+      const changedFiles = [
+        { path: '.apiease/project.json', content: '{}\n' },
+        { path: 'resources/requests/orders.json', content: '{"name":"Changed"}\n' },
+      ];
+
+      // Act
+      const originalDigest = projectCanonicalArtifactService
+        .computeResourceSnapshotDigest(originalFiles);
+      const changedDigest = projectCanonicalArtifactService
+        .computeResourceSnapshotDigest(changedFiles);
+
+      // Assert
+      assert.notEqual(changedDigest, originalDigest);
+    });
+
     it('should recompute every bootstrap file and aggregate snapshot digest exactly', async () => {
       // Arrange
       const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
@@ -283,7 +415,7 @@ describe('ProjectCanonicalArtifactService', () => {
       )), true);
     });
 
-    it('should change exact file and snapshot digests after content or ordering tampering', async () => {
+    it('should detect metadata byte tampering without changing the resource snapshot digest', async () => {
       // Arrange
       const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
       const fixtureBundle = JSON.parse(await fs.readFile(bootstrapFixturePath, 'utf8'));
@@ -293,18 +425,66 @@ describe('ProjectCanonicalArtifactService', () => {
 
       // Act
       const tamperedFileDigest = projectCanonicalArtifactService.computeFileDigest(tamperedContent);
-      const reversedSnapshotDigest = projectCanonicalArtifactService.computeResourceSnapshotDigest(
-        [...files].reverse(),
-      );
+      const metadataChangedSnapshotDigest = projectCanonicalArtifactService
+        .computeResourceSnapshotDigest(
+          files.map((file, index) => index === 0
+            ? { ...file, content: tamperedContent }
+            : file),
+        );
 
       // Assert
       assert.notEqual(tamperedFileDigest, files[0].digest);
-      assert.notEqual(reversedSnapshotDigest, fixture.document.result.manifest.snapshotDigest);
+      assert.equal(
+        metadataChangedSnapshotDigest,
+        fixture.document.result.manifest.snapshotDigest,
+      );
     });
   });
 });
 
-function buildRequestResource() {
+function buildDescribedResourceCases() {
+  return [
+    {
+      resourceType: 'request',
+      resource: buildRequestResource({ description: 'Fetches products.' }),
+    },
+    {
+      resourceType: 'widget',
+      resource: {
+        handle: 'product-card',
+        name: 'Product card',
+        description: 'Renders a product card.',
+        liquid: '<p>Product</p>',
+        javascript: '',
+        externalJavascriptUrls: [],
+        disableJavascript: true,
+      },
+    },
+    {
+      resourceType: 'variable',
+      resource: {
+        handle: 'api-origin',
+        name: 'API origin',
+        description: 'Selects the API origin.',
+        sensitive: false,
+        value: 'https://example.invalid',
+      },
+    },
+    {
+      resourceType: 'function',
+      resource: {
+        handle: 'format-product',
+        name: 'Format product',
+        description: 'Formats a product.',
+        type: 'liquid',
+        liquid: '{{ product.title }}',
+        parameters: [],
+      },
+    },
+  ];
+}
+
+function buildRequestResource(overrides = {}) {
   return {
     address: 'https://example.com/products',
     handle: 'fetch-products',
@@ -319,5 +499,6 @@ function buildRequestResource() {
       { type: 'webhook', webhook: { event: 'orders/create' } },
     ],
     type: 'http',
+    ...overrides,
   };
 }

@@ -10,10 +10,10 @@ const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectoryPath = path.resolve(currentDirectoryPath, '..', '..');
 const contractDirectoryPath = path.join(projectDirectoryPath, 'contracts', 'apex-projects', 'v1');
 
-const expectedSourceCommit = '0f2b9e1b2a594e33820199d0891df7e81688161c';
+const expectedSourceCommit = '36ad4ecc5b2d00b13ef710d82d4de7b8febd6732';
 const expectedFileHashes = {
   'apiease-project-contract.schema.json': 'bf5abf2a081409e2cde075a8274f4749c1a0a0f1e9ee6769a2dbe65cc783a72c',
-  'fixtures/unified-project-contracts.json': 'c0fb82b203b926bae7095902b78d7ef4db88c35f7eb5edd02300f07e17cc9fbc',
+  'fixtures/unified-project-contracts.json': 'c5df1e2ceec3c23a2e53f42521073eb6dda7ce5c12b599e9ef3e5d0adfeb9a6c',
 };
 
 describe('Apex Project contract assets', () => {

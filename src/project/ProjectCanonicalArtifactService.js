@@ -5,6 +5,8 @@ const CANONICAL_RESOURCE_SOURCE_CONTRACT_VERSION = 1;
 const CANONICAL_RESOURCE_SOURCE_FORMAT_VERSION = 1;
 const DOMAIN_SEPARATOR = Buffer.from([0]);
 const HANDLE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
+const MAXIMUM_DESCRIPTION_CODE_POINTS = 65_536;
+const PROJECT_METADATA_PATH = '.apiease/project.json';
 const PROTECTED_VALUE_PLACEHOLDER = Object.freeze({ mode: 'preserve' });
 const RESOURCE_SOURCE_DIRECTORIES = Object.freeze({
   function: 'resources/functions',
@@ -87,7 +89,9 @@ class ProjectCanonicalArtifactService {
     if (!Array.isArray(files)) {
       throw new TypeError('Canonical resource snapshot files are required');
     }
-    const exactFiles = files.map(file => ({ content: file.content, path: file.path }));
+    const exactFiles = files
+      .filter(file => file.path !== PROJECT_METADATA_PATH)
+      .map(file => ({ content: file.content, path: file.path }));
 
     return this.computeDomainSeparatedDigest('resource-snapshot', { files: exactFiles });
   }
@@ -113,15 +117,15 @@ const COMMON_FIELDS = Object.freeze([
   'contractVersion', 'formatVersion', 'resourceType', 'handle',
 ]);
 const REQUEST_FIELDS = Object.freeze([
-  ...COMMON_FIELDS, 'name', 'type', 'method', 'address', 'liquid',
+  ...COMMON_FIELDS, 'name', 'description', 'type', 'method', 'address', 'liquid',
   'parameters', 'triggers', 'nextRequestHandle',
 ]);
 const WIDGET_FIELDS = Object.freeze([
-  ...COMMON_FIELDS, 'name', 'liquid', 'javascript',
+  ...COMMON_FIELDS, 'name', 'description', 'liquid', 'javascript',
   'externalJavascriptUrls', 'disableJavascript',
 ]);
 const VARIABLE_FIELDS = Object.freeze([
-  ...COMMON_FIELDS, 'name', 'sensitive', 'value',
+  ...COMMON_FIELDS, 'name', 'description', 'sensitive', 'value',
 ]);
 const FUNCTION_FIELDS = Object.freeze([
   ...COMMON_FIELDS, 'name', 'description', 'type', 'liquid', 'parameters',
@@ -151,10 +155,10 @@ const REQUEST_TRIGGER_REQUIRED_FIELDS = Object.freeze({
 const STRING_FIELDS_BY_RESOURCE_TYPE = Object.freeze({
   function: Object.freeze(['name', 'description', 'type', 'liquid']),
   request: Object.freeze([
-    'name', 'type', 'method', 'address', 'liquid', 'nextRequestHandle',
+    'name', 'description', 'type', 'method', 'address', 'liquid', 'nextRequestHandle',
   ]),
-  variable: Object.freeze(['name']),
-  widget: Object.freeze(['name', 'liquid', 'javascript']),
+  variable: Object.freeze(['name', 'description']),
+  widget: Object.freeze(['name', 'description', 'liquid', 'javascript']),
 });
 
 const REQUIRED_FIELDS_BY_RESOURCE_TYPE = Object.freeze({
@@ -172,7 +176,9 @@ function buildResourceFamily(resourceType, fields, buildSource) {
 
 function buildCanonicalRequest(request, requestHandles, canonicalArtifactService) {
   const source = buildSourceHeader('request', request);
-  assignDefinedFields(source, request, ['name', 'type', 'method', 'address', 'liquid']);
+  assignDefinedFields(source, request, [
+    'name', 'description', 'type', 'method', 'address', 'liquid',
+  ]);
   source.parameters = buildSortedValues(
     request?.parameters,
     buildRequestParameter,
@@ -207,7 +213,7 @@ function buildRequestTrigger(trigger) {
 
 function buildCanonicalVariable(variable) {
   const source = buildSourceHeader('variable', variable);
-  assignDefinedFields(source, variable, ['name']);
+  assignDefinedFields(source, variable, ['name', 'description']);
   source.sensitive = variable?.sensitive === true;
   source.value = source.sensitive ? PROTECTED_VALUE_PLACEHOLDER : variable?.value;
 
@@ -217,7 +223,7 @@ function buildCanonicalVariable(variable) {
 function buildCanonicalWidget(widget) {
   const source = buildSourceHeader('widget', widget);
   assignDefinedFields(source, widget, [
-    'name', 'liquid', 'javascript', 'externalJavascriptUrls',
+    'name', 'description', 'liquid', 'javascript', 'externalJavascriptUrls',
   ]);
   source.disableJavascript = widget?.disableJavascript === true;
 
@@ -312,10 +318,18 @@ function requireSourceFieldTypes(source, resourceType) {
   requireSafeHandle(source.handle);
   requireRequiredFields(source, REQUIRED_FIELDS_BY_RESOURCE_TYPE[resourceType]);
   requireStringFields(source, STRING_FIELDS_BY_RESOURCE_TYPE[resourceType]);
+  requireDescriptionWithinBound(source);
   if (resourceType === 'request') requireRequestFields(source);
   if (resourceType === 'widget') requireWidgetFields(source);
   if (resourceType === 'variable') requireProtectedValue(source);
   if (resourceType === 'function') requireFunctionFields(source);
+}
+
+function requireDescriptionWithinBound(source) {
+  if (source.description !== undefined
+    && Array.from(source.description).length > MAXIMUM_DESCRIPTION_CODE_POINTS) {
+    throwArtifactError('invalidContent');
+  }
 }
 
 function requireRequiredFields(source, fieldNames) {

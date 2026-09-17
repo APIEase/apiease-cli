@@ -70,6 +70,41 @@ describe('ProjectManagedPublicationService', () => {
       );
     });
 
+    it('should publish description-bearing source bytes for every resource family', async testContext => {
+      // Arrange
+      const repositoryTopLevelPath = await createProjectDirectory(testContext);
+      await writeExistingProject(repositoryTopLevelPath);
+      const projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
+      const describedSources = buildDescribedSources();
+      const sourceFiles = describedSources.map(source => ({
+        path: `resources/${source.resourceType}s/${source.handle}.json`,
+        content: Buffer.from(
+          projectCanonicalArtifactService.serializeParsedResourceSource(source),
+          'utf8',
+        ),
+      }));
+      const verifiedArtifact = buildVerifiedArtifact([
+        { path: '.apiease/project.json', content: metadataContent },
+        ...sourceFiles,
+      ]);
+      const projectManagedPublicationService = new ProjectManagedPublicationService();
+
+      // Act
+      await projectManagedPublicationService.publishManagedSnapshot({
+        repositoryTopLevelPath,
+        verifiedArtifact,
+      });
+
+      // Assert
+      const publishedDescriptions = await Promise.all(sourceFiles.map(async file => (
+        JSON.parse(await fs.readFile(path.join(repositoryTopLevelPath, file.path), 'utf8')).description
+      )));
+      assert.deepEqual(
+        publishedDescriptions,
+        describedSources.map(source => source.description),
+      );
+    });
+
     it('should report a local-integrity failure without changing operational state', async testContext => {
       // Arrange
       const repositoryTopLevelPath = await createProjectDirectory(testContext);
@@ -191,6 +226,33 @@ function buildVerifiedArtifact(files) {
       ),
     },
   };
+}
+
+function buildDescribedSources() {
+  const common = { contractVersion: 1, formatVersion: 1 };
+
+  return [
+    {
+      ...common, resourceType: 'request', handle: 'fetch-products', name: 'Fetch products',
+      description: 'Fetches products.', type: 'http', method: 'GET',
+      address: 'https://example.invalid/products', parameters: [], triggers: [],
+    },
+    {
+      ...common, resourceType: 'widget', handle: 'product-card', name: 'Product card',
+      description: 'Renders a product card.', liquid: '<p>Product</p>', javascript: '',
+      externalJavascriptUrls: [], disableJavascript: true,
+    },
+    {
+      ...common, resourceType: 'variable', handle: 'api-origin', name: 'API origin',
+      description: 'Selects the API origin.', sensitive: false,
+      value: 'https://example.invalid',
+    },
+    {
+      ...common, resourceType: 'function', handle: 'format-product', name: 'Format product',
+      description: 'Formats a product.', type: 'liquid', liquid: '{{ product.title }}',
+      parameters: [],
+    },
+  ];
 }
 
 function buildFailingFileSystem(failingFileName) {

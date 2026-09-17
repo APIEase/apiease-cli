@@ -140,7 +140,7 @@ apiease init my-project --from-existing-resources
 - The destination defaults to `.` when `[project-name]` is omitted.
 - The destination must be new or empty. The CLI does not merge this checkout into a populated directory.
 - The CLI performs a real clone of the public `APIEase/apiease-template` repository at `main` and preserves it as a normal Git checkout. It never clones or requests access to an internal customer repository.
-- After cloning, the CLI obtains a stable canonical snapshot directly from APIEase's Mongo authority, verifies its contract versions, template identity, counts, limits, mappings, exact file digests, and aggregate snapshot digest, and only then publishes the complete direct managed namespace.
+- After cloning, the CLI obtains a stable canonical snapshot directly from APIEase's Mongo authority, verifies its contract versions, template identity, counts, limits, mappings, exact file digests, and aggregate resource snapshot digest, and only then publishes the complete direct managed namespace. The resource snapshot digest covers canonical files under `resources/`; `.apiease/project.json` remains independently verified project and template metadata but does not affect the live Mongo resource baseline.
 - Initialization does not read or wait for the store repository, its GitHub availability, repository provisioning, or asynchronous reconciliation.
 - Template sample files absent from the verified snapshot are removed. Unmanaged template files and local workflow directories remain untouched.
 - Operational Project API state is stored at the path Git resolves for `apiease/project-state-v1.json`, including in linked worktrees. It is ignored local state, not canonical source.
@@ -163,6 +163,8 @@ apiease design-context --project-requirements '{"objective":"Add an order-status
 The JSON result retrieves the effective protocol version, common-instruction bytes and digest, Codex execution envelope, stable Mongo baseline, canonical resource inventory and bodies, local edits, explicit deletion intent, safe protected-value selectors, and workflow guidance. The CLI verifies the retrieved protocol identity and digest; this README does not copy or pin either value.
 
 Use the returned context to design by editing canonical resource files locally. Those files encode Canonical Resource Source objects. Neither the checkout, Git history, nor a Git diff is mutation authority, and `design-context` does not validate, submit, or apply a change.
+
+Canonical version 1 source supports `description` on requests, widgets, variables, and functions. Request, widget, and variable descriptions are optional so legacy files remain byte-stable when the field is absent; functions retain their required description. An explicit empty string clears a description, while `null` is invalid. Descriptions may contain at most 65,536 Unicode code points and participate in source, change-set, validation, plan, and apply identity.
 
 After local design:
 

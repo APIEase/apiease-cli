@@ -48,7 +48,7 @@
           "changeSet": {
             "contractVersion": 1,
             "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
-            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
+            "changeSetDigest": "sha256:fae61306b0476f292b3071b8b91321f6f40c369879ccc2d011b3c3798b397409",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -83,6 +83,7 @@
                   "formatVersion": 1,
                   "handle": "inventory-token-copy",
                   "name": "Inventory token copy",
+                  "description": "Provides a protected inventory credential copy.",
                   "resourceType": "variable",
                   "sensitive": true,
                   "value": {
@@ -102,6 +103,7 @@
                   "handle": "inventory-sync",
                   "method": "POST",
                   "name": "Inventory sync",
+                  "description": "Synchronizes inventory with the fixture service.",
                   "parameters": [
                     {
                       "name": "api-key",
@@ -130,6 +132,7 @@
                   "javascript": "",
                   "liquid": "<p>Inventory fixture</p>",
                   "name": "Inventory banner",
+                  "description": "Renders the current inventory fixture state.",
                   "resourceType": "widget"
                 },
                 "bindingId": "binding_widget_stock_banner"
@@ -224,7 +227,7 @@
           "changeSet": {
             "contractVersion": 1,
             "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
-            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
+            "changeSetDigest": "sha256:fae61306b0476f292b3071b8b91321f6f40c369879ccc2d011b3c3798b397409",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -259,6 +262,7 @@
                   "formatVersion": 1,
                   "handle": "inventory-token-copy",
                   "name": "Inventory token copy",
+                  "description": "Provides a protected inventory credential copy.",
                   "resourceType": "variable",
                   "sensitive": true,
                   "value": {
@@ -278,6 +282,7 @@
                   "handle": "inventory-sync",
                   "method": "POST",
                   "name": "Inventory sync",
+                  "description": "Synchronizes inventory with the fixture service.",
                   "parameters": [
                     {
                       "name": "api-key",
@@ -306,6 +311,7 @@
                   "javascript": "",
                   "liquid": "<p>Inventory fixture</p>",
                   "name": "Inventory banner",
+                  "description": "Renders the current inventory fixture state.",
                   "resourceType": "widget"
                 },
                 "bindingId": "binding_widget_stock_banner"
@@ -445,7 +451,7 @@
           "changeSet": {
             "contractVersion": 1,
             "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
-            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
+            "changeSetDigest": "sha256:fae61306b0476f292b3071b8b91321f6f40c369879ccc2d011b3c3798b397409",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -480,6 +486,7 @@
                   "formatVersion": 1,
                   "handle": "inventory-token-copy",
                   "name": "Inventory token copy",
+                  "description": "Provides a protected inventory credential copy.",
                   "resourceType": "variable",
                   "sensitive": true,
                   "value": {
@@ -499,6 +506,7 @@
                   "handle": "inventory-sync",
                   "method": "POST",
                   "name": "Inventory sync",
+                  "description": "Synchronizes inventory with the fixture service.",
                   "parameters": [
                     {
                       "name": "api-key",
@@ -527,6 +535,7 @@
                   "javascript": "",
                   "liquid": "<p>Inventory fixture</p>",
                   "name": "Inventory banner",
+                  "description": "Renders the current inventory fixture state.",
                   "resourceType": "widget"
                 },
                 "bindingId": "binding_widget_stock_banner"
@@ -651,7 +660,7 @@
           "changeSet": {
             "contractVersion": 1,
             "changeSetId": "change_set_32e6407f28065bd6bd2398dbff971019d88ca811923004bfa8e90d4316b76760",
-            "changeSetDigest": "sha256:c8818f056a46908f928cfb7811f4339b2aeaa2e9c9e6f78ebb4bd44560252d60",
+            "changeSetDigest": "sha256:9f641cecdd1fd12f979e06794498ee61b664e458073a6a88f642faf5a1c2666a",
             "baseline": {
               "liveRevision": 43,
               "snapshotDigest": "sha256:32e6407f28065bd6bd2398dbff971019d88ca811923004bfa8e90d4316b76760"
@@ -690,6 +699,7 @@
                   "handle": "inventory-sync",
                   "method": "POST",
                   "name": "Inventory sync",
+                  "description": "Synchronizes inventory with the fixture service.",
                   "parameters": [
                     {
                       "name": "api-key",
@@ -714,6 +724,7 @@
                   "formatVersion": 1,
                   "handle": "inventory-token-copy",
                   "name": "Inventory token copy",
+                  "description": "Provides a protected inventory credential copy.",
                   "resourceType": "variable",
                   "sensitive": true,
                   "value": {
@@ -734,6 +745,7 @@
                   "javascript": "",
                   "liquid": "<p>Inventory fixture</p>",
                   "name": "Inventory banner",
+                  "description": "Renders the current inventory fixture state.",
                   "resourceType": "widget"
                 },
                 "bindingId": "binding_widget_inventory_banner"
@@ -820,7 +832,7 @@
           "changeSet": {
             "contractVersion": 1,
             "changeSetId": "change_set_1111111111111111111111111111111111111111111111111111111111111111",
-            "changeSetDigest": "sha256:376311a5445aede6c797725aa9e326724f5088ce1d1412aa009141dacf1fd33f",
+            "changeSetDigest": "sha256:fae61306b0476f292b3071b8b91321f6f40c369879ccc2d011b3c3798b397409",
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
@@ -855,6 +867,7 @@
                   "formatVersion": 1,
                   "handle": "inventory-token-copy",
                   "name": "Inventory token copy",
+                  "description": "Provides a protected inventory credential copy.",
                   "resourceType": "variable",
                   "sensitive": true,
                   "value": {
@@ -874,6 +887,7 @@
                   "handle": "inventory-sync",
                   "method": "POST",
                   "name": "Inventory sync",
+                  "description": "Synchronizes inventory with the fixture service.",
                   "parameters": [
                     {
                       "name": "api-key",
@@ -902,6 +916,7 @@
                   "javascript": "",
                   "liquid": "<p>Inventory fixture</p>",
                   "name": "Inventory banner",
+                  "description": "Renders the current inventory fixture state.",
                   "resourceType": "widget"
                 },
                 "bindingId": "binding_widget_stock_banner"

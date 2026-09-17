@@ -11,7 +11,7 @@
         },
         {
           "path": "resources/variables/api-origin.json",
-          "byteLength": 160
+          "byteLength": 200
         }
       ],
       "document": {
@@ -48,14 +48,14 @@
             "maximumAggregateBytes": 25000000
           },
           "liveRevision": 42,
-          "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea",
+          "snapshotDigest": "sha256:1b418cd3a9f75e84abbc66e89699f36e900da43d823c9c1ef87b32e5552f17b6",
           "manifest": {
             "projectId": "project_01",
             "liveRevision": 42,
-            "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea",
+            "snapshotDigest": "sha256:1b418cd3a9f75e84abbc66e89699f36e900da43d823c9c1ef87b32e5552f17b6",
             "fileCount": 2,
             "resourceFileCount": 1,
-            "totalBytes": 467,
+            "totalBytes": 507,
             "limits": {
               "maximumFileCount": 1000,
               "maximumFileBytes": 1000000,
@@ -81,8 +81,8 @@
             {
               "path": "resources/variables/api-origin.json",
               "encoding": "utf-8",
-              "content": "{\"contractVersion\":1,\"formatVersion\":1,\"handle\":\"api-origin\",\"name\":\"API Origin\",\"resourceType\":\"variable\",\"sensitive\":false,\"value\":\"https://example.invalid\"}\n",
-              "digest": "sha256:d4c660145a22630d0a3ec3cfe5f0ea5e3d81c9aade1923bfe59c8f564df6acff"
+              "content": "{\"contractVersion\":1,\"description\":\"Selects the API origin.\",\"formatVersion\":1,\"handle\":\"api-origin\",\"name\":\"API Origin\",\"resourceType\":\"variable\",\"sensitive\":false,\"value\":\"https://example.invalid\"}\n",
+              "digest": "sha256:d74d21e97a358e061e62793a3601af662493ccbd1d4bb1e5a002af1756c6ff26"
             }
           ],
           "skippedResources": [
@@ -106,7 +106,7 @@
             "projectId": "project_01",
             "baseline": {
               "liveRevision": 42,
-              "snapshotDigest": "sha256:e5440211ad74d183652a6db86177515e6311b55ecb4647e27ef96731f82dddea"
+              "snapshotDigest": "sha256:1b418cd3a9f75e84abbc66e89699f36e900da43d823c9c1ef87b32e5552f17b6"
             },
             "resources": [
               {
@@ -156,11 +156,11 @@
             "maximumAggregateBytes": 25000000
           },
           "liveRevision": 0,
-          "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9",
+          "snapshotDigest": "sha256:9e0bf3f039363903adbe62189441cb443fe6838657528524de7d4e7f722038b4",
           "manifest": {
             "projectId": "project_empty",
             "liveRevision": 0,
-            "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9",
+            "snapshotDigest": "sha256:9e0bf3f039363903adbe62189441cb443fe6838657528524de7d4e7f722038b4",
             "fileCount": 1,
             "resourceFileCount": 0,
             "totalBytes": 316,
@@ -185,7 +185,7 @@
             "projectId": "project_empty",
             "baseline": {
               "liveRevision": 0,
-              "snapshotDigest": "sha256:d8e250bdbc1c626d5518574450653b1113ceab3e3b79d2ee73e818dda11520d9"
+              "snapshotDigest": "sha256:9e0bf3f039363903adbe62189441cb443fe6838657528524de7d4e7f722038b4"
             },
             "resources": []
           }

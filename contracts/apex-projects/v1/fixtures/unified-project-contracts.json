@@ -7,7 +7,7 @@
       "document": {
         "protocolIdentity": {
           "protocolVersion": "1.0.0",
-          "commonInstructionDigest": "sha256:186f43f66fc0fff9d89313b58dd533d07e4a1d82a4247abacd727a45928fb1fe"
+          "commonInstructionDigest": "sha256:5b605162f02104d6d17691b6ccaf5e8e97a6f6f6df05002f1f73ddd30272affa"
         },
         "customerRequirements": [{"id": "requirement_01", "text": "Show inventory status."}],
         "confirmedDecisions": ["Use a protected inventory credential."],
