@@ -370,6 +370,8 @@ If home configuration is needed and is missing, invalid, or unreadable, the CLI 
 
 CRUD commands require a resource name immediately after the verb. Supported resource names are `request`, `widget`, `variable`, and `function`.
 
+Human-readable CRUD failures display the API error code and message, plus available field errors, structured diagnostics, and resource or dependency context. Errors without details display only the information supplied. Local validation, configuration, and transport failures use the same readable output. CRUD `--json` output preserves the structured response, including nested API error details.
+
 Bare command shapes such as `apiease create` or `apiease read --request-id ...` are not supported.
 
 Use `--request-handle` for `request`, `--widget-handle` for `widget`, `--variable-handle` for `variable`, and `--function-handle` for `function`.

@@ -1,3 +1,4 @@
+import { CrudFailureOutputFormatter } from './CrudFailureOutputFormatter.js';
 import { ApiEaseUpdateRequestClient } from '../client/ApiEaseUpdateRequestClient.js';
 import { ApiEaseCrudResourceClient } from '../client/ApiEaseCrudResourceClient.js';
 import { ApiEaseHomeConfigurationResolver } from '../config/ApiEaseHomeConfigurationResolver.js';
@@ -18,6 +19,7 @@ class UpdateRequestCommand {
     apiEaseCommandConfigurationResolver = new ApiEaseCommandConfigurationResolver({
       apiEaseHomeConfigurationResolver,
     }),
+    crudFailureOutputFormatter = new CrudFailureOutputFormatter(),
     stdout = process.stdout,
     stderr = process.stderr,
   } = {}) {
@@ -26,6 +28,7 @@ class UpdateRequestCommand {
     this.apiEaseCrudResourceClient = apiEaseCrudResourceClient;
     this.crudResourceDefinitionCollection = crudResourceDefinitionCollection;
     this.apiEaseCommandConfigurationResolver = apiEaseCommandConfigurationResolver;
+    this.crudFailureOutputFormatter = crudFailureOutputFormatter;
     this.stdout = stdout;
     this.stderr = stderr;
   }
@@ -318,21 +321,10 @@ class UpdateRequestCommand {
 
   buildHumanReadableFailureOutput(result, parseResult) {
     const crudResourceDefinition = this.readResultResourceDefinition(result, parseResult);
-    const outputLines = [
+    return this.crudFailureOutputFormatter.format(
+      result,
       `${crudResourceDefinition.humanReadableLabel} update failed.`,
-      `Error Code: ${result.errorCode}`,
-      `Message: ${result.message}`,
-    ];
-
-    if (result.status) {
-      outputLines.push(`Status: ${result.status}`);
-    }
-
-    for (const fieldError of result.fieldErrors ?? []) {
-      outputLines.push(`Field Error: ${fieldError.path} ${fieldError.code} ${fieldError.message}`);
-    }
-
-    return `${outputLines.join('\n')}\n`;
+    );
   }
 
   readResultResourceDefinition(result, parseResult) {

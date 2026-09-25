@@ -1,3 +1,4 @@
+import { CrudFailureOutputFormatter } from './CrudFailureOutputFormatter.js';
 import { ApiEaseCreateRequestClient } from '../client/ApiEaseCreateRequestClient.js';
 import { ApiEaseCrudResourceClient } from '../client/ApiEaseCrudResourceClient.js';
 import { ApiEaseHandleBasedCreateOrUpdateService } from '../client/ApiEaseHandleBasedCreateOrUpdateService.js';
@@ -31,6 +32,7 @@ class CreateRequestCommand {
       apiEaseHomeConfigurationResolver,
     }),
     resourceDefinitionFileWriter = new ResourceDefinitionFileWriter(),
+    crudFailureOutputFormatter = new CrudFailureOutputFormatter(),
     stdout = process.stdout,
     stderr = process.stderr,
   } = {}) {
@@ -43,6 +45,7 @@ class CreateRequestCommand {
     this.crudResourceDefinitionCollection = crudResourceDefinitionCollection;
     this.apiEaseCommandConfigurationResolver = apiEaseCommandConfigurationResolver;
     this.resourceDefinitionFileWriter = resourceDefinitionFileWriter;
+    this.crudFailureOutputFormatter = crudFailureOutputFormatter;
     this.stdout = stdout;
     this.stderr = stderr;
   }
@@ -447,21 +450,10 @@ class CreateRequestCommand {
 
   buildHumanReadableFailureOutput(result, parseResult) {
     const crudResourceDefinition = this.readResultResourceDefinition(result, parseResult);
-    const outputLines = [
+    return this.crudFailureOutputFormatter.format(
+      result,
       `${crudResourceDefinition.humanReadableLabel} creation failed.`,
-      `Error Code: ${result.errorCode}`,
-      `Message: ${result.message}`,
-    ];
-
-    if (result.status) {
-      outputLines.push(`Status: ${result.status}`);
-    }
-
-    for (const fieldError of result.fieldErrors ?? []) {
-      outputLines.push(`Field Error: ${fieldError.path} ${fieldError.code} ${fieldError.message}`);
-    }
-
-    return `${outputLines.join('\n')}\n`;
+    );
   }
 
   readResultResourceDefinition(result, parseResult) {
