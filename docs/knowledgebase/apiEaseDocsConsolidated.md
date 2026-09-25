@@ -14,19 +14,21 @@ APIEase is a managed system where your API requests, workflows, and custom logic
 run, so you don’t have to build or maintain that infrastructure yourself.
 
 **What It Does** - APIEase executes secure HTTP requests, triggers Shopify Flow 
-actions, runs custom logic defined through Liquid Requests, and runs internal system functions through System Requests. [Learn more...](./what-it-does.md)
+actions, runs custom logic defined through Liquid Requests, and runs internal system functions through System Requests. [Learn more...](https://docs.apiease.com/docs/overview/what-it-does)
 
 **How It Works** - Add fully configurable HTTP, Shopify Flow, Liquid, or System Requests 
 to APIEase, and trigger them manually, from your storefront, through webhooks, 
-on a cron schedule, from an external HTTP client, or via a Proxy Endpoint. [Learn more...](./how-it-works.md)
+on a cron schedule, from an external HTTP client, or via a Proxy Endpoint. [Learn more...](https://docs.apiease.com/docs/overview/how-it-works)
 
 **Why You Need It** - Use APIEase to integrate and serve API calls with custom 
 logic and automation without having to build, maintain, or host the backend. 
 It securely supplies confidential credentials to any request, allowing them 
 to be triggered from your storefront or from external systems without exposing 
-those credentials publicly. [Learn more...](./why-you-need-it.md)
+those credentials publicly. [Learn more...](https://docs.apiease.com/docs/overview/why-you-need-it)
 
-**Widgets** - Build reusable storefront widgets with Liquid and JavaScript, then render them using a theme app block. [Learn more...](../widgets/widgets-page.md)
+**Widgets** - Build reusable storefront widgets with Liquid and JavaScript, then render them using a theme app block. [Learn more...](https://docs.apiease.com/docs/widgets/widgets-page)
+
+Looking for a quick answer? Choose your task in the [APIEase FAQ](https://docs.apiease.com/docs/general/faq/faq).
 
 SOURCE
 https://docs.apiease.com/docs/overview/what-it-does
@@ -37,37 +39,43 @@ What It Does
 CONTENT
 # What It Does
 
-APIEase defines and runs four types of requests: [HTTP Requests](../requests/request-types/http-requests.md), [Flow Requests](../requests/request-types/flow-requests.md), [Liquid Requests](../requests/request-types/liquid-requests.md), and [System Requests](../requests/request-types/system-requests.md). Each request type is executed inside APIEase's managed environment, keeping credentials secure and ensuring logic is processed server-side.
+APIEase defines and runs four types of requests: [HTTP Requests](https://docs.apiease.com/docs/requests/request-types/http-requests), [Flow Requests](https://docs.apiease.com/docs/requests/request-types/flow-requests), [Liquid Requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests), and [System Requests](https://docs.apiease.com/docs/requests/request-types/system-requests). Each request type is executed inside APIEase's managed environment, keeping credentials secure and ensuring logic is processed server-side.
 
-APIEase also includes [Functions](../functions/functions-overview.md) and [Widgets](../widgets/widgets-page.md). Functions are reusable Liquid helpers for Liquid Requests, while Widgets are designed for storefront UI instead of API execution.
+APIEase also includes [Functions](https://docs.apiease.com/docs/functions/functions-overview) and [Widgets](https://docs.apiease.com/docs/widgets/widgets-page). Functions are reusable Liquid helpers for Liquid Requests, while Widgets are designed for storefront UI instead of API execution.
 
-## [HTTP Requests](../requests/request-types/http-requests.md)
+You can combine these building blocks to connect an [external API](https://docs.apiease.com/docs/requests/connect-external-api) or [synchronize data with another system](https://docs.apiease.com/docs/requests/synchronize-external-data). APIEase executes the saved workflow, while each API provider remains the authority for its endpoints, credentials, permissions, payloads, and usage limits.
+
+## [HTTP Requests](https://docs.apiease.com/docs/requests/request-types/http-requests)
 
 HTTP Requests let you call external APIs using any method (GET, POST, PUT, PATCH, DELETE). You define the URL, headers, body, and parameters. APIEase executes the call on the server and returns the response to the system that triggered it.
 
-## [Flow Requests](../requests/request-types/flow-requests.md)
+## [Flow Requests](https://docs.apiease.com/docs/requests/request-types/flow-requests)
 
-Flow Requests allow Shopify Flow to trigger logic that APIEase runs. APIEase receives the Flow input, processes any parameters, executes the defined request or workflow, and returns output data that Flow can use in subsequent steps.
+Flow requests send data from APIEase into a Shopify Flow workflow through the APIEase Flow Trigger. To run a saved APIEase request from a workflow that starts in Shopify Flow, use the [APIEase Flow Action](https://docs.apiease.com/docs/requests/shopify-flow-integration/run-saved-request-from-flow); the saved request keeps the type needed for its operation, such as HTTP.
 
-## [Liquid Requests](../requests/request-types/liquid-requests.md)
+## [Liquid Requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests)
 
-Liquid Requests run custom logic written in Liquid. They let you transform data, extract fields, perform simple conditionals, construct dynamic request bodies, and call reusable [Functions](../functions/using-functions-in-liquid-requests.md). The Liquid code executes within APIEase and can use inputs from any trigger source.
+Liquid Requests run custom logic written in Liquid. They let you transform data, extract fields, perform simple conditionals, construct dynamic request bodies, and call reusable [Functions](https://docs.apiease.com/docs/functions/using-functions-in-liquid-requests). The Liquid code executes within APIEase and can use inputs from any trigger source.
 
-## [System Requests](../requests/request-types/system-requests.md)
+## [System Requests](https://docs.apiease.com/docs/requests/request-types/system-requests)
 
 System Requests run internal APIEase functions (they do not call an external URL). This is useful for app-managed actions such as setting, getting, or deleting persisted variables.
 
-## [Widgets](../widgets/widgets-page.md)
+## [Widgets](https://docs.apiease.com/docs/widgets/widgets-page)
 
 Widgets are reusable storefront components that render Liquid templates with optional JavaScript. They are added to your theme through the APIEase app block and can be updated centrally in the APIEase admin.
 
-## [Functions](../functions/functions-overview.md)
+## [Functions](https://docs.apiease.com/docs/functions/functions-overview)
 
 Functions are reusable Liquid helpers that run inside a parent Liquid Request. Use them to keep shared formatting, transformation, and response-shaping logic in one place instead of repeating the same Liquid across multiple requests.
 
-## [Secure Parameter Storage](./why-you-need-it.md#why-secure-parameter-handling-matters)
+## What APIEase does not supply
 
-APIEase stores confidential values -- such as API keys, tokens, and passwords -- on the server and never exposes them to the storefront or external clients. When a request is triggered, APIEase injects these secure parameters into the request at runtime so they are used during execution but never returned or made visible outside the managed environment.
+APIEase does not provide another company's private API documentation or credentials, bypass provider permissions, or decide how records from different systems should be matched. Before building an integration, obtain the provider's current API contract and define the workflow's business rules. See [Connect to an external API](https://docs.apiease.com/docs/requests/connect-external-api) for the required information.
+
+## [Secure Parameter Storage](https://docs.apiease.com/docs/overview/why-you-need-it)
+
+Sensitive request parameters -- such as API keys, tokens, and passwords -- are masked after saving, omitted from normal read interfaces, and decrypted when APIEase executes the request. This protects the saved request configuration, but it does not filter private data from an external API's response. Sensitive Variables and APIEase API keys have different visibility rules. See [Credentials, authentication, and security](https://docs.apiease.com/docs/general/faq/credentials-and-security).
 
 SOURCE
 https://docs.apiease.com/docs/overview/how-it-works
@@ -78,39 +86,39 @@ How It Works
 CONTENT
 # How It Works
 
-APIEase runs the requests and logic you define. Each request ([HTTP](../requests/request-types/http-requests.md), [Flow](../requests/request-types/flow-requests.md), [Liquid](../requests/request-types/liquid-requests.md), or [System](../requests/request-types/system-requests.md)) is configured in the APIEase admin and executed inside the APIEase runtime, where confidential parameters remain secure.
+APIEase runs the requests and logic you define. Each request ([HTTP](https://docs.apiease.com/docs/requests/request-types/http-requests), [Flow](https://docs.apiease.com/docs/requests/request-types/flow-requests), [Liquid](https://docs.apiease.com/docs/requests/request-types/liquid-requests), or [System](https://docs.apiease.com/docs/requests/request-types/system-requests)) is configured in the APIEase admin and executed inside the APIEase runtime, where confidential parameters remain secure.
 
 This page describes how requests are configured, how they are triggered, and how these elements combine to create custom functionality.
 
-APIEase also includes reusable [Functions](../functions/functions-overview.md), persisted [Variables](../variables/variables-overview.md), and storefront widgets. Widgets render Liquid and JavaScript through the Widget App Block or Widget App Embed and are managed in the same admin.
+APIEase also includes reusable [Functions](https://docs.apiease.com/docs/functions/functions-overview), persisted [Variables](https://docs.apiease.com/docs/variables/variables-overview), and storefront widgets. Widgets render Liquid and JavaScript through the Widget App Block or Widget App Embed and are managed in the same admin.
 
 ---
 
 ## Configuring Requests
 
-When you create a request, you choose the type ([HTTP Request](../requests/request-types/http-requests.md), [Flow Request](../requests/request-types/flow-requests.md), [Liquid Request](../requests/request-types/liquid-requests.md), or [System Request](../requests/request-types/system-requests.md)) and define the parameters it needs. These parameters can include:
+When you create a request, you choose the type ([HTTP Request](https://docs.apiease.com/docs/requests/request-types/http-requests), [Flow Request](https://docs.apiease.com/docs/requests/request-types/flow-requests), [Liquid Request](https://docs.apiease.com/docs/requests/request-types/liquid-requests), or [System Request](https://docs.apiease.com/docs/requests/request-types/system-requests)) and define the parameters it needs. These parameters can include:
 - values passed in at trigger time
 - values extracted from earlier requests
 - Liquid based transformations
-- confidential parameters stored securely in APIEase (see [Why Secure Parameter Handling Matters](./why-you-need-it.md#why-secure-parameter-handling-matters))
+- confidential parameters stored securely in APIEase (see [Why Secure Parameter Handling Matters](https://docs.apiease.com/docs/overview/why-you-need-it))
 
 Each request is saved as a reusable and callable unit of logic.
 
-If you need reusable helper logic inside a Liquid Request, create a [Function](../functions/functions-overview.md) and call it from Liquid instead of repeating the same template code.
+If you need reusable helper logic inside a Liquid Request, create a [Function](https://docs.apiease.com/docs/functions/functions-overview) and call it from Liquid instead of repeating the same template code.
 
-For setup steps, see [How to Add Requests](../requests/how-to-add-requests.md).
+For setup steps, see [How to Add Requests](https://docs.apiease.com/docs/requests/how-to-add-requests).
 
-If you need to manage persisted values outside of a request, use [Variables Overview](../variables/variables-overview.md).
+If you need to manage persisted values outside of a request, use [Variables Overview](https://docs.apiease.com/docs/variables/variables-overview).
 
 ---
 
 ## Configuring Widgets
 
-Create widgets in the APIEase admin by defining a name, handle, and Liquid template. You can add optional inline or external JavaScript that loads when the widget renders. See [Widgets page](../widgets/widgets-page.md) and [Widget edit page](../widgets/widget-edit-page.md) for the full workflow.
+Create widgets in the APIEase admin by defining a name, handle, and Liquid template. You can add optional inline or external JavaScript that loads when the widget renders. See [Widgets page](https://docs.apiease.com/docs/widgets/widgets-page) and [Widget edit page](https://docs.apiease.com/docs/widgets/widget-edit-page) for the full workflow.
 
 ## Displaying Widgets
 
-Use the **APIEase Widget App Block** for widgets on a specific page or template, or the **APIEase Widget App Embed** for widgets that should run across the storefront. See [Widget App Extensions](../widgets/widget-app-extensions.md).
+Use the **APIEase Widget App Block** for widgets on a specific page or template, or the **APIEase Widget App Embed** for widgets that should run across the storefront. See [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
 
 ---
 
@@ -118,31 +126,31 @@ Use the **APIEase Widget App Block** for widgets on a specific page or template,
 
 A configured request can be invoked through several available trigger types. Each trigger activates the same underlying request definition, allowing the logic to run without duplication. Triggers are available in the following order:
 
-### [Webhooks](../requests/triggers/webhooks/trigger-requests-from-a-webhook.md)
+### [Webhooks](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook)
 
 Run a request automatically when Shopify or an external system sends a webhook to APIEase.
 
-### [Cron Schedule](../requests/triggers/cron-schedule.md)
+### [Cron Schedule](https://docs.apiease.com/docs/requests/triggers/cron-schedule)
 
 Use a built in cron schedule to run a request at recurring intervals.
 
-### [Proxy Endpoint](../requests/triggers/proxy-endpoint.md)
+### [Proxy Endpoint](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint)
 
 Expose a request as a public API endpoint with an optional shared secret. External systems call the endpoint and APIEase runs the associated request.
 
-### [Manual Calls](../requests/triggers/manual-calls.md)
+### [Manual Calls](https://docs.apiease.com/docs/requests/triggers/manual-calls)
 
 Invoke any request directly from the APIEase admin for testing or on demand execution.
 
-### [Storefont Calls](../requests/triggers/storefont-calls.md)
+### [Storefront calls](https://docs.apiease.com/docs/requests/triggers/storefont-calls)
 
 Trigger a request from your storefront using Shopify's app proxy. The storefront sends only non confidential data and APIEase performs the execution on the server side.
 
-### [Remote Calls](../requests/triggers/calling-requests-remotely.md)
+### [Remote Calls](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely)
 
  Send an HTTP call from any external system to APIEase to initiate a request with authentication.
 
-### [Chained Request](../requests/request-parameters/chained-requests.md)
+### [Chained Request](https://docs.apiease.com/docs/requests/request-parameters/chained-requests)
 
 Run a request from within another request. A request can call additional requests and pass outputs downstream, allowing multi step workflows.
 
@@ -182,9 +190,9 @@ API calls and external services often require confidential values such as API ke
 
 If confidential parameters are exposed in the storefront, they can be used to access external systems, submit unauthorized requests, or retrieve private data. This creates a clear risk for the store, the merchant, and the systems being connected.
 
-APIEase prevents this exposure by storing all confidential parameters securely on the server. When a request runs, APIEase injects sensitive values at execution time so they are never sent to the storefront or to any external caller. Even when a request is triggered from the storefront, the sensitive parts of the request remain inside the APIEase environment.
+APIEase lets you mark confidential request parameters as **Sensitive**. These values are masked after saving, omitted from normal read interfaces, and decrypted only when APIEase executes the request. Even when a request is triggered from the storefront, those saved request parameters remain inside the APIEase environment.
 
-By keeping credentials server side at all times, APIEase ensures that API keys, tokens, and other sensitive values remain protected while still allowing the request to be triggered from any allowed source.
+This protection applies to the saved request configuration; it does not filter an external API's response. Before making a request publicly callable, ensure its response does not contain credentials or other private data. Sensitive Variables and APIEase API keys also have different visibility rules. See [Credentials, authentication, and security](https://docs.apiease.com/docs/general/faq/credentials-and-security) for the distinctions.
 
 SOURCE
 https://docs.apiease.com/docs/developers/developer-overview
@@ -197,33 +205,49 @@ CONTENT
 
 This section is the developer entry point for building with APIEase as code.
 
-For most teams, the recommended path starts with `apiease-template`, uses `apiease-cli` for day-to-day operations, and reaches for the [APIEase Public API](./apiease-public-api.md) only when direct HTTP automation is the better fit.
+For most teams, the recommended path starts with `apiease-template`, uses `apiease-cli` for day-to-day operations, and reaches for the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) only when direct HTTP automation is the better fit.
 
-If you are new to this workflow, start with [Quickstart with apiease-template](./quickstart-with-apiease-template.md).
+If you are new to this workflow, start with [Quickstart with apiease-template](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template).
+
+## Choose an interface
+
+Choose the interface based on where you want the work and its review history to live:
+
+| Interface | Best fit |
+| --- | --- |
+| APIEase admin | Create, edit, test, and run resources interactively. |
+| Apex in APIEase | Ask the in-product assistant to propose changes to requests, widgets, Variables, and Functions, then review and approve the exact proposal. |
+| `apiease-template` | Establish a repository layout for source-controlled requests, widgets, variables, and functions. |
+| `apiease-cli` | Initialize or upgrade a template project and sync its saved resource definitions with APIEase. |
+| APIEase public API | Build custom HTTP automation for saved resources or execute an existing saved request remotely. |
+| Coding agent in a template repository | Edit version-controlled resource definitions, review them in git, and optionally sync them through `apiease-cli`. |
+
+These are separate workflows. Apex uses an in-product proposal review before approved changes are applied. A coding agent working in an `apiease-template` repository changes local files first, so the git diff can be the review boundary. See [Using APIEase with AI agents](https://docs.apiease.com/docs/developers/using-apiease-with-ai-agents) for the safety and resource-scope distinctions.
 
 ## Recommended path
 
 Use this reading order when you are getting started:
 
-1. [Why use the template](./why-use-the-template.md) to understand why `apiease-template` is the recommended starting point
-2. [Quickstart with apiease-template](./quickstart-with-apiease-template.md) to initialize the project, configure auth, and sync resources
-3. [Resource handles](./resource-handles.md) to understand stable identifiers for source-controlled resources
-4. [apiease-template](./apiease-template.md) to understand the repository layout and what belongs in source control
-5. [apiease-cli](./apiease-cli.md) for the command-line workflow that manages saved resources
-6. [APIEase Public API](./apiease-public-api.md) when you need lower-level HTTP integration
-7. [Using APIEase with AI agents](./using-apiease-with-ai-agents.md) when Codex-style agents will work inside the repository
+1. [Why use the template](https://docs.apiease.com/docs/developers/why-use-the-template) to understand why `apiease-template` is the recommended starting point
+2. [Quickstart with apiease-template](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template) to initialize the project, configure auth, and sync resources
+3. [Resource handles](https://docs.apiease.com/docs/developers/resource-handles) to understand stable identifiers for source-controlled resources
+4. [apiease-template](https://docs.apiease.com/docs/developers/apiease-template) to understand the repository layout and what belongs in source control
+5. [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli) for the command-line workflow that manages saved resources
+6. [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) when you need lower-level HTTP integration
+7. [Using APIEase with AI agents](https://docs.apiease.com/docs/developers/using-apiease-with-ai-agents) when Codex-style agents will work inside the repository
 
 ## Choose the right page
 
 Use these pages based on the job you need to do:
 
-- [Quickstart with apiease-template](./quickstart-with-apiease-template.md): the canonical start-here path for repository-based APIEase development
-- [Why use the template](./why-use-the-template.md): why the template comes before the CLI or public API in most projects
-- [Resource handles](./resource-handles.md): stable public identifiers for requests, widgets, variables, and functions
-- [apiease-template](./apiease-template.md): expected repository layout, template-managed files, and version-controlled artifacts
-- [apiease-cli](./apiease-cli.md): installation, configuration, CRUD commands, and template upgrade workflow
-- [APIEase Public API](./apiease-public-api.md): authentication, resource routes, remote request execution, and direct HTTP usage
-- [Using APIEase with AI agents](./using-apiease-with-ai-agents.md): repository-first guidance for Codex-style agents
+- [Quickstart with apiease-template](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template): the canonical start-here path for repository-based APIEase development
+- [Why use the template](https://docs.apiease.com/docs/developers/why-use-the-template): why the template comes before the CLI or public API in most projects
+- [Resource handles](https://docs.apiease.com/docs/developers/resource-handles): stable public identifiers for requests, widgets, variables, and functions
+- [apiease-template](https://docs.apiease.com/docs/developers/apiease-template): expected repository layout, template-managed files, and version-controlled artifacts
+- [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli): installation, configuration, CRUD commands, and template upgrade workflow
+- [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api): authentication, resource routes, remote request execution, and direct HTTP usage
+- [Using APIEase with AI agents](https://docs.apiease.com/docs/developers/using-apiease-with-ai-agents): repository-first guidance for Codex-style agents
+- [Developer and automation FAQ](https://docs.apiease.com/docs/general/faq/developer-and-automation): concise answers about public API access, handles, remote execution, source control, the CLI, and AI-assisted workflows
 
 ## How this fits the rest of the docs
 
@@ -231,13 +255,13 @@ The Developers section focuses on the developer workflow around repositories, th
 
 For request behavior, request contracts, and other platform concepts, use the existing docs instead of treating this section as a duplicate reference:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [Request Types Overview](../requests/request-types/request-types-overview.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
-- [Widgets Overview](../widgets/widgets-overview.md)
-- [Functions](../functions/functions-overview.md)
-- [Variables](../variables/variables-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [Request Types Overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
+- [Widgets Overview](https://docs.apiease.com/docs/widgets/widgets-overview)
+- [Functions](https://docs.apiease.com/docs/functions/functions-overview)
+- [Variables](https://docs.apiease.com/docs/variables/variables-overview)
 
 ## Practical workflow summary
 
@@ -256,18 +280,18 @@ If you plan to build with APIEase as code, start from `apiease-template`.
 
 It is the recommended starting point because it gives you a real project structure, a supported CLI workflow, and a safer way to keep APIEase resources under source control. The template is how APIEase turns requests, widgets, variables, and functions into repository-managed assets instead of one-off platform state.
 
-If you want the full setup steps, start with [Quickstart with apiease-template](./quickstart-with-apiease-template.md).
+If you want the full setup steps, start with [Quickstart with apiease-template](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template).
 
 ## Start here when
 
 Use the template if you want to:
 
 - keep APIEase resources in git instead of only in the APIEase UI
-- initialize a project with `apiease init` and manage it with [apiease-cli](./apiease-cli.md)
+- initialize a project with `apiease init` and manage it with [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli)
 - give humans and AI agents the same repository layout and operating guidance
 - adopt future template improvements through `apiease upgrade`
 
-For most developer workflows, the template should come first, the CLI should be the normal operating tool, and the [APIEase Public API](./apiease-public-api.md) should stay available for lower-level integrations.
+For most developer workflows, the template should come first, the CLI should be the normal operating tool, and the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) should stay available for lower-level integrations.
 
 ## What the template gives you
 
@@ -292,10 +316,10 @@ The template includes example JSON files under `docs/examples/resources` that al
 
 That means you can copy and adapt real starting points instead of reverse-engineering request or widget contracts from scratch. When you need the detailed request semantics behind those files, use the existing Requests docs:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [Request Types Overview](../requests/request-types/request-types-overview.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [Request Types Overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
 
 ### A safer upgrade path
 
@@ -322,7 +346,7 @@ The template bundles more than empty directories. It also includes:
 
 This is one of the biggest reasons to start from the template. Humans, Codex/Claude Code style agents, and the CLI all work from the same repository instead of relying on hidden conventions or repeated prompt context.
 
-For more on that workflow, see [Using APIEase with AI agents](./using-apiease-with-ai-agents.md).
+For more on that workflow, see [Using APIEase with AI agents](https://docs.apiease.com/docs/developers/using-apiease-with-ai-agents).
 
 ## Why not start with the CLI or public API alone
 
@@ -341,10 +365,10 @@ The CLI is best understood as the tool that operates on a template-based reposit
 
 For most teams, the practical path is:
 
-1. start with [Quickstart with apiease-template](./quickstart-with-apiease-template.md)
-2. learn the project structure in [apiease-template](./apiease-template.md)
-3. use [apiease-cli](./apiease-cli.md) for day-to-day sync operations
-4. use the [APIEase Public API](./apiease-public-api.md) directly only when you need lower-level automation
+1. start with [Quickstart with apiease-template](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template)
+2. learn the project structure in [apiease-template](https://docs.apiease.com/docs/developers/apiease-template)
+3. use [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli) for day-to-day sync operations
+4. use the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) directly only when you need lower-level automation
 
 That path keeps the template as the entry point while still making the CLI and public API available for the jobs they are best at.
 
@@ -364,9 +388,9 @@ Use this quickstart when you want to:
 - start from the APIEase template instead of inventing a repository layout
 - configure APIEase authentication once and reuse it from the CLI
 - keep requests, widgets, variables, and functions under source control
-- sync those saved resources to APIEase through `apiease-cli`, which calls the [APIEase Public API](./apiease-public-api.md)
+- sync those saved resources to APIEase through `apiease-cli`, which calls the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api)
 
-If you are new to the developer workflow, start here before the deeper pages for [apiease-template](./apiease-template.md), [apiease-cli](./apiease-cli.md), and the [APIEase Public API](./apiease-public-api.md).
+If you are new to the developer workflow, start here before the deeper pages for [apiease-template](https://docs.apiease.com/docs/developers/apiease-template), [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli), and the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api).
 
 ## Install the APIEase CLI
 
@@ -387,7 +411,7 @@ apiease
 You need:
 
 - Node.js 20 or newer
-- a working `apiease` command from [apiease-cli](./apiease-cli.md)
+- a working `apiease` command from [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli)
 - the APIEase base URL `https://app-admin.apiease.com`
 - an APIEase API key
 - a Shopify shop domain such as `yourstore.myshopify.com`
@@ -482,10 +506,10 @@ The request example already uses the real public API request shape, including:
 
 Keep the detailed request behavior in the existing Requests docs instead of re-documenting it in your repository:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [Request Types Overview](../requests/request-types/request-types-overview.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [Request Types Overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
 
 ## Sync resources with APIEase through the CLI
 
@@ -517,9 +541,9 @@ apiease create request --file ./resources/requests/product-details-proxy.json
 
 When a resource file has a valid `handle`, `apiease create` creates the resource if it is missing and updates the existing resource if that handle already exists. This create-or-update behavior applies to requests, widgets, variables, and functions.
 
-Use resource-specific handle flags such as `--widget-handle`, `--variable-handle`, and `--function-handle` for read, explicit update, and delete commands. The CLI is the normal path here: it reads your local JSON file, resolves auth, and calls the underlying [APIEase Public API](./apiease-public-api.md) for you.
+Use resource-specific handle flags such as `--widget-handle`, `--variable-handle`, and `--function-handle` for read, explicit update, and delete commands. The CLI is the normal path here: it reads your local JSON file, resolves auth, and calls the underlying [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) for you.
 
-For the handle-based identifier model, see [Resource handles](./resource-handles.md).
+For the handle-based identifier model, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
 
 Use direct HTTP calls only when you need lower-level automation outside the CLI workflow.
 
@@ -574,9 +598,9 @@ After these steps, you have:
 
 From here, use the deeper docs as needed:
 
-- [apiease-template](./apiease-template.md)
-- [apiease-cli](./apiease-cli.md)
-- [APIEase Public API](./apiease-public-api.md)
+- [apiease-template](https://docs.apiease.com/docs/developers/apiease-template)
+- [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli)
+- [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api)
 
 SOURCE
 https://docs.apiease.com/docs/developers/resource-handles
@@ -711,10 +735,20 @@ This page is for coding agents such as Codex or Claude Code working in an `apiea
 
 Most agent-driven APIEase work should follow this path:
 
-- start from [Quickstart with apiease-template](./quickstart-with-apiease-template.md)
-- use [apiease-template](./apiease-template.md) as the repository structure
-- sync saved resources through [apiease-cli](./apiease-cli.md)
-- use the [APIEase Public API](./apiease-public-api.md) directly only when the CLI is not the right interface
+- start from [Quickstart with apiease-template](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template)
+- use [apiease-template](https://docs.apiease.com/docs/developers/apiease-template) as the repository structure
+- sync saved resources through [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli)
+- use the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) directly only when the CLI is not the right interface
+
+## Distinguish Apex from a repository agent
+
+Apex is the assistant inside APIEase. It can design changes to requests, widgets, Variables, and Functions during a conversation. Apex prepares a proposal first; you review the exact resource operations before approving or rejecting it.
+
+The review shows description changes alongside the resource operations. Approval applies the exact reviewed proposal. Asking for changes rejects that immutable proposal and starts a new revision; it does not silently edit the proposal you already reviewed. Rejection, cancellation, or a failed apply leaves live resources unchanged.
+
+For a request that could change real data, Apex may initially configure request-specific controls such as a dry-run option or a disabled `ALLOW_*` Variable when that pattern fits the integration. Inspect and test the saved request before enabling live behavior. An applied proposal confirms the APIEase resource change; it does not prove that an external integration works or that the broader business objective is complete.
+
+A coding agent such as Codex or Claude Code uses the repository workflow documented on the rest of this page. It can manage requests, widgets, Variables, and Functions through version-controlled files and `apiease-cli`. The local diff provides the review boundary before you sync or commit changes.
 
 ## Start from the template
 
@@ -762,14 +796,16 @@ Use `apiease.config.js` as the source of truth for resource directory names. In 
 
 Use `docs/examples/resources/*` as copyable examples, not as the long-term home for project resources.
 
-Resource files should use `handle` as the stable identifier across requests, widgets, variables, and functions. Do not copy server-owned `id` values into source files. For the full convention, see [Resource handles](./resource-handles.md).
+Resource files should use `handle` as the stable identifier across requests, widgets, variables, and functions. Do not copy server-owned `id` values into source files. For the full convention, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
+
+Use the optional `description` field to record a resource's purpose, behavior, and important relationships. Descriptions are supported for all four resource types. Keep operational status, credentials, approval notes, and test claims out of descriptions. Omitting `description` from an update preserves the current text; an explicit empty string clears it.
 
 When the task involves request behavior, do not re-invent request concepts from memory. Reuse the existing Requests documentation for detailed semantics:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [Request Types Overview](../requests/request-types/request-types-overview.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [Request Types Overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
 
 ## Keep authentication outside the repository
 
@@ -816,7 +852,7 @@ After editing the same file again, rerun the same create command:
 apiease create request --file ./resources/requests/product-details-proxy.json
 ```
 
-When a resource file has a valid `handle`, `apiease create` creates the resource if it is missing and updates the existing resource if that handle already exists. Use the same create-or-update pattern for widgets, variables, and functions. Use the resource-specific handle flags documented in [apiease-cli](./apiease-cli.md) for read, explicit update, and delete commands.
+When a resource file has a valid `handle`, `apiease create` creates the resource if it is missing and updates the existing resource if that handle already exists. Use the same create-or-update pattern for widgets, variables, and functions. Use the resource-specific handle flags documented in [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli) for read, explicit update, and delete commands.
 
 ## Prefer the CLI over direct HTTP
 
@@ -828,7 +864,7 @@ That keeps the workflow aligned with:
 - the current auth resolution model from `~/.apiease`
 - the saved-resource contract exposed by the public API
 
-Use direct HTTP calls only when you need lower-level automation that the CLI does not already cover. When you do, use the headers and routes documented in [APIEase Public API](./apiease-public-api.md).
+Use direct HTTP calls only when you need lower-level automation that the CLI does not already cover. When you do, use the headers and routes documented in [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api).
 
 For direct remote execution of an existing saved request, the current route is:
 
@@ -925,6 +961,8 @@ curl -X GET 'https://app-admin.apiease.com/api/v1/resources/requests' \
 
 APIEase resolves the shop from the `x-shop-myshopify-domain` header. Do not rely on shop-identifying fields in the JSON body.
 
+This APIEase API key authenticates the caller to APIEase. It is not a Shopify access token and it is not a credential for the external service used by a saved request. Configure outbound provider credentials on that saved request, normally as [sensitive request parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-parameters-overview).
+
 ## Resource routes
 
 The current resource base path is `/api/v1/resources`.
@@ -962,7 +1000,7 @@ APIEase still returns server-owned ids in some responses, such as `id`. Treat th
 
 Handles must be lowercase slug values using letters, numbers, and single hyphens between words, such as `product-details-proxy` or `support-api-key`.
 
-For a fuller explanation, see [Resource handles](./resource-handles.md).
+For a fuller explanation, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
 
 ## Request conventions
 
@@ -976,15 +1014,29 @@ If you are working with request resources, keep these conventions in mind:
 - For `liquid` requests, include saved Liquid `parameters` only for saved values, sensitive values, or `{parameterName}` substitution.
 - Add a `storefrontAppProxy` trigger only to requests that should be called directly through Shopify's app proxy. Do not add it to Liquid helper requests that are only called by other APIEase requests.
 
+## Resource descriptions
+
+Requests, widgets, variables, and functions support a `description` string of up
+to 65,536 Unicode characters. Use it
+to explain what the resource is for, how it behaves, and important relationships
+to other resources. Do not put secrets, temporary execution status, approval
+notes, or unverified test claims in it.
+
+For requests, widgets, and variables, `description` is optional. Existing legacy
+resources may omit it. Functions include the same field in their resource shape.
+When updating a resource, omitting `description` preserves the saved value;
+sending `"description": ""` clears it. `null` is not valid. A description-only
+update is still a real resource change.
+
 The public API accepts the same request concepts already documented in the Requests section. Use those pages as the source of truth for detailed behavior instead of duplicating that material here:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [HTTP Requests](../requests/request-types/http-requests.md)
-- [Flow Requests](../requests/request-types/flow-requests.md)
-- [Liquid Requests](../requests/request-types/liquid-requests.md)
-- [System Requests](../requests/request-types/system-requests.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [HTTP Requests](https://docs.apiease.com/docs/requests/request-types/http-requests)
+- [Flow Requests](https://docs.apiease.com/docs/requests/request-types/flow-requests)
+- [Liquid Requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests)
+- [System Requests](https://docs.apiease.com/docs/requests/request-types/system-requests)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
 
 ## Create a request
 
@@ -998,6 +1050,7 @@ curl -X POST 'https://app-admin.apiease.com/api/v1/resources/requests' \
   -d '{
     "handle": "product-details-proxy",
     "name": "Product Details Proxy",
+    "description": "Fetch product details for the authenticated storefront proxy endpoint.",
     "type": "http",
     "method": "POST",
     "address": "https://api.example.com/products/{productHandle}/details",
@@ -1049,6 +1102,7 @@ Variable example:
 {
   "handle": "support-api-key",
   "name": "Support API Key",
+  "description": "Stores the support provider credential used by support requests.",
   "value": "replace-with-real-secret",
   "sensitive": true
 }
@@ -1076,6 +1130,7 @@ Widget example:
 {
   "handle": "promo-banner",
   "name": "Promo Banner",
+  "description": "Renders the storefront promotion banner and its client-side behavior.",
   "liquid": "<section>Sale now live</section>",
   "javascript": "",
   "externalJavascriptUrls": [],
@@ -1134,7 +1189,9 @@ curl -X POST 'https://app-admin.apiease.com/api/remote/caller/call?requestId=pro
   -H 'x-shop-myshopify-domain: yourstore.myshopify.com'
 ```
 
-Use that route when the request definition already exists in APIEase and you want to trigger it from another system. The query parameter is still named `requestId`, but pass the request handle as the value for new integrations. For more detail, see [Calling APIEase Requests Remotely](../requests/triggers/calling-requests-remotely.md).
+Use that route when the request definition already exists in APIEase and you want to trigger it from another system. The query parameter is still named `requestId`, but pass the request handle as the value for new integrations. For more detail, see [Calling APIEase Requests Remotely](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely).
+
+This endpoint executes the saved definition. It does not accept an arbitrary destination URL or replace the resource CRUD routes.
 
 ## Response shape
 
@@ -1187,7 +1244,7 @@ CONTENT
 
 `apiease-cli` is the Node-based command-line tool for working with APIEase from a repository.
 
-GitHub repository: [kevinstl-org/apiease-cli](https://github.com/kevinstl-org/apiease-cli)
+GitHub repository: [APIEase/apiease-cli](https://github.com/APIEase/apiease-cli)
 
 Use it when you want to:
 
@@ -1196,7 +1253,7 @@ Use it when you want to:
 - create or update, read, and delete saved APIEase resources from local JSON files
 - apply template updates without overwriting local conflicts
 
-In practice, `apiease-cli` is the thin layer between your repository and the [APIEase Public API](./apiease-public-api.md).
+In practice, `apiease-cli` is the thin layer between your repository and the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api).
 
 ## How the CLI fits the workflow
 
@@ -1215,17 +1272,23 @@ This keeps your APIEase configuration versioned in git while still using the sam
 
 `apiease-cli` requires Node.js 20 or newer.
 
-From the CLI repository:
+Install the published package from npm:
+
+```bash
+npm install -g apiease
+```
+
+The installed command is:
+
+```bash
+apiease
+```
+
+If you are developing the CLI itself from its repository, install its dependencies and link the local package:
 
 ```bash
 npm install
 npm link
-```
-
-After linking, run the installed command as:
-
-```bash
-apiease
 ```
 
 If you are working directly inside the CLI repository without linking it globally, use `./bin/apiease-cli` instead.
@@ -1256,11 +1319,13 @@ Create the home directory:
 mkdir -p ~/.apiease
 ```
 
-Declare the active environment in `~/.apiease/environment`. The supported values are:
+Declare the active environment in `~/.apiease/environment`. Common values are:
 
 - `local`
 - `staging`
 - `production`
+
+Custom environment names such as `qa` are also supported when the matching `~/.apiease/.env.qa` file exists.
 
 Example local setup:
 
@@ -1321,7 +1386,7 @@ apiease init .
 
 Current CLI behavior:
 
-- the template source resolves from the local sibling repository `../apiease-template`
+- the installed CLI retrieves the current `apiease-template`; local CLI development can use a sibling template checkout
 - the command writes project metadata to `.apiease/project.json`
 - metadata includes the template version and a manifest of template-managed files
 - `.git`, `.idea`, and `node_modules` are excluded from the copied template
@@ -1362,6 +1427,12 @@ The CLI manages four saved APIEase resource types:
 
 All definition files must contain valid JSON with an object at the root. Use `handle` as the stable source-controlled identifier. Server-owned `id` values are metadata returned by APIEase and should not be stored in request, widget, variable, or function source files.
 
+All four resource types support a `description` that records purpose, behavior,
+and important relationships. Keep it in the JSON file so pull, review, and Git
+history preserve the same text as APIEase. Omit the field from an update to keep
+the saved description, or set it to an empty string to clear it. Do not use
+`null`, and do not put credentials or temporary lifecycle status in descriptions.
+
 Widget files use `handle` for the stable identifier and `name` for display text. Older widget files that use `widgetHandle` or `widgetName` can be migrated with `apiease create widget --file ./widget-definition.json --auto-update-source-identifier` before the create-or-update operation.
 
 Handles should be lowercase slug values using letters, numbers, and hyphens, for example:
@@ -1370,6 +1441,7 @@ Handles should be lowercase slug values using letters, numbers, and hyphens, for
 {
   "handle": "product-details-proxy",
   "name": "Product Details Proxy",
+  "description": "Fetch product details from the external catalog service.",
   "type": "http",
   "method": "GET",
   "address": "https://api.example.com/products"
@@ -1445,21 +1517,21 @@ Inside a template-based repository, the example resource files currently live un
 
 Those files are a starting point. Replace them with project-specific resources and commit the definitions to git.
 
-For the broader identifier model, see [Resource handles](./resource-handles.md).
+For the broader identifier model, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
 
 ## Request definitions and related docs
 
 When you manage request resources through the CLI, the JSON file uses the same request concepts as the rest of APIEase. Use the existing docs for those details:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [Request Types Overview](../requests/request-types/request-types-overview.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
-- [Widgets Overview](../widgets/widgets-overview.md)
-- [Functions](../functions/functions-overview.md)
-- [Variables](../variables/variables-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [Request Types Overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
+- [Widgets Overview](https://docs.apiease.com/docs/widgets/widgets-overview)
+- [Functions](https://docs.apiease.com/docs/functions/functions-overview)
+- [Variables](https://docs.apiease.com/docs/variables/variables-overview)
 
-For the underlying HTTP routes and authentication headers, see [APIEase Public API](./apiease-public-api.md).
+For the underlying HTTP routes and authentication headers, see [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api).
 
 ## JSON output and failures
 
@@ -1486,16 +1558,16 @@ CONTENT
 
 `apiease-template` is the starter repository that `apiease-cli` uses when you run `apiease init`.
 
-GitHub repository: [kevinstl-org/apiease-template](https://github.com/kevinstl-org/apiease-template)
+GitHub repository: [APIEase/apiease-template](https://github.com/APIEase/apiease-template)
 
 It is the recommended foundation for APIEase development because it gives you:
 
 - a predictable repository layout for requests, widgets, variables, and functions
 - starter JSON definitions you can adapt instead of inventing resource shapes from scratch
 - template-owned guidance files for humans and coding agents
-- a structure that works with `apiease-cli` upgrades and the [APIEase Public API](./apiease-public-api.md)
+- a structure that works with `apiease-cli` upgrades and the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api)
 
-Most teams should start from the template through [apiease-cli](./apiease-cli.md) instead of cloning the template repository directly.
+Most teams should start from the template through [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli) instead of cloning the template repository directly.
 
 ## What ships in the template
 
@@ -1510,7 +1582,14 @@ The current template includes:
 
 The example resources are intentionally lightweight. Use them as reference material or copy them into your working resource directories as you start defining your project.
 
-Those examples use `handle` as the stable source-controlled identifier across requests, widgets, variables, and functions. Server-owned `id` values should not be stored in template resource files. See [Resource handles](./resource-handles.md) for the full identifier pattern.
+Those examples use `handle` as the stable source-controlled identifier across requests, widgets, variables, and functions. Server-owned `id` values should not be stored in template resource files. See [Resource handles](https://docs.apiease.com/docs/developers/resource-handles) for the full identifier pattern.
+
+Each resource definition can also carry a `description` explaining its purpose,
+behavior, and important relationships. Descriptions round-trip through the CLI,
+public API, export/import, and Git projection with the rest of the resource.
+Legacy request, widget, or variable files may omit the field without acquiring an
+empty value. In an update, omission preserves the saved description and an
+explicit empty string clears it.
 
 ## Expected repository layout
 
@@ -1585,19 +1664,19 @@ The template is designed for a repository-first workflow:
 2. configure APIEase authentication for the environment you want to target
 3. create or adapt JSON resource definitions in your project
 4. version those definitions and the project metadata in git
-5. use [apiease-cli](./apiease-cli.md) to create or update, read, or delete the saved resources in APIEase
-6. use the [APIEase Public API](./apiease-public-api.md) directly only when you need a lower-level integration than the CLI
+5. use [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli) to create or update, read, or delete the saved resources in APIEase
+6. use the [APIEase Public API](https://docs.apiease.com/docs/developers/apiease-public-api) directly only when you need a lower-level integration than the CLI
 7. run `apiease upgrade` later to adopt safe template updates without overwriting project-owned work
 
 The template does not replace the core APIEase documentation. It gives you a repository structure that makes those concepts easier to manage as code. For request behavior and request contracts, use the existing docs:
 
-- [Requests Overview](../requests/requests-overview.md)
-- [Request Types Overview](../requests/request-types/request-types-overview.md)
-- [Request Parameters Overview](../requests/request-parameters/request-parameters-overview.md)
-- [Triggers Overview](../requests/triggers/triggers-overview.md)
-- [Widgets Overview](../widgets/widgets-overview.md)
-- [Functions](../functions/functions-overview.md)
-- [Variables](../variables/variables-overview.md)
+- [Requests Overview](https://docs.apiease.com/docs/requests/requests-overview)
+- [Request Types Overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview)
+- [Request Parameters Overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview)
+- [Triggers Overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview)
+- [Widgets Overview](https://docs.apiease.com/docs/widgets/widgets-overview)
+- [Functions](https://docs.apiease.com/docs/functions/functions-overview)
+- [Variables](https://docs.apiease.com/docs/variables/variables-overview)
 
 ## Why the template is the recommended start
 
@@ -1625,6 +1704,11 @@ A request is a configuration that defines how APIEase should securely call an ex
 
 Each request has a handle. Use the handle as the stable identifier when another request calls it, storefront code triggers it, or `apiease-cli` and the public API manage it.
 
+A request can also have a description. Use it to summarize the request's purpose,
+behavior, and important relationships, such as which widget or chained request
+uses it. The description is documentation; it does not affect execution or prove
+that an integration has been tested successfully.
+
 Requests can be used for a wide variety of purposes, including:
 
 - Calling third-party APIs from your Shopify storefront
@@ -1633,7 +1717,7 @@ Requests can be used for a wide variety of purposes, including:
 - Triggering Shopify Flow automations
 - Executing multiple requests in sequence based on API responses
 
-There are four [Request types](./request-types/request-types-overview.md) in APIEase: [HTTP requests](./request-types/http-requests.md), [Flow requests](./request-types/flow-requests.md), [Liquid requests](./request-types/liquid-requests.md), and [System requests](./request-types/system-requests.md).
+There are four [Request types](https://docs.apiease.com/docs/requests/request-types/request-types-overview) in APIEase: [HTTP requests](https://docs.apiease.com/docs/requests/request-types/http-requests), [Flow requests](https://docs.apiease.com/docs/requests/request-types/flow-requests), [Liquid requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests), and [System requests](https://docs.apiease.com/docs/requests/request-types/system-requests).
 
 Every request you create can include embedded parameters, dynamic storefront values, or confidential credentials stored securely on the server.
 
@@ -1645,12 +1729,14 @@ SOURCE
 https://docs.apiease.com/docs/requests/how-to-add-requests
 
 TITLE
-How to Add Requests
+Create and manage requests
 
 CONTENT
-# How to Add Requests
+# Create and manage requests
 
-Follow these steps to create a request in APIEase.
+Use the **Requests** page in the APIEase admin to manage requests interactively. If request definitions need to live in source control or be managed by automation, use [`apiease-cli`](https://docs.apiease.com/docs/developers/apiease-cli) or the [APIEase public API](https://docs.apiease.com/docs/developers/apiease-public-api) instead.
+
+## Create a request
 
 1. Open **Requests** in Shopify Admin (APIEase Requests submenu on the lower left).
    ![APIEase Requests submenu](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/requests-sub-menu.png?v=1744752589)
@@ -1659,7 +1745,301 @@ Follow these steps to create a request in APIEase.
 3. Configure the request name, handle, request type, parameters, and triggers.
 4. Click **Save**. The request is ready to run based on the triggers you selected.
 
-Keep the request handle stable after other requests, storefront code, `apiease-cli`, or public API integrations start referencing it. For repository-managed resources, see [Resource handles](../developers/resource-handles.md).
+Choose a descriptive name for people and a lowercase, hyphenated handle for integrations. Keep the handle stable after another request, storefront code, `apiease-cli`, or a public API integration starts referencing it. See [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
+
+## Find and edit a request
+
+The **Requests** page lists each request by name and shows its handle when the handle differs from the name. Find the request in that list, then select its name or the **Edit** action. Update the configuration and click **Save**.
+
+Before changing a handle, check every place that may call the request, including Liquid requests, chained requests, storefront code, widgets, CLI scripts, and public API integrations.
+
+## Duplicate a request
+
+Use the **Duplicate** action when a new request should start with an existing request's configuration.
+
+1. Find the source request on the **Requests** page and select **Duplicate**.
+2. Review the copied configuration in the new-request editor.
+3. Confirm the new name and assign a unique handle.
+4. Update any provider-specific address, parameters, triggers, or write behavior, and enter any sensitive values required by the new request.
+5. Click **Save** only after the copy is safe to run as a separate request.
+
+Duplicating opens a new draft; it does not change the source request. Do not assume that a saved sensitive value was copied into the draft. Sample requests can also be duplicated into editable drafts.
+
+## Delete a request
+
+1. Find the request and select **Delete**.
+2. Confirm the request in the deletion dialog. The row is marked **Will be deleted**.
+3. Click **Save** to apply the staged deletion, or **Discard** to cancel it.
+
+Before deleting, remove or update callers that use the request handle. Deleting the request does not automatically repair Liquid calls, chained requests, storefront code, widgets, CLI scripts, or other integrations that reference it.
+
+## Admin, CLI, and public API workflows
+
+These management surfaces serve different workflows:
+
+| Surface | Best for | Resources |
+| --- | --- | --- |
+| APIEase admin | Interactive creation and editing in Shopify Admin | Use the resource's page, such as **Requests**, **Widgets**, **Variables**, or **Functions**. |
+| `apiease-cli` | Version-controlled definitions and repeatable environment setup | Requests, widgets, variables, and functions stored as JSON files. |
+| APIEase public API | Direct resource automation from an external system | Request, widget, variable, and function CRUD routes. |
+
+Do not copy server-generated IDs into repository files. CLI and public API workflows use a resource's stable handle; see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles) for the identity rules.
+
+SOURCE
+https://docs.apiease.com/docs/requests/troubleshooting-requests
+
+TITLE
+Troubleshoot requests
+
+CONTENT
+# Troubleshoot requests
+
+Troubleshoot one layer at a time. First confirm that the saved request is safe to run and works with a manual call. Then test the trigger or the next request in a chain. This separates APIEase configuration problems from authentication, permission, and external-provider failures.
+
+## 1. Protect live data before testing
+
+Before executing a request, check whether its method or body can create, update, or delete data. Use a provider sandbox, test store, test record, or provider-supported dry-run option when one is available. APIEase does not add a universal dry-run mode to every external API.
+
+Avoid repeatedly testing a write request against production while changing several settings at once. Start with the smallest input that the receiving API documents as valid, and change one part of the request between runs.
+
+## 2. Test the saved request manually
+
+Use a [manual call](https://docs.apiease.com/docs/requests/triggers/manual-calls) to test the request from APIEase admin before invoking it through a webhook, schedule, remote call, proxy endpoint, or storefront call from theme or widget JavaScript.
+
+Review the returned status, body, and execution details. Record which configuration produced the result, but do not copy credentials or private response data into support messages or shared logs.
+
+- If the manual call fails, continue with the address, method, parameters, and credentials below.
+- If the manual call works but another entry point fails, keep the working request configuration and skip to [isolate the trigger](#7-isolate-the-trigger).
+- If a chain fails, test each request separately before reconnecting the chain.
+
+## 3. Verify the address and method
+
+Compare the saved **Address** and **Method** with the receiving API's current documentation.
+
+- Use the complete endpoint address, including the documented API version and path.
+- Confirm the host belongs to the intended environment and account.
+- Confirm the operation expects GET, POST, PUT, PATCH, DELETE, or OPTIONS.
+- Keep query values, body fields, and path replacements in their matching [parameter locations](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview).
+
+For Shopify Admin GraphQL, the [address preset](https://docs.apiease.com/docs/general/shopify-api/shopify-admin-graphql-address-preset) is the safest way to select the current shop endpoint. A `404` or `405` can indicate a wrong path or method, but providers define their own responses; verify the response body and provider documentation before drawing that conclusion.
+
+## 4. Reduce and verify parameters
+
+Start with only the fields the receiving API requires, then add optional fields back one at a time.
+
+Check each value against the provider's contract:
+
+- Put authentication and content-type metadata in headers.
+- Put URL filters and options in query parameters.
+- Match every path parameter to a placeholder in the address.
+- Send the documented body format and content type. Do not send form URL-encoded data when the API expects JSON, or JSON when it expects form data.
+- Check value types, capitalization, date formats, identifiers, and required fields.
+
+Also confirm where the value comes from. [In-app parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic) are saved with the request; dynamic embedded parameters are supplied for one execution and can override a saved parameter with the same name and location. A working saved value can therefore produce a different result when a trigger supplies an override.
+
+## 5. Isolate credentials and permissions
+
+An authentication failure is different from an address, body, or trigger failure. Confirm that the request uses the correct kind of credential and that it is sent exactly where the receiving API requires it.
+
+For `401` and `403` responses, follow [Credentials, authentication, and security](https://docs.apiease.com/docs/general/faq/credentials-and-security). That page distinguishes rejected credentials from permission problems and links to the Shopify automatic-token and scope checks. External providers can use status codes differently, so their response body and documentation remain authoritative.
+
+Do not replace or expose a sensitive value merely to debug another part of the request. If the original credential is unavailable or no longer valid, create or rotate it at the issuing provider and save the replacement as a sensitive request parameter.
+
+## 6. Separate the provider response from APIEase configuration
+
+Once APIEase reaches the configured endpoint, the external service decides the HTTP status and response body. APIEase cannot reliably diagnose an undocumented provider response or promise that the provider uses a status code in the usual way.
+
+Use the response safely:
+
+1. Read the response body for a provider error code, field name, or request requirement.
+2. Compare the status and body with the provider's current documentation.
+3. Confirm the credential's account, environment, scopes, and access to the requested resource.
+4. Reproduce the smallest documented request, changing one field at a time.
+5. Contact the provider when its documentation does not explain a response from its service.
+
+For a network error or timeout, first recheck the scheme, host, and path and confirm that the provider endpoint is available from a server-side client. Then check the provider's status information, rate limits, and expected response time. A timeout alone does not identify which system is at fault, and retrying a write operation can duplicate side effects.
+
+## 7. Isolate the trigger
+
+If the request works manually, test only the entry point that fails. The [triggers overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview) links to the prerequisites for each execution mechanism.
+
+- **Webhook:** confirm the intended event is selected and map fields from the actual webhook payload.
+- **Cron:** confirm the five-field expression and remember that schedules use UTC.
+- **Remote call:** confirm the request handle, shop-domain header, and APIEase API key.
+- **Proxy endpoint:** confirm the configured path, HTTP method, and authentication choice.
+- **Storefront call from theme or widget JavaScript:** confirm the directly called request has a **Storefront App Proxy** trigger and that the browser call supplies the expected runtime parameters.
+
+Compare the failing trigger's runtime parameters with the values used by the successful manual call. Missing input, a different parameter name or location, or a dynamic override can explain why the same saved request behaves differently.
+
+## 8. Test a chained request one step at a time
+
+For a multi-step workflow, remove or temporarily clear **Next Request**, then run the first request by itself. Confirm that its response contains the exact field the next request references. Test the next request independently with a safe representative value before restoring the chain.
+
+When the individual requests work, reconnect them and check:
+
+- **Next Request** contains the intended request handle.
+- Response placeholders match the previous response's object path and capitalization.
+- The placeholder is in the correct header, query, path, or body field.
+- The first response uses the format the next request expects.
+
+See [Chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) for response placeholder syntax. For conditions, loops, or several explicit calls, use a [Liquid request](https://docs.apiease.com/docs/requests/request-types/liquid-requests) instead of making a linear chain carry workflow logic it was not designed for.
+
+## 9. Re-test the complete path
+
+After the smallest manual request succeeds, add optional parameters back one at a time, reconnect the chain, and test the real trigger. Repeat the live test only after confirming its inputs and side effects.
+
+When asking for help, share the request type, trigger type, sanitized address shape, method, status code, and a redacted provider error. Never share API keys, access tokens, passwords, customer data, or an unredacted private response.
+
+For concise answers to common failure patterns, see the [Troubleshooting requests FAQ](https://docs.apiease.com/docs/general/faq/troubleshooting-requests).
+
+SOURCE
+https://docs.apiease.com/docs/requests/connect-external-api
+
+TITLE
+Connect to an external API
+
+CONTENT
+# Connect to an external API
+
+APIEase can call an external or third-party HTTP API when the provider exposes the required endpoint and gives you enough information and authorization to use it. This includes supplier, warehouse, ERP, CRM, fulfillment, and other provider APIs that use supported HTTP requests.
+
+APIEase executes the requests you configure. It cannot discover an undocumented API, obtain credentials from a provider, bypass provider permissions, or guarantee that a particular provider permits the workflow you want.
+
+## Gather the provider information first
+
+Get the following from the API provider's current documentation or support team:
+
+- the base URL and exact endpoint for each operation
+- the HTTP method, such as `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`
+- the authentication scheme and credentials issued to you
+- required headers and content type
+- required path, query, and body fields, including their data types
+- example success and error responses
+- pagination behavior for list endpoints
+- rate limits and any retry guidance
+- a sandbox or test account, when the provider offers one
+- webhook event and signature requirements if the provider needs to notify another system
+
+Also define the business operation in concrete terms. For example, "read products changed since a timestamp" is actionable; "connect the supplier" is not enough to identify an endpoint or payload.
+
+Do not send production credentials to APIEase support or place them in documentation examples. Enter credentials only in the intended request configuration after the provider issues them to you.
+
+## Map each operation to an APIEase request
+
+Most provider integrations use one saved [HTTP request](https://docs.apiease.com/docs/requests/request-types/http-requests) for each external API operation. Configure the provider's method, address, headers, body, and parameters in that request.
+
+For a basic provider call:
+
+1. [Create a request](https://docs.apiease.com/docs/requests/how-to-add-requests) and choose **HTTP** as the request type.
+2. Enter the documented method and address, such as `https://api.example.com/v1/products`.
+3. Add only the headers and parameters required by the provider. See [Request parameters](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview).
+4. Add the appropriate [trigger](https://docs.apiease.com/docs/requests/triggers/triggers-overview), or leave the request available for another APIEase request to call.
+5. Save and run the request with non-production data before enabling a workflow that writes real data.
+
+The provider's API documentation remains the authority for endpoint paths, payload shapes, permissions, pagination, and rate limits. A provider-branded example for a different account, API version, or operation may not match your contract.
+
+## Build multi-step integrations from small requests
+
+Keep authentication, data retrieval, transformation, and destination updates separate when they are separate API operations. This makes each step easier to test and reuse.
+
+Use:
+
+- [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) when one request should pass response values directly to the next request
+- [Liquid requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests) when you need loops, conditions, data shaping, or several named request calls
+- [cron schedules](https://docs.apiease.com/docs/requests/triggers/cron-schedule) for fixed-time polling
+- [Shopify webhooks](https://docs.apiease.com/docs/requests/triggers/webhooks/webhooks-overview) to react to supported Shopify events
+
+For data movement patterns and planning questions, see [Synchronize data with an external system](https://docs.apiease.com/docs/requests/synchronize-external-data).
+
+## Know which system owns each requirement
+
+APIEase provides saved requests, execution options, parameter handling, and composition tools. The external provider controls whether its API is available, which credentials and permissions it grants, what its data means, and how callers must handle limits or errors. Shopify likewise controls its Admin API contracts and permissions.
+
+If any required provider detail is missing, pause configuration and request that information from the provider. Guessing an endpoint, credential type, identifier, or write payload can produce failed calls or unintended data changes.
+
+For concise answers about capabilities, provider requirements, resource management, and synchronization, see the [Getting started and integrations FAQ](https://docs.apiease.com/docs/general/faq/getting-started-and-integrations).
+
+SOURCE
+https://docs.apiease.com/docs/requests/synchronize-external-data
+
+TITLE
+Synchronize data with an external system
+
+CONTENT
+# Synchronize data with an external system
+
+A synchronization is a workflow built from saved APIEase requests, not a single sync switch. Define which system owns the data, how a change is detected, how records are matched, and which API operation creates or updates the destination record.
+
+Use this pattern for supplier catalogs, warehouse stock feeds, ERP order exports, CRM customer updates, fulfillment updates, and similar integrations.
+
+## Define the synchronization contract
+
+Before creating requests, decide:
+
+1. **Direction:** external system to Shopify, Shopify to external system, or both.
+2. **Source of truth:** which system wins when the same field differs.
+3. **Scope:** the exact objects and fields that move.
+4. **Identity:** the stable key used to match records, such as a SKU, provider record ID, Shopify global ID, or another documented identifier.
+5. **Change detection:** one-time import, scheduled polling, or an event-driven update.
+6. **Write behavior:** create, update, or both; also decide how missing or deleted records should be handled.
+7. **Operational rules:** pagination, rate limits, duplicate-event handling, retries, and partial failures required by the APIs involved.
+
+APIEase does not decide these business rules for you. Confirm them with the owner of each system and use the current provider and Shopify API documentation as the contract.
+
+## Choose an execution pattern
+
+### One-time import
+
+Run a request manually for a bounded migration or initial catalog load. Start with a small, non-production sample and verify identifiers and field mappings before increasing the batch size.
+
+### Scheduled pull
+
+Add a [cron schedule](https://docs.apiease.com/docs/requests/triggers/cron-schedule) when APIEase should periodically ask a provider for changes. Prefer an endpoint that can filter by an updated timestamp or cursor when the provider supports one; the provider documentation determines the available filter and pagination rules.
+
+### Shopify event-driven update
+
+Use a [Shopify webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/webhooks-overview) when a supported Shopify event should start the workflow. Map only the event data required by the destination operation.
+
+### Multi-step orchestration
+
+Use a [Liquid request](https://docs.apiease.com/docs/requests/request-types/liquid-requests) when the workflow must iterate through records, branch, transform data, or call several saved requests. Use a [chained request](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) for a simpler response-to-next-request sequence.
+
+## Separate source, mapping, and destination operations
+
+A reusable synchronization usually has these parts:
+
+1. A source HTTP request reads changed records.
+2. A Liquid request or another documented transformation maps source fields to destination fields.
+3. A destination HTTP request creates or updates one destination record.
+4. The orchestrating request records or returns enough status information to identify partial failures.
+
+Keeping provider calls separate prevents one large request from mixing authentication, pagination, mapping, and writes. It also lets you test a read operation without performing a destination write.
+
+## Products and inventory
+
+Product and inventory synchronization needs separate identity decisions. A product, variant, SKU, inventory item, and inventory location are not interchangeable identifiers. Confirm which identifier each source field represents and which Shopify Admin API operation accepts it.
+
+For a third-party catalog or stock feed:
+
+- decide whether the workflow creates products, updates existing products, updates inventory, or combines those operations
+- define how provider records map to Shopify products and variants
+- define location mapping before writing inventory quantities
+- preserve the provider cursor or updated timestamp when incremental reads require it
+- make write behavior safe for repeated records according to the destination API contract
+
+See [Import products from a third-party system](https://docs.apiease.com/docs/general/apiease-details/importing-third-party-products) for the product-specific starting pattern. For Shopify calls and permissions, see [Shopify API calls and access tokens](https://docs.apiease.com/docs/general/shopify-api/shopify-api-calls-and-access-tokens).
+
+## Orders, customers, and fulfillments
+
+First identify the business event and direction. Common reusable patterns include sending a newly created Shopify order to an external system, periodically pulling fulfillment updates, or updating a customer record after a Shopify event.
+
+Treat orders, customers, fulfillments, and fulfillment orders as distinct API resources. Verify required identifiers, permissions, state transitions, and write constraints in the current API documentation for both systems. Do not assume that an order ID can be used where a fulfillment or customer ID is required.
+
+## Validate before enabling live writes
+
+Use provider sandbox accounts and non-production Shopify data when available. Validate a small read, its mapping, and one destination write separately. Then test pagination and repeated input before enabling a schedule or event trigger.
+
+APIEase executes the workflow as configured; it does not validate whether a write is correct for your business. Back up important data when practical and review any request that can create, update, or delete live records.
 
 SOURCE
 https://docs.apiease.com/docs/requests/import-from-postman
@@ -1684,7 +2064,7 @@ Bring your existing Postman requests into APIEase so you do not have to recreate
 4. Review the imported rows, replace variable auth values (for example `{{POSTMAN_BEARER_TOKEN}}`), and click **Save** to persist them.
 
 ## How requests are mapped
-- Postman variables such as `{{api_base}}` become APIEase variables (`{api_base}`) so you can wire them to [in-app parameters](./request-parameters/in-app-parameters/in-app-parameters-overview.md), [dynamic embedded parameters](./request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md), or payloads from [chained requests](./request-parameters/chained-requests.md) and [webhook triggers](./triggers/webhooks/mapping-webhook-parameters.md).
+- Postman variables such as `{{api_base}}` become APIEase variables (`{api_base}`) so you can wire them to [in-app parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-parameters-overview), [dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview), or payloads from [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) and [webhook triggers](https://docs.apiease.com/docs/requests/triggers/webhooks/mapping-webhook-parameters).
 - Path segments like `:id` and Postman URL variables become path parameters.
 - Bearer, Basic, and API key auth blocks become Authorization headers with variable values so secrets are not imported; update them after import with your real credentials or secrets.
 
@@ -1726,12 +2106,16 @@ CONTENT
 
 APIEase supports four request types. Pick the one that fits how you want to call external services, Shopify Flow, or internal system functions.
 
-- **[HTTP requests](./http-requests.md)**: Standard API calls to external services. You define the endpoint, method, headers, and body content.
-- **[Flow requests](./flow-requests.md)**: Start or continue a Shopify Flow automation, optionally including data pulled from other API calls or the storefront.
-- **[Liquid requests](./liquid-requests.md)**: Run a Liquid template that can call other APIEase requests and shape the output—helpful for logic or combining multiple requests without a custom app.
-- **[System requests](./system-requests.md)**: Run internal APIEase functions (for example, set/get/delete persisted variables) without calling an external URL.
+- **[HTTP requests](https://docs.apiease.com/docs/requests/request-types/http-requests)**: Standard API calls to external services. You define the endpoint, method, headers, and body content.
+- **[Flow requests](https://docs.apiease.com/docs/requests/request-types/flow-requests)**: Start or continue a Shopify Flow automation, optionally including data pulled from other API calls or the storefront.
+- **[Liquid requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests)**: Run a Liquid template that can call other APIEase requests and shape the output—helpful for logic or combining multiple requests without a custom app.
+- **[System requests](https://docs.apiease.com/docs/requests/request-types/system-requests)**: Run internal APIEase functions (for example, set/get/delete persisted variables) without calling an external URL.
 
 Use HTTP requests when you need a direct API call, Flow requests when the action should occur inside Shopify Flow, Liquid requests when you need templating or conditional logic without a custom app, and System requests for internal app-managed actions.
+
+Request type describes what APIEase executes. It is separate from a [trigger](https://docs.apiease.com/docs/requests/triggers/triggers-overview), which describes how a saved request starts, and from [parameters](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview), which provide its inputs.
+
+For quick answers about choosing a type and combining requests, see the [Building requests FAQ](https://docs.apiease.com/docs/general/faq/building-requests).
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-types/http-requests
@@ -1746,33 +2130,35 @@ HTTP API requests are highly configurable with many options.  HTTP requests allo
 
 ![HTTP request editor](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/add-http-api-requests.png?v=1744748372)
 
-**HTTP Request Fields**
+## HTTP request fields
 
 - **Name**: Optional display name.
-- **Handle**: Stable identifier used by [chained requests](../request-parameters/chained-requests.md), storefront calls, `apiease-cli`, and the public API.
-- **Type**: Set to `http` for a standard API call to an external service.
-- **Address**: Full endpoint of the external API (for example, `https://api.example.com/data`).
-- **Method**: Choose GET, POST, DELETE, PUT, PATCH, or OPTIONS.
-- **Parameters ([?](../request-parameters/in-app-vs-dynamic.md))**:
+- **Handle**: Stable identifier used by [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests), storefront calls, `apiease-cli`, and the public API.
+- **Type**: Choose **HTTP** for a standard API call to an external service.
+- **Address**: Enter the full endpoint URL from the provider's API documentation (for example, `https://api.example.com/data`). Keep values that belong in the query string, path placeholders, or body in their matching parameter locations.
+- **Method**: Choose the operation required by the provider: GET, POST, DELETE, PUT, PATCH, or OPTIONS.
+- **Parameters ([?](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic))**:
   - **Headers**: Add required headers (Authorization, Content-Type, etc.).
   - **Query parameters**: Values to include in the query string.
-  - **Body**: For POST/PUT style calls; accept raw JSON or form fields.
-  - **Path**: Dynamic [path variables](../request-parameters/path-variables.md) to substitute into the address.
-  - **System**: Used by APIEase for features such as [Customer Authentication](../customer-authenticated-requests.md).
-  - You can provide [in app parameters](../request-parameters/in-app-vs-dynamic.md) or pass [dynamic embedded parameters](../request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) from the storefront.
+  - **Body**: Add the payload for methods such as POST, PUT, or PATCH. APIEase supports standard JSON bodies and [form URL-encoded bodies](https://docs.apiease.com/docs/requests/request-parameters/form-urlencoded-bodies).
+  - **Path**: Dynamic [path variables](https://docs.apiease.com/docs/requests/request-parameters/path-variables) to substitute into the address.
+  - **System**: Configure [HTTP timeouts, response formats, and certificate verification](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/http-parameters), or other [System Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview).
+  - You can provide [in app parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic) or pass [dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) from the storefront.
   - If the request includes credentials or API keys, mark them as **Sensitive** so they remain encrypted and never shown in the storefront or admin UI.
   
 
 
-- **Triggers ([?](../triggers/webhooks/trigger-requests-from-a-webhook.md))**: Choose how the request should be triggered:
-  - Automatically via [webhook](../triggers/webhooks/trigger-requests-from-a-webhook.md)
-  - On a recurring schedule using [cron](../triggers/cron-schedule.md)
-  - As an endpoint served by APIEase via [Proxy Endpoints](../triggers/proxy-endpoint.md)
-  - [Remote Calls](../triggers/calling-requests-remotely.md) from outside Shopify.
+- **Triggers ([?](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook))**: Choose how the request should be triggered:
+  - Automatically via [webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook)
+  - On a recurring schedule using [cron](https://docs.apiease.com/docs/requests/triggers/cron-schedule)
+  - As an endpoint served by APIEase via [Proxy Endpoints](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint)
+  - [Remote Calls](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely) from outside Shopify.
   - Manually via the "Copy and Execute" link on the requests admin page
   - From your storefront using Shopify's app proxy
 
-- **Next Request**: You can implement [chained requests](../request-parameters/chained-requests.md) by setting the Next Request field to the handle of a request to run after this one completes.
+- **Next Request**: You can implement [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) by setting the Next Request field to the handle of a request to run after this one completes.
+
+For a concise comparison of request types, parameter locations, and multi-step options, see the [Building requests FAQ](https://docs.apiease.com/docs/general/faq/building-requests).
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-types/flow-requests
@@ -1783,31 +2169,49 @@ Flow Requests
 CONTENT
 # Flow Requests
 
-Flow requests allow you to securely trigger or continue a Shopify Flow workflow. You can pass data into the Flow from your storefront, a webhook, or another request, enabling flexible and secure automation without exposing any sensitive information.
+Flow requests hand data from APIEase to a Shopify Flow workflow. A Flow request is a request type, not an execution mechanism: add a suitable trigger when it is the entry request, or select its handle as **Next Request** when another APIEase request should continue into Flow.
+
+To run a saved APIEase request from a Shopify Flow workflow, use [APIEase Flow Action](https://docs.apiease.com/docs/requests/shopify-flow-integration/run-saved-request-from-flow). For the APIEase-to-Flow setup, follow [Minimal Flow integration](https://docs.apiease.com/docs/requests/shopify-flow-integration/minimal-flow-integration).
 
 ![Flow request editor](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/add-http-api-requests.png?v=1744748372)
 
 **Flow Request Fields**
 
 - **Name**: Optional display name.
-- **Handle**: Stable identifier used when another request calls this one via a [chained request](../request-parameters/chained-requests.md).
+- **Handle**: Stable identifier used when another request calls this one via a [chained request](https://docs.apiease.com/docs/requests/request-parameters/chained-requests).
 - **Type**: Set to `flow` to trigger a Shopify Flow workflow.
-- **Parameters ([?](../request-parameters/in-app-vs-dynamic.md))**:
+- **Parameters ([?](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic))**:
   - **Flow**: JSON key/value pairs passed to your workflow.
-  - **System**: Used by APIEase in cases such as [Customer Authentication](../customer-authenticated-requests.md).
-  - Supply [in app parameters](../request-parameters/in-app-vs-dynamic.md) or [dynamic embedded parameters](../request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) from the storefront.
+  - **System**: Control [immediate responses and Flow response wait times](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters), or configure behavior such as [Customer Authentication](https://docs.apiease.com/docs/requests/customer-authenticated-requests).
+  - Supply [in app parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic) or [dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) from the storefront.
   - Mark credentials or secrets as **Sensitive** so they are encrypted and never exposed in the storefront or admin UI.
 
-**Triggers ([?](../triggers/webhooks/trigger-requests-from-a-webhook.md))**: Choose how the request should be triggered:
+**Triggers ([?](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook))**: Choose how the request should be triggered:
 
-- Automatically via [webhook](../triggers/webhooks/trigger-requests-from-a-webhook.md)
-- On a recurring schedule using [cron](../triggers/cron-schedule.md)
-- As an endpoint served by APIEase via [Proxy Endpoints](../triggers/proxy-endpoint.md)
-- [Remote Calls](../triggers/calling-requests-remotely.md) from outside Shopify.
+- Automatically via [webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook)
+- On a recurring schedule using [cron](https://docs.apiease.com/docs/requests/triggers/cron-schedule)
+- As an endpoint served by APIEase via [Proxy Endpoints](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint)
+- [Remote Calls](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely) from outside Shopify.
 - Manually via the "Copy and Execute" link on the requests admin page
 - From your storefront using Shopify's app proxy
 
-**Next Request**: You can specify the handle of another request to run after this request finishes. This allows you to build multi-step workflows using [chained requests](../request-parameters/chained-requests.md).
+See [Triggers overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview) to choose an entry point and understand its prerequisite.
+
+**Next Request**: You can specify the handle of another request to run after this request finishes. This allows you to build multi-step workflows using [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests).
+
+## Return a result from the workflow
+
+APIEase receives the result when your workflow runs **APIEase Flow Action** with the original `executionId` in its **Flow Parameters** JSON. Follow [Minimal Flow integration](https://docs.apiease.com/docs/requests/shopify-flow-integration/minimal-flow-integration) to configure that callback.
+
+Place the callback after the steps whose results the caller needs. Steps after the callback may still be running when the caller receives its response. Without a resolving callback, a waiting request can reach its wait limit.
+
+## Concurrent calls and queued responses
+
+Two simultaneous calls to the same request ID can each wait for their own Flow result. The current default allows up to 10 concurrent executions per request ID, per shop.
+
+When the concurrency limit is reached, an additional call is queued and immediately returns **Request queued** with an execution ID. That response confirms the call was queued, not that its workflow has completed. The queued work is processed in the background when capacity becomes available.
+
+Neither disabling immediate response nor increasing the response wait time changes this queue behavior. See [Flow Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters) to configure those settings.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-types/liquid-requests
@@ -1840,7 +2244,7 @@ To create a Liquid request, choose **Liquid** as the request type and enter the 
 **Parameters**: Parameters are optional for Liquid requests. Add a saved parameter when a value should be stored on the request, reused as a default, marked sensitive, or inserted with `{parameterName}` before execution.
 
 - **Liquid**: Saved key value pairs you want available for `{parameterName}` substitution.
-- **System**: System parameters used by APIEase in special cases such as Customer Authentication.
+- **System**: Configure [immediate Liquid responses](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/liquid-parameters), [response overrides](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/response-overrides), or other [System Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview).
 
 **Saved Liquid parameters**
 
@@ -1869,9 +2273,9 @@ If your request includes confidential values such as API keys or credentials, ch
 
 **Runtime embedded Liquid parameters**
 
-Use `liquidParamsEmbedded` for per-call values supplied at runtime by a storefront call, widget call, or another request. For storefront and widget calls, `liquidParamsEmbedded` is an APIEase runtime query parameter. Its value must be a JSON object string. Inside the Liquid request, APIEase exposes those values at `apiEaseParameters.liquidParams`.
+Use `liquidParamsEmbedded` for per-call values supplied at runtime by storefront JavaScript, widget JavaScript, or another request. For storefront calls from theme or widget JavaScript, `liquidParamsEmbedded` is an APIEase runtime query parameter. Its value must be a JSON object string. Inside the Liquid request, APIEase exposes those values at `apiEaseParameters.liquidParams`.
 
-JavaScript storefront/widget call:
+Calling a request from theme or widget JavaScript:
 
 ```javascript
 const liquidParams = {
@@ -1981,7 +2385,7 @@ Response fields:
 
 **The function tag**
 
-Use the function tag to call a saved [Function](../../functions/functions-overview.md) from inside a Liquid Request. Functions are reusable Liquid helpers that run inside the current Liquid Request and do not create a separate request execution.
+Use the function tag to call a saved [Function](https://docs.apiease.com/docs/functions/functions-overview) from inside a Liquid Request. Functions are reusable Liquid helpers that run inside the current Liquid Request and do not create a separate request execution.
 
 Inline syntax:
 
@@ -2011,7 +2415,7 @@ Important behavior:
 - Missing arguments resolve to `null`.
 - Extra positional arguments are rejected.
 
-For full details and more examples, see [Using Functions in Liquid Requests](../../functions/using-functions-in-liquid-requests.md).
+For full details and more examples, see [Using Functions in Liquid Requests](https://docs.apiease.com/docs/functions/using-functions-in-liquid-requests).
 
 **Using values from a previous response**
 
@@ -2076,16 +2480,18 @@ Assign and capture:
 Triggers are optional. Add a trigger only for the entry point that should run this request. Do not add the Storefront App Proxy trigger just because the request is a Liquid request; add that trigger only when storefront theme code calls this request directly through Shopify's app proxy. A Liquid request invoked by another APIEase request with the `call` tag does not need its own Storefront App Proxy trigger.
 
 Choose how the request should be triggered:
-  - Automatically via [webhook](../triggers/webhooks/trigger-requests-from-a-webhook.md)
-  - On a recurring schedule using [cron](../triggers/cron-schedule.md)
-  - As an endpoint served by APIEase via [Proxy Endpoints](../triggers/proxy-endpoint.md)
-  - [Remote Calls](../triggers/calling-requests-remotely.md) from outside Shopify.
+  - Automatically via [webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook)
+  - On a recurring schedule using [cron](https://docs.apiease.com/docs/requests/triggers/cron-schedule)
+  - As an endpoint served by APIEase via [Proxy Endpoints](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint)
+  - [Remote Calls](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely) from outside Shopify.
   - Manually via the "Copy and Execute" link on the requests admin page
   - From your storefront using Shopify's app proxy
 
 **Next Request**
 
 You can specify the handle of another request to run after this request finishes. This allows you to build multi step workflows using chained requests.
+
+Use [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) for a simple linear handoff. Keep orchestration in Liquid when the workflow needs conditions, loops, response shaping, or several explicit `call` operations.
 
 **Examples**
 
@@ -2137,7 +2543,7 @@ CONTENT
 
 System requests run internal APIEase functions. Unlike HTTP requests, System requests do not call an external URL.
 
-If you want to manage the same persisted values manually in the admin, see [Variables Overview](../../variables/variables-overview.md).
+If you want to manage the same persisted values manually in the admin, see [Variables Overview](https://docs.apiease.com/docs/variables/variables-overview).
 
 ## When to use System requests
 
@@ -2148,10 +2554,10 @@ Use a System request when you need an internal, app-managed action (for example,
 **System Request Fields**
 
 - **Name**: Optional display name.
-- **Handle**: Stable identifier used when another request calls this one via a [chained request](../request-parameters/chained-requests.md).
+- **Handle**: Stable identifier used when another request calls this one via a [chained request](https://docs.apiease.com/docs/requests/request-parameters/chained-requests).
 - **Type**: Set to `system`.
 - **Address**: Unused for System requests (leave blank).
-- **Parameters ([?](../request-parameters/in-app-vs-dynamic.md))**:
+- **Parameters ([?](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic))**:
   - **System**: Provide the system parameters listed below.
 
 System request behavior is controlled by two in-app system parameters:
@@ -2277,17 +2683,26 @@ CONTENT
 
 APIEase lets you pass data into requests in several ways so each run has the inputs it needs without exposing sensitive values.
 
-- **In-app parameters**: Static or confidential values stored securely in APIEase. Use these when the value rarely changes or must stay server-side.
-- **Dynamic embedded parameters**: Values provided at runtime from the storefront, webhooks, or other triggers (headers, query, path, body, flow, or Liquid). Use these for request-specific data like customer ids, page context, or user input.
+- **[In-app parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-parameters-overview)**: Saved values configured on the request. Use these when the value rarely changes or when a sensitive request parameter must remain server-side.
+- **[Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview)**: Values provided at runtime by a caller, such as storefront code, a widget, or another request. They can supply headers, query values, path values, a body, Flow values, or Liquid values for one execution.
 - **Path variables**: Placeholders in the request URL (`/products/{id}`) that are filled by in-app or dynamic embedded parameters when the request executes.
 - **Chained request parameters**: Data passed from the response of one request into the next request in a sequence.
 
 Choose the parameter type based on where the value comes from and whether it must stay confidential. Combine these options to keep sensitive data secure while still letting each trigger supply the context it needs.
 
+Choose the parameter location from the receiving API's contract:
+
+- **[Headers](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-header-parameters)** carry request metadata, content type, or authentication.
+- **[Query parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-query-parameters)** become key-value pairs in the URL query string.
+- **[Path parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-path-parameters)** replace named [path variables](https://docs.apiease.com/docs/requests/request-parameters/path-variables) in the address.
+- **[Body](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-body-parameters)** carries the request payload. Use [form URL-encoded bodies](https://docs.apiease.com/docs/requests/request-parameters/form-urlencoded-bodies) only when the receiving API requires that content type.
+
 For Liquid requests, distinguish saved Liquid parameters from runtime embedded Liquid parameters:
 
 - **Saved Liquid parameters** are configured on the request and can be substituted with `{parameterName}` before execution. Use saved Liquid parameters for stored defaults, sensitive values, or other server-side configured values.
 - **Runtime embedded Liquid parameters** are supplied by a caller with `liquidParamsEmbedded` and are read in Liquid through `apiEaseParameters.liquidParams.<parameterName>`. Use `liquidParamsEmbedded` for per-call values supplied at runtime.
+
+See [In-app parameters vs dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic) for the saved-versus-runtime decision and override behavior. For quick request-building answers, see the [Building requests FAQ](https://docs.apiease.com/docs/general/faq/building-requests).
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic
@@ -2298,9 +2713,13 @@ In-app parameters vs dynamic embedded parameters
 CONTENT
 # In-app parameters vs dynamic embedded parameters
 
-Parameters that do not change, static parameters, should be set in the app. A classic example of this would be setting the header parameter "Content-Type" to "application/json".
+Use an **in-app parameter** for a value saved with the request. Examples include `Content-Type: application/json`, a stable provider setting, or a sensitive request credential that must stay server-side.
 
-Parameters that might change per call have to be set as dynamic embedded parameters. An example of this would be a request about a particular product that the customer is viewing in the storefront. In this case you would set product id as an embedded parameter directly in the storefront page that needs to request information about a particular product.
+Use a **dynamic embedded parameter** for a runtime value that can change on each call. For example, storefront code can pass the ID of the product currently being viewed instead of saving one product ID on the request. Dynamic embedded parameters are also called runtime parameters or embedded parameters.
+
+Both forms use the same locations: headers, query parameters, path parameters, body, Flow parameters, Liquid parameters, and supported System parameters. If a saved parameter and dynamic embedded parameter have the same name in the same location, the dynamic embedded value normally overrides the saved value for that execution. Some [System Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview), including `REQUEST_TIMEOUT_SECONDS`, `IMMEDIATE_FLOW_RESPONSE`, and `RECORD_RUNTIME_HISTORY`, use the saved request setting instead.
+
+Start with the [request parameters overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview), then use the [in-app parameter](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-parameters-overview) or [dynamic embedded parameter](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) pages for setup details.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-parameters-overview
@@ -2319,20 +2738,24 @@ In-app parameters are values you configure in the APIEase admin to be injected i
 - Reduce duplication: define values once instead of repeating them in multiple requests or client code.
 
 **Parameter types**
-- [Headers](./in-app-header-parameters.md) for auth and custom metadata.
-- [Body](./in-app-body-parameters.md) for payload fields you manage centrally.
-- [Path](./in-app-path-parameters.md) for URL segments that should not be exposed on the storefront.
-- [Query](./in-app-query-parameters.md) for reusable query strings.
-- [System](./in-app-system-parameters.md) auto-populated by APIEase for common Shopify context.
-- [Flow](./in-app-flow-parameters.md) to map Shopify Flow tokens into your requests.
+- [Headers](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-header-parameters) for auth and custom metadata.
+- [Body](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-body-parameters) for payload fields you manage centrally.
+- [Path](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-path-parameters) for URL segments that should not be exposed on the storefront.
+- [Query](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-query-parameters) for reusable query strings.
+- [System](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-system-parameters) auto-populated by APIEase for common Shopify context.
+- [Flow](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-flow-parameters) to map Shopify Flow tokens into your requests.
 
 **How to add**
 1. Open a request in the APIEase admin and click the plus icon in the Parameter column.
-2. Choose the parameter location (Header, Body, Path, or Query), then enter the name and value.
+2. Choose the parameter location (Header, Body, Path, or Query), then enter the name and value. Turn on **Sensitive** for a credential or other confidential value.
 3. Save the request. APIEase will inject these values whenever the request is executed.
 
+After you save a sensitive request parameter, APIEase masks it and does not return its value through normal read interfaces. It decrypts the value only when executing the request. If you lose the original value, obtain or generate a replacement at its issuing provider and replace the saved value; APIEase cannot reveal it.
+
 **When to combine with dynamic parameters**
-Use in-app parameters for anything sensitive or static. If you need runtime data from the storefront (such as cart info, page context, or user input), pair them with [dynamic embedded parameters](../dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md). Keep credentials and other confidential values in-app and server-side.
+Use in-app parameters for anything sensitive or static. If you need runtime data from the storefront (such as cart info, page context, or user input), pair them with [dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview). Keep credentials and other confidential values in-app and server-side.
+
+Sensitive parameter storage protects the saved request configuration. It does not remove private data from the external API's response. Do not make a request publicly callable if its response can contain credentials or other private data.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-header-parameters
@@ -2351,13 +2774,16 @@ While editing your request:
 2. Select the **Header** radio button.
 3. Enter the header name in the **Name** field.
 4. Enter the header value in the **Value** field.
-5. Click **Save** at the top of the request editor.
+5. Turn on **Sensitive** if the header contains an API key, access token, password, or other confidential value.
+6. Click **Save** at the top of the request editor.
 
 **Example Header Parameter:**
 - **Name**: `Content-Type`
 - **Value**: `application/json`
 
-You can also use [embedded parameters](../dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) to dynamically set parameters from your storefront.
+You can also use [embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) to dynamically set parameters from your storefront.
+
+Do not use an embedded parameter for a credential. Store the credential as a sensitive in-app parameter so storefront code never supplies it.
 
 ![In-app header parameter example](https://tawk.link/65552a3acec6a91282103248/kb/attachments/dbGjN5Waw6.png)
 
@@ -2391,7 +2817,7 @@ While editing your request:
 {"arg1":"value1","arg2":"value2","arg3":"value3"}
 ```
 
-You can also use [embedded parameters](../dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) to dynamically set parameters from your storefront.
+You can also use [embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) to dynamically set parameters from your storefront.
 
 ![In-app body parameter entry](https://tawk.link/65552a3acec6a91282103248/kb/attachments/i0yOK5rG4k.png)
 
@@ -2404,7 +2830,7 @@ In-app path parameters
 CONTENT
 # In-app path parameters
 
-You can add path parameters to any APIEase request directly from the request editor. Path parameters are used to replace [path variables](../path-variables.md) within your address.
+You can add path parameters to any APIEase request directly from the request editor. Path parameters are used to replace [path variables](https://docs.apiease.com/docs/requests/request-parameters/path-variables) within your address.
 
 **How to Add a Path Parameter**
 
@@ -2421,7 +2847,7 @@ While editing your request:
 
 If your API endpoint is structured as `https://ex.com/products/{pathVariable1}` the system will render the address as `https://ex.com/products/inAppValue1` at runtime.
 
-You can also use [embedded parameters](../dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) to dynamically set parameters from your storefront.
+You can also use [embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) to dynamically set parameters from your storefront.
 
 ![In-app path parameter configuration](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/path-variable-edit.png?v=1744137415)
 
@@ -2436,7 +2862,8 @@ CONTENT
 
 You can add query parameters to any APIEase request directly from the request editor. Query parameters are used to pass key-value pairs in the URL, usually for filtering, identifying, or paginating data in API requests.
 
-**How to Add a Query Parameter**While editing your request, click the plus icon in the Parameter column.Select the Query radio button.Enter the name of your query parameter in the Name field.Enter the parameter value in the Value field.Click the Save button at the top of the request editor.**Query Parameter Example**:To add status=active to a request URL, enter the following:
+## How to add a query parameter
+
 While editing your request:
 1. Click the plus icon in the Parameter column.
 2. Select the **Query** radio button.
@@ -2444,13 +2871,14 @@ While editing your request:
 4. Enter the parameter value in the **Value** field.
 5. Click **Save** at the top of the request editor.
 
-**Query Parameter Example**  
+## Query parameter example
+
 To add `status=active` to a request URL:
 - **Name**: `status`
 - **Value**: `active`
-Result: `https://ex.com/items?status=active` (additional query params are appended automatically).
+Result: `https://example.com/items?status=active` (additional query parameters are appended automatically).
 
-You can also use [embedded parameters](../dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) to dynamically set parameters from your storefront.
+You can also use [embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) to dynamically set parameters from your storefront.
 
 ![In-app query parameter configuration](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/in-app-query-parameters.png?v=1744835524)
 
@@ -2466,6 +2894,8 @@ CONTENT
 System parameters are special values that control how a request is handled by APIEase. Unlike headers, query parameters, or body values that are sent to the destination endpoint, system parameters affect the behavior of the request itself.
 
 These parameters are managed directly in the request editor.
+
+See [System Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) for the complete reference, including HTTP, Flow, Liquid, response overrides, and runtime history settings.
 
 **How to Add a System Parameter**  
 While editing your request:
@@ -2518,7 +2948,7 @@ If your Flow expects a variable named `customer_data` that contains both an emai
 }
 ```
 
-You can also use [embedded parameters](../dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) to dynamically set parameters from your storefront.
+You can also use [embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) to dynamically set parameters from your storefront.
 
 ![In-app flow parameter fields](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/in-app-flow-parameters.png?v=1744838680)
 
@@ -2560,9 +2990,9 @@ Dynamic embedded parameters are useful for sending runtime information, but they
 
 The purpose of APIEase is to keep those credentials safe and hidden on the server side. If you include them in storefront JavaScript or Liquid, they become visible to anyone who visits your store.
 
-If you need to authenticate with an external system and use a returned authentication code, you can use **APIEase chained requests**. In this setup, the first request performs the authentication, and the second request uses the returned token or session key. This keeps all confidential steps on the server and completely out of the storefront.
+If you need to authenticate with an external system and use a returned authentication code, you can use **APIEase chained requests**. In this setup, the first request performs the authentication, and the second request uses the returned token or session key. Keep the authentication request private, and ensure the final response does not return a token or other confidential data to the storefront.
 
-You can read more about [chained requests here](../chained-requests.md) and view an [authentication example here](../../../general/apiease-details/authentication-example.md).
+You can read more about [chained requests here](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) and view an [authentication example here](https://docs.apiease.com/docs/general/apiease-details/authentication-example).
 
 Always store confidential credentials in the APIEase admin. Use dynamic parameters only for data that is safe to expose and specific to the current customer or page context.
 
@@ -2579,7 +3009,7 @@ You can embed dynamic values into:
 
 Each of these can be populated using JavaScript embedded in your storefront snippet. The data you pass is merged into the request structure when it is triggered, ensuring both flexibility and security.
 
-For Liquid requests, use `liquidParamsEmbedded` to pass a JSON object of per-call values. Inside the Liquid request, read those values from `apiEaseParameters.liquidParams.<parameterName>`. See [Dynamic embedded Liquid parameters](./liquid-parameters.md) for a complete example.
+For Liquid requests, use `liquidParamsEmbedded` to pass a JSON object of per-call values. Inside the Liquid request, read those values from `apiEaseParameters.liquidParams.<parameterName>`. See [Dynamic embedded Liquid parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) for a complete example.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/path-parameters
@@ -2770,13 +3200,13 @@ Dynamic embedded Liquid parameters
 CONTENT
 # Dynamic embedded Liquid parameters
 
-Use `liquidParamsEmbedded` when a storefront call or widget call needs to pass per-call values into a Liquid request.
+Use `liquidParamsEmbedded` when calling a Liquid request from theme or widget JavaScript to pass per-call values.
 
 `requestId` and `liquidParamsEmbedded` are APIEase runtime query parameters. Set `requestId` to the request handle that should run. Set `liquidParamsEmbedded` to a JSON-stringified object. Inside the Liquid request, APIEase exposes that object at `apiEaseParameters.liquidParams`.
 
 The keys inside `liquidParamsEmbedded` are user-defined. For example, if the caller sends `{ "visitorName": "Alex" }`, the Liquid request reads `apiEaseParameters.liquidParams.visitorName`.
 
-JavaScript storefront/widget call:
+Calling a request from theme or widget JavaScript:
 
 ```javascript
 const liquidParams = {
@@ -2881,7 +3311,7 @@ productId=sku-123&quantity=2&warehouse=north-2&priority=high&receiptId=rcpt-789
 ## Notes
 
 - If you need to encode special characters, URL-encode them in the body or embedded values.
-- For JSON request bodies, keep using the standard JSON body parameter flow described in [In-app body parameters](./in-app-parameters/in-app-body-parameters.md).
+- For JSON request bodies, keep using the standard JSON body parameter flow described in [In-app body parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-body-parameters).
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/path-variables
@@ -2954,42 +3384,23 @@ Triggers overview
 CONTENT
 # Triggers overview
 
-Every APIEase request uses the same configuration but can be invoked in different ways depending on where the call originates. Choose the trigger that best matches your workflow and follow the linked guides for setup details.
+Choose the execution mechanism that matches where the run starts and what the caller can provide.
 
-## [Webhooks](./webhooks/trigger-requests-from-a-webhook.md)
-- Start a request automatically when Shopify emits a webhook event.
-- Ideal for reacting to store activity such as orders, carts, or customers.
-- See also [Mapping webhook parameters](./webhooks/mapping-webhook-parameters.md) to pass webhook fields into your request.
+| Objective | Use | Main prerequisite |
+| --- | --- | --- |
+| Test or run a one-off action in APIEase admin | [Manual call](https://docs.apiease.com/docs/requests/triggers/manual-calls) | A saved request |
+| React to a Shopify event | [Shopify webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook) | A webhook trigger for the required event |
+| Run at recurring times | [Cron schedule](https://docs.apiease.com/docs/requests/triggers/cron-schedule) | A valid five-field cron expression; schedules use UTC |
+| Call a saved request from a server or external automation | [Remote call](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely) | The request handle, shop domain, and an APIEase API key |
+| Publish a purpose-built HTTP route | [Proxy endpoint](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint) | A unique path and method; choose whether authentication is required |
+| Call from Shopify theme code | [Storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) | A Storefront App Proxy trigger on the directly called request |
+| Call from reusable storefront UI | [Widget request call](https://docs.apiease.com/docs/requests/triggers/widget-calls) | A saved widget with JavaScript that makes a storefront call, and a Storefront App Proxy trigger on the directly called request |
 
-## [Cron Schedule](./cron-schedule.md)
-- Execute a request on a fixed schedule without any external event.
-- Use for regular syncs, polling, or time-based jobs.
+Customer-authenticated calls are a restricted form of storefront call, not a separate general-purpose API. Use [customer validation](https://docs.apiease.com/docs/requests/customer-authenticated-requests) when a storefront request must require a logged-in customer or allow only selected customer IDs.
 
-## [Proxy Endpoint](./proxy-endpoint.md)
-- Expose a stable endpoint that forwards incoming HTTP calls to a configured request.
-- Helpful when another system needs to call APIEase with a stable request handle instead of an internal id.
+After an entry request runs, **Next Request** can continue a simple linear workflow. This is [request chaining](https://docs.apiease.com/docs/requests/request-parameters/chained-requests), not an external trigger. A [Flow request](https://docs.apiease.com/docs/requests/request-types/flow-requests) can similarly hand data to Shopify Flow after starting from any suitable entry point.
 
-## [Manual Calls](./manual-calls.md)
-- Run a request directly from the admin for testing or one-off actions.
-- Best for validating configuration before exposing the request to any external source.
-
-## [Storefont Calls](./storefont-calls.md)
-- Let theme code call a request via Shopify's app proxy without exposing secrets.
-- Great for customer-facing interactions that need server-side execution.
-- Works with [Customer authenticated requests](../customer-authenticated-requests.md) to access customer context securely.
-
-## [Widget Calls](./widget-calls.md)
-- Trigger requests from APIEase widgets on the storefront.
-- A reusable alternative to pasting request snippets into theme code.
-- See [Using Requests in Widgets](../../widgets/using-requests-in-widgets.md) for the widget-side configuration.
-
-## [Remote Calls](./calling-requests-remotely.md)
-- Invoke a request from outside Shopify using APIEase's remote caller API.
-- Use when automation or third-party systems must trigger requests directly.
-
-## [Chained Request](../request-parameters/chained-requests.md)
-- Trigger a follow-on request using the output of a previous one.
-- Useful for multi-step flows such as authenticate-then-call or data enrichment.
+For quick comparisons and prerequisites, see the [Running requests FAQ](https://docs.apiease.com/docs/general/faq/running-requests).
 
 SOURCE
 https://docs.apiease.com/docs/requests/triggers/webhooks/webhooks-overview
@@ -3006,10 +3417,10 @@ In APIEase, use uppercase webhook event constants such as `ORDERS_CREATE`, `CART
 
 You can add a webhook trigger to any request. See the [Shopify webhook topics](https://shopify.dev/docs/api/admin-graphql/2023-10/enums/WebhookSubscriptionTopic) for the underlying Shopify event list.
 
-## [Trigger requests from a webhook](./trigger-requests-from-a-webhook.md)
+## [Trigger requests from a webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook)
 - Configure how to start requests from webhook events.
 
-## [Mapping webhook parameters](./mapping-webhook-parameters.md)
+## [Mapping webhook parameters](https://docs.apiease.com/docs/requests/triggers/webhooks/mapping-webhook-parameters)
 - Map webhook payload fields into your request parameters.
 
 SOURCE
@@ -3079,7 +3490,7 @@ When the request is triggered, the webhook payload is passed as the body.
 }
 ```
 
-To pull specific payload values into headers, query params, or body fields, see [Mapping webhook parameters](./mapping-webhook-parameters.md).
+To pull specific payload values into headers, query params, or body fields, see [Mapping webhook parameters](https://docs.apiease.com/docs/requests/triggers/webhooks/mapping-webhook-parameters).
 
 SOURCE
 https://docs.apiease.com/docs/requests/triggers/webhooks/mapping-webhook-parameters
@@ -3140,10 +3551,10 @@ SOURCE
 https://docs.apiease.com/docs/requests/triggers/cron-schedule
 
 TITLE
-Cron Schedule
+Cron schedule
 
 CONTENT
-# Cron Schedule
+# Cron schedule
 
 Use the built-in scheduler when you need a request to run at fixed times without any webhook or manual trigger.
 
@@ -3156,6 +3567,7 @@ Use the built-in scheduler when you need a request to run at fixed times without
 
 ## Tips
 - Cron uses a 5-field format: minute, hour, day of month, month, day of week.
+- Cron schedules use UTC. Convert the intended local time to UTC and account for daylight-saving changes when applicable.
 - Use `*/15 * * * *` for every 15 minutes, `0 9 * * 1-5` for 9 AM on weekdays, and `0 0 1 * *` for the first day of each month.
 - Make sure the request has all required parameters so the scheduled runs succeed without manual input.
 
@@ -3163,12 +3575,12 @@ SOURCE
 https://docs.apiease.com/docs/requests/triggers/proxy-endpoint
 
 TITLE
-Proxy Endpoint
+Proxy endpoint
 
 CONTENT
-# Proxy Endpoint
+# Proxy endpoint
 
-Create a public API endpoint that executes an APIEase request and returns its final response to the caller—no custom server needed.
+Create a purpose-built HTTP endpoint that executes an APIEase request and returns its final response to the caller--no custom server needed. Unlike a [remote call](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely), a proxy endpoint has its own configured path and method and can be authenticated or unauthenticated.
 
 ## Endpoint format
 Your proxy endpoint URL looks like:
@@ -3188,8 +3600,11 @@ When someone calls this URL using the HTTP method you specify (GET, POST, etc.),
 5. The request’s final response is returned to the caller.
 
 ## Authentication options
-- **Authenticated**: Caller must authenticate using the same scheme as Remote API Calls.
-- **Unauthenticated**: Open access for anyone with the URL.
+
+- **Authenticated**: The caller supplies an APIEase API key. The shop is already identified by the `<shop-name>` segment in the proxy URL.
+- **Unauthenticated**: Anyone who can reach the URL can call it. Treat all incoming values as untrusted and do not return credentials or private data.
+
+Proxy endpoints are intended for external HTTP callers. For code running on the Shopify storefront, use a [storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) through Shopify's app proxy instead.
 
 ## Configure a proxy endpoint trigger
 1. Open any APIEase request.
@@ -3219,8 +3634,9 @@ You can run any configured APIEase request on demand from the admin interface. T
 4. View the response and execution details in the run output.
 
 ## Tips
-- Manual runs use the same configuration as other triggers (storefront, webhook, schedule, etc.), so they are a safe way to validate request logic before exposing it externally.
+- Manual runs use the same saved request configuration as other triggers (storefront, webhook, schedule, etc.), so they are a controlled way to validate request logic before adding another entry point. A manual run can still create, update, or delete live data.
 - If a run fails, use the response details to adjust parameters or request configuration, then run again.
+- Before testing a request that can create, update, or delete data, use a test environment or provider-supported dry run when available. Follow [Troubleshoot requests](https://docs.apiease.com/docs/requests/troubleshooting-requests) to isolate the request, provider response, trigger, and chained steps.
 
 SOURCE
 https://docs.apiease.com/docs/requests/triggers/storefont-calls
@@ -3233,10 +3649,13 @@ CONTENT
 
 Run any APIEase request directly from your Shopify storefront using Shopify's app proxy. This lets you start workflows from theme code without exposing credentials or private logic in the browser.
 
-If you want a more convenient and reusable way to make storefront calls, use [Widget Calls](./widget-calls.md) and trigger the request from an APIEase widget instead of pasting snippets into theme Liquid.
+For a reusable storefront component, put the JavaScript request call in an [APIEase widget](https://docs.apiease.com/docs/requests/triggers/widget-calls). The widget uses the same storefront route and Storefront App Proxy trigger described below.
 
-## Caution
-Use caution with Storefront App Proxy requests. Anyone from anywhere can call Storefront App Proxy requests. APIEase verifies that Storefront App Proxy requests have been routed through the Shopify App Proxy and that a Storefront App Proxy trigger has been added to the directly called request. However, anyone can call this request via the Shopify App Proxy just as you can from your storefront.
+## Storefront access boundary
+
+APIEase verifies that the call was routed through Shopify's app proxy and that the directly called request has a Storefront App Proxy trigger. That does not make the request customer-authenticated: anyone who can use the storefront route can call it unless you add [customer validation](https://docs.apiease.com/docs/requests/customer-authenticated-requests).
+
+The same-origin app-proxy path lets theme code avoid a direct browser call to APIEase. This is the documented APIEase storefront route, but it is not a guarantee that arbitrary browser requests to external services will avoid CORS restrictions. Browser-origin and CORS behavior still depends on the route being called and the response headers returned by that service.
 
 ## How it works
 - Your theme calls the APIEase app proxy path (for example `/apps/apiease/integration/caller/call`) and includes the request handle as the `requestId` value for the request to run.
@@ -3251,7 +3670,7 @@ Use caution with Storefront App Proxy requests. Anyone from anywhere can call St
 5. Click **Save** at the top of the screen.
 
 ## Call from your theme
-Use the copied snippet as-is to verify the integration, then extend it with any [dynamic embedded parameters](../request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview.md) you need for runtime data.
+Use the copied snippet as-is to verify the integration, then extend it with any [dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) you need for runtime data.
 
 ```html
 <script>
@@ -3277,29 +3696,31 @@ Do not add a Storefront App Proxy trigger to helper requests that are only invok
 If the customer is logged in when the app proxy runs, Shopify includes their customer id in the call.
 
 - Require a logged-in customer: add a system parameter named `validateCustomer` with value `true`.
-- Restrict to a specific customer: add a system parameter named `customerId` set to the allowed Shopify customer id.
+- Restrict to selected customers: add one system parameter named `customerId` for each allowed Shopify customer ID.
 
-For detailed setup and screenshots, see [Customer authenticated requests](../customer-authenticated-requests.md). If validation fails, APIEase blocks the call and no response is returned to the storefront.
+For detailed setup and screenshots, see [Customer authenticated requests](https://docs.apiease.com/docs/requests/customer-authenticated-requests). If validation fails, APIEase blocks the call and no response is returned to the storefront.
 
 SOURCE
 https://docs.apiease.com/docs/requests/triggers/widget-calls
 
 TITLE
-Widget Calls
+Widget Request Calls
 
 CONTENT
-# Widget Calls
+# Widget Request Calls
 
-Widgets are reusable storefront components managed inside APIEase. They can render UI and call requests. If you have not used widgets before, start with [Widgets overview](../../widgets/widgets-overview.md).
+Widgets are reusable storefront components managed inside APIEase. They can render UI and call requests. If you have not used widgets before, start with [Widgets overview](https://docs.apiease.com/docs/widgets/widgets-overview).
 
-Widget Calls are a trigger type for APIEase requests. They are a more convenient, reusable way to make [Storefront Calls](./storefont-calls.md), and they replace manually pasting request snippets into theme Liquid.
+To call a request from a widget, use JavaScript to send a [storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) through Shopify's app proxy. Add the **Storefront App Proxy** trigger to the directly called request and save it.
 
 ## How it works
-- The widget runs in the browser.
-- The widget triggers the request.
+- The widget's JavaScript runs in the browser.
+- The JavaScript calls the request through Shopify's app proxy.
 - The request executes on the server and returns a response.
 
-To configure the widget-side request call, see [Using Requests in Widgets](../../widgets/using-requests-in-widgets.md).
+To configure the widget-side request call, see [Using Requests in Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets).
+
+A widget is the reusable Liquid, CSS, and JavaScript component. The request remains a separate server-side resource. Choose a [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block) to place the widget on a specific page or section, or a [Widget App Embed](https://docs.apiease.com/docs/widgets/widget-app-embed) for a widget that should load across the storefront.
 
 ## Passing values to Liquid requests
 Widget JavaScript uses the same APIEase integration endpoint as storefront calls. For Liquid requests, set `requestId` to the request handle and pass per-call values with `liquidParamsEmbedded`.
@@ -3313,28 +3734,32 @@ SOURCE
 https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely
 
 TITLE
-Calling APIEase Requests Remotely
+Calling APIEase requests remotely
 
 CONTENT
-# Calling APIEase Requests Remotely
+# Calling APIEase requests remotely
 
-You can call any APIEase request from any http client by making a direct HTTP request to the APIEase platform. This allows you to run your configured requests from outside Shopify, such as from custom servers, external apps, or third-party platforms.
+Use a remote call when a trusted server, automation, or external application needs to run an existing request by its handle. The caller authenticates directly to APIEase with an APIEase API key and identifies the target shop in a header.
 
-**Step 1**: Create an API Key
+A remote call is different from a [Proxy Endpoint](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint): a proxy endpoint gives a request a purpose-built path and HTTP method and can be public, while the remote caller uses APIEase's shared caller URL and always requires the APIEase remote-call headers. Neither is the Shopify app-proxy route used by [storefront calls](https://docs.apiease.com/docs/requests/triggers/storefont-calls).
+
+## 1. Create an APIEase API key
 
 1. Navigate to the Settings page in the APIEase admin.
 2. Click **Generate API Key**.
 3. Copy and store the key securely. You will use this key to authenticate your external calls.
 
-**Step 2**: Make the Remote Call
+## 2. Make the remote call
 
 **Address**: `https://app-admin.apiease.com/api/remote/caller/call?requestId=<your-request-handle>`
 
 **Headers:**
-- `x-shop-myshopify-domain`: `yourstore.myshopify.com`
-- `x-apiease-api-key`: `<your_generated_api_key>`
+- `x-shop-myshopify-domain`: `your-store.myshopify.com`
+- `x-apiease-api-key`: `YOUR_API_KEY`
 
 Replace `<your-request-handle>` with the handle of the request you want to call. The query parameter is still named `requestId`, but the value should be the request handle for new integrations.
+
+Keep the APIEase API key in the trusted external system. Do not put it in storefront JavaScript, theme Liquid, or widget code.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/chained-requests
@@ -3345,7 +3770,7 @@ Chained requests
 CONTENT
 # Chained requests
 
-Chained requests allow you to call one request after another, using the response from the first request as input to the second. This is especially useful when working with systems that require multi-step interactions, such as authentication followed by data access.
+Chained requests allow you to call one request after another, using the response from the first request as input to the second. Chaining is a continuation after an entry request runs, not a trigger that external callers invoke directly.
 
 For example, you might need to:
 
@@ -3353,11 +3778,11 @@ For example, you might need to:
 - Receive an access token in the response
 - Use that token to make a second request to retrieve data or perform an action
 
-**Setting Next Request**
+## Set the next request
 
 Set the request handle of the next request you would like to call in the **Next Request** field.
 
-**How Chaining Works in APIEase**
+## How chaining works in APIEase
 
 Each request in APIEase can optionally trigger another request once it completes. The second request can use values from the first request's response body as parameters.
 
@@ -3371,7 +3796,7 @@ Here's an example of what the JSON response from Request A might look like:
 ```json
 {
   "auth": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+    "token": "YOUR_ACCESS_TOKEN"
   }
 }
 ```
@@ -3382,7 +3807,7 @@ This tells APIEase to pull the token field from the auth object in the JSON resp
 
 ![Chained request editor overview](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/chained-requests-description.png?v=1744331402)
 
-**Flexible Use of Response Data**
+## Use response data in the next request
 
 You can use response values from Request A in multiple parts of Request B:
 
@@ -3414,19 +3839,21 @@ You could then use those values in Request B like this:
 ```
 The curly brace syntax tells APIEase to substitute in the corresponding value from the previous response.
 
-**A Real-World Example**
+## Authentication example
 
 If you want to see this in action, we've created a walkthrough of a common use case: authenticating with a service, storing the returned access token, and using it in a follow-up request.
 
-[View Authentication Example](../../general/apiease-details/authentication-example.md)
+[View Authentication Example](https://docs.apiease.com/docs/general/apiease-details/authentication-example)
 
-**When to Use Chained Requests**
+## When to use chained requests
 
 Use chained requests when:
 
 - You need to authenticate before calling a protected API
 - You need to transform or fetch dynamic data before continuing
 - You want to build multi-step workflows inside APIEase without building and hosting a custom backend
+
+Use a chain for a simple linear handoff. If the workflow needs conditions, loops, response shaping, or several explicit calls, use a [Liquid request](https://docs.apiease.com/docs/requests/request-types/liquid-requests) instead.
 
 SOURCE
 https://docs.apiease.com/docs/requests/shopify-flow-integration/architecture
@@ -3442,6 +3869,10 @@ APIEase and Shopify Flow play different roles. Use Flow for logic and native Sho
 ## Core philosophy
 - Shopify Flow is the logic engine: branching, conditions, and Shopify-native actions.
 - APIEase is the API execution layer: authenticated API calls, scheduling, response handling, and triggering Flow when needed.
+
+## Starting in Shopify Flow
+
+A workflow with a Shopify Flow trigger can invoke an existing APIEase request using [APIEase Flow Action](https://docs.apiease.com/docs/requests/shopify-flow-integration/run-saved-request-from-flow). Set its required Flow Parameters JSON to include `requestId` with the saved request handle. That request can remain HTTP, Liquid, or another type appropriate to its operation. No prior APIEase Flow execution is needed.
 
 ## Why start in APIEase
 - You need to call external APIs (ERP, warehouse, AI, CRM, etc.).
@@ -3471,6 +3902,44 @@ APIEase and Shopify Flow play different roles. Use Flow for logic and native Sho
 Put APIEase at the edges (inbound/outbound APIs, credentials, chaining) and Flow in the middle as the logic engine. If a workflow touches external services or credentialed calls, start or end in APIEase and run the logic in Flow.
 
 SOURCE
+https://docs.apiease.com/docs/requests/shopify-flow-integration/run-saved-request-from-flow
+
+TITLE
+Run a saved request from Shopify Flow
+
+CONTENT
+# Run a saved request from Shopify Flow
+
+Use **APIEase Flow Action** when a Shopify Flow workflow needs to run a request already saved in APIEase.
+
+1. Save the request in APIEase in the same store. Keep its type appropriate to the work: for an external API call, use **HTTP** with the required URL, method, parameters, and credentials. Mark credentials **Sensitive**. Copy the request's **Handle**.
+2. Create or open your Shopify Flow workflow with the trigger you need, such as an order event.
+3. Add the **APIEase Flow Action** (`apiease-flow-action`).
+4. Set the required **Flow Parameters** field to valid JSON containing `requestId` with your saved request handle:
+
+```json
+{"requestId":"inventory-sync"}
+```
+
+5. Supply any additional values the saved request needs, then turn on the workflow. When the action runs, APIEase invokes the saved request through normal request execution.
+
+The JSON key is `requestId` even when its value is a handle. The saved request's internal ID also works. Use the handle, not its display name, a full request URL, or a separate `requestHandle` field. You do not need a proxy endpoint, remote API key, storefront trigger, or conversion to the **Flow** request type for this action. Normal request configuration and usage limits still apply.
+
+For requests using workflow data, include fields alongside `requestId` in the JSON and configure the saved request to consume those values through its previous-response parameter mappings. Ensure the final text remains valid JSON when inserting Shopify Flow variables. Keep API credentials saved as Sensitive request parameters rather than including them in the workflow JSON.
+
+## When executionId is needed
+
+For a workflow that starts in Shopify Flow, `executionId` is not required:
+
+```json
+{"requestId":"inventory-sync","orderId":"123456789"}
+```
+
+`executionId` is relevant when APIEase has already started a Shopify Flow workflow and is waiting for its result. Preserve the execution ID supplied in that trigger's `flowParameters` when returning output through APIEase Flow Action. Including both `executionId` and `requestId` resolves the earlier execution and then runs the selected saved request.
+
+The action has one required input field, **Flow Parameters**. It does not declare structured output fields for later Shopify Flow steps. If you need an external API response available inside Flow, start the request in APIEase and pass its response into a chained Flow request; see [Minimal Flow integration](https://docs.apiease.com/docs/requests/shopify-flow-integration/minimal-flow-integration).
+
+SOURCE
 https://docs.apiease.com/docs/requests/shopify-flow-integration/add-flow-request
 
 TITLE
@@ -3489,6 +3958,8 @@ Follow these steps to create a Flow request and send data into Shopify Flow.
 6. (Optional) Chain this Flow request from another request by setting it as the **Next Request** of the prior step.
 7. Save the request.
 
+To pass the initiating APIEase API key's friendly name to your workflow, see [Pass metadata to Shopify Flow](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/apiease-metadata). The example shows how to send a whole metadata object or just its name and read it from the trigger's `flowParameters` JSON text.
+
 SOURCE
 https://docs.apiease.com/docs/requests/shopify-flow-integration/minimal-flow-integration
 
@@ -3498,14 +3969,30 @@ Minimal Flow integration with APIEase
 CONTENT
 # Minimal Flow integration with APIEase
 
-Use this quick setup to trigger Shopify Flow from APIEase and capture Flow output.
+This setup starts in APIEase and triggers a Shopify Flow workflow. To start in Shopify Flow and run a saved APIEase request instead, follow [Run a saved request from Shopify Flow](https://docs.apiease.com/docs/requests/shopify-flow-integration/run-saved-request-from-flow).
 
-1. Create a **Flow** request in APIEase.
-2. In Shopify Flow, build a workflow that uses the **APIEase Flow Trigger**.
-3. Add a **Condition** step to ensure the incoming `requestId` value matches your Flow request handle.
-4. Add the **APIEase Flow Action** and return a variable named `flowParameters`.
+1. Create and save a **Flow** request in APIEase. Add any Flow parameters your workflow needs.
+2. In Shopify Flow, create a workflow using the **APIEase Flow Trigger**.
+3. Add a **Condition** matching the trigger's `requestId` to the saved Flow request's ID. This trigger field contains the request ID, not its handle. You can find the ID in the request's edit-page URL.
+4. Add your workflow steps. The trigger's `flowParameters` is JSON text containing the inputs and an `executionId` generated by APIEase.
+5. To return a result to the waiting APIEase request, add the **APIEase Flow Action**. Its required **Flow Parameters** field must contain JSON preserving that `executionId`. You can pass through the trigger's `flowParameters` variable, or parse it in **Run code**, add result fields, and serialize it again. Do not replace it with an empty object or invent an execution ID.
+6. Turn on the workflow. Run the saved Flow request from APIEase, from one of its configured triggers, or by chaining to its handle as **Next Request** from another request.
 
-> Important: If Flow does not return `flowParameters`, APIEase still responds, but the Flow-produced details are omitted. APIEase waits for the Flow action runtime call to finish before sending the final response to the original requester.
+For example, a **Run code** step that receives the trigger's `flowParameters` can return a JSON string for the action:
+
+```javascript
+export default function main(input) {
+  const parameters = JSON.parse(input.flowParameters);
+  parameters.result = "complete";
+  return {message: JSON.stringify(parameters)};
+}
+```
+
+Select that step's `message` output as the action's **Flow Parameters** value. Configure the Run code input to include the trigger's `flowParameters`.
+
+APIEase normally waits for a callback containing the matching `executionId`, subject to its Flow response wait limit (25 seconds by default). Without that callback it can time out; completion of an unrelated action does not resolve the request. An immediate-response configuration returns before workflow completion.
+
+To also run a subsequent saved APIEase request, add its handle as `requestId` inside the returned JSON while preserving `executionId`. APIEase resolves the originating execution first, then invokes that saved request. The trigger's top-level `requestId` identifies the originating Flow request; a `requestId` inside the action JSON selects a request to run.
 
 SOURCE
 https://docs.apiease.com/docs/requests/shopify-flow-integration/cat-image-inventory
@@ -3596,7 +4083,7 @@ This demo shows how a storefront button triggers APIEase, Shopify Flow, and a ch
      }
      ```
 
-This example uses an explicit `X-Shopify-Access-Token` header for the Shopify Admin API call. For automatic shop access token usage and overrides, see [Automatic vs overridden Shopify access tokens](../../general/shopify-api/automatic-vs-overridden-shopify-access-tokens.md).
+This example uses an explicit `X-Shopify-Access-Token` header for the Shopify Admin API call. For automatic shop access token usage and overrides, see [Automatic vs overridden Shopify access tokens](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens).
 
 3. **Request #3: Shopify GraphQL**  
    - Name: `Flow - Cat Images - Increment Inventory`  
@@ -3628,7 +4115,7 @@ This example uses an explicit `X-Shopify-Access-Token` header for the Shopify Ad
 
 ## Shopify Flow workflow
 1. Trigger: **apiease-flow-trigger**.
-2. Condition: Confirm the incoming `requestId` value matches the Flow request handle.
+2. Condition: Confirm the incoming `requestId` value matches the saved Flow request ID, not its handle (available in the request edit-page URL).
 3. Action: Shopify **Get location data** to retrieve variants and locations.
 4. Action: **Run Code** to classify image size and select the matching inventory item.
 5. Action: **apiease-flow-action** to return Flow parameters (including `incrementInventoryParameter`) to APIEase.
@@ -4103,40 +4590,38 @@ SOURCE
 https://docs.apiease.com/docs/requests/customer-authenticated-requests
 
 TITLE
-Customer authenticated requests
+Customer-authenticated requests
 
 CONTENT
-# Customer authenticated requests
+# Customer-authenticated requests
 
-You can authenticate request calls from your storefront.
-
-Http calls from your storefront to APIEase are made using the [Shopify App Proxy](https://shopify.dev/docs/apps/online-store/app-proxies). If the customer is logged into your store then the customer id is sent to APIEase.
+Customer validation restricts a [storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) using the logged-in customer ID that Shopify sends through its app proxy. It does not authenticate remote calls or proxy endpoints, and it does not accept a customer ID supplied directly by browser code as proof of identity.
 
 ## Automatic customer ID injection
 
-Need to inject the logged-in customer ID into request values? See [Automatic Shopify Customer ID Injection](../general/apiease-details/automatic-shopify-customer-id-injection.md).
+Need to inject the logged-in customer ID into request values? See [Automatic Shopify Customer ID Injection](https://docs.apiease.com/docs/general/apiease-details/automatic-shopify-customer-id-injection).
 
-## Customer Validation Options
+## Customer validation options
 
-You can restrict api calls to a particular request in APIEase by logged in customer in one of 2 ways:
+Choose one of these options on the directly called request.
 
-1. Automatically validate all logged in customers.
+### Require any logged-in customer
 
-Set "validateCustomer" to true as a System parameter.
+Add a System parameter named `validateCustomer` with value `true`.
 
 ![Validate customer system parameter toggle](https://tawk.link/65552a3acec6a91282103248/kb/attachments/zy4MAt-qUF.png)
 
-With "validateCustomer" set to true the customer must be logged into your store in order for the api call to pass validation and return a response to your storefront.
+The call passes only when Shopify's app proxy supplies a logged-in customer ID.
 
-2. Validate individual customer ids by associating requests with individual customer ids.
+### Allow selected customer IDs
 
-Include customer id as System parameter with name: "customerId" and value: "individual customer id".
+Add a System parameter named `customerId` with the allowed Shopify customer ID as its value. To allow multiple customers, add one `customerId` System parameter for each allowed ID. Do not enter a JSON array into one parameter value.
 
 ![Customer id system parameter example](https://tawk.link/65552a3acec6a91282103248/kb/attachments/zFgy2rIovc.png)
 
-If request parameters are owned by individual customer you will need to add a separate request with each particular customer's parameters and customer id as a System parameter.
+An allowlisted customer must also be logged in so Shopify can supply the matching ID. Use separate requests only when the request configuration itself must differ by customer.
 
-If you add customer id to a request that customer must be logged into the store in order for the api call to pass validation and return a response to your storefront.
+If validation fails, APIEase blocks the request instead of executing it or returning its normal response to the storefront.
 
 SOURCE
 https://docs.apiease.com/docs/functions/functions-overview
@@ -4147,7 +4632,7 @@ Functions Overview
 CONTENT
 # Functions Overview
 
-The Functions page lets you create reusable Liquid helpers that can be called from [Liquid Requests](../requests/request-types/liquid-requests.md).
+The Functions page lets you create reusable Liquid helpers that can be called from [Liquid Requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests).
 
 Functions run inside the parent Liquid request execution. They are not standalone requests, do not have their own triggers, and do not count as separate request executions.
 
@@ -4184,12 +4669,12 @@ Additional list behavior:
 Each function includes these fields:
 
 - **Name**: Required. This is the function name you call from Liquid.
-- **Description**: Optional. Use it to explain what the function returns or when to use it.
+- **Description**: Use it to explain what the function returns, when to use it, and important relationships to requests or other resources. Keep credentials and temporary execution status out of it.
 - **Type**: Currently fixed to `liquid`.
 - **Parameters**: Optional parameter definitions for the function.
 - **Liquid**: Required. The Liquid code that runs when the function is called.
 
-When you manage Functions through `apiease-cli` or the public API, include a stable `handle` in the JSON source file. The Function `name` remains the value used by the current Liquid function tag. For the repository identifier pattern, see [Resource handles](../developers/resource-handles.md).
+When you manage Functions through `apiease-cli` or the public API, include a stable `handle` in the JSON source file. The Function `name` remains the value used by the current Liquid function tag. For the repository identifier pattern, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
 
 The editor supports the same save bar behavior used elsewhere in APIEase:
 
@@ -4235,7 +4720,7 @@ Do not use a Function when you need:
 - A webhook, schedule, or manual trigger
 - A standalone execution target
 
-For invocation syntax and runtime examples, see [Using Functions in Liquid Requests](./using-functions-in-liquid-requests.md).
+For invocation syntax and runtime examples, see [Using Functions in Liquid Requests](https://docs.apiease.com/docs/functions/using-functions-in-liquid-requests).
 
 SOURCE
 https://docs.apiease.com/docs/functions/using-functions-in-liquid-requests
@@ -4246,7 +4731,7 @@ Using Functions in Liquid Requests
 CONTENT
 # Using Functions in Liquid Requests
 
-APIEase Functions are reusable Liquid helpers that run inside a parent [Liquid Request](../requests/request-types/liquid-requests.md).
+APIEase Functions are reusable Liquid helpers that run inside a parent [Liquid Request](https://docs.apiease.com/docs/requests/request-types/liquid-requests).
 
 When a Liquid request calls a Function:
 
@@ -4431,9 +4916,9 @@ APIEase includes a few protections for Functions:
 
 Use a Function when you need reusable Liquid logic.
 
-Use a [Liquid Request](../requests/request-types/liquid-requests.md) when you need the overall executable workflow.
+Use a [Liquid Request](https://docs.apiease.com/docs/requests/request-types/liquid-requests) when you need the overall executable workflow.
 
-Use an [HTTP Request](../requests/request-types/http-requests.md), [Flow Request](../requests/request-types/flow-requests.md), or [System Request](../requests/request-types/system-requests.md) when you need to call an external or app-managed operation.
+Use an [HTTP Request](https://docs.apiease.com/docs/requests/request-types/http-requests), [Flow Request](https://docs.apiease.com/docs/requests/request-types/flow-requests), or [System Request](https://docs.apiease.com/docs/requests/request-types/system-requests) when you need to call an external or app-managed operation.
 
 SOURCE
 https://docs.apiease.com/docs/variables/variables-overview
@@ -4446,7 +4931,9 @@ CONTENT
 
 The Variables page lets you manage persisted shop variables for the current store directly from the APIEase admin.
 
-These are the same variables used by [System Requests](../requests/request-types/system-requests.md), so you can manage values manually in the admin or read and write them programmatically in request flows.
+For built-in values supplied during request execution, see [System Variables](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/overview). These are automatically available and are not managed on the Variables page.
+
+These are the same variables used by [System Requests](https://docs.apiease.com/docs/requests/request-types/system-requests), so you can manage values manually in the admin or read and write them programmatically in request flows.
 
 ## Open the Variables page
 
@@ -4458,6 +4945,7 @@ In the APIEase admin, select **Variables** from the main navigation.
 - Create a new variable
 - Open an existing variable and update its value
 - Mark a variable as sensitive so its value stays masked in the UI
+- Add a description of the variable's purpose and where it is used
 - Delete variables you no longer need
 
 ## Variables list
@@ -4484,9 +4972,10 @@ To create a variable:
 2. Select **Add variable**.
 3. Enter a **Name**.
 4. Confirm or edit the **Handle**.
-5. Enter a **Value**.
-6. Turn on **Sensitive** if the value should stay hidden after it is saved.
-7. Use the save bar to save the variable.
+5. Optionally add a **Description** of the variable's purpose and relationships.
+6. Enter a **Value**.
+7. Turn on **Sensitive** if the value should stay hidden after it is saved.
+8. Use the save bar to save the variable.
 
 Notes:
 
@@ -4500,7 +4989,7 @@ Notes:
 To edit a variable:
 
 1. Open the variable from the list.
-2. Update the **Name**, **Handle**, **Value**, and, if needed, the **Sensitive** checkbox.
+2. Update the **Name**, **Handle**, **Description**, **Value**, and, if needed, the **Sensitive** checkbox.
 3. Save from the save bar.
 
 Important behavior:
@@ -4509,6 +4998,11 @@ Important behavior:
 - Existing sensitive values stay masked in the editor. If you leave the masked value as-is and save, APIEase keeps the stored value.
 - If you want to replace a sensitive value, type a new value before saving.
 - If you turn off **Sensitive** for an existing masked variable, enter the replacement plain-text value before saving because APIEase does not reveal the stored secret back into the form.
+
+The **Sensitive** setting for a Variable reduces accidental disclosure in the APIEase admin; it is not the same boundary as a sensitive request parameter. The underlying Variable value remains available to authorized runtime and programmatic workflows, including System requests, Liquid workflows, and authenticated external systems. Do not return a sensitive Variable from a publicly callable request.
+
+Descriptions are not secret storage. Do not copy the variable value, credentials,
+approval state, or temporary execution results into the description.
 
 ## Delete a variable
 
@@ -4520,7 +5014,7 @@ Delete applies immediately. Unlike staged changes on some other pages, there is 
 
 Use the Variables page when you want to manage values manually in the admin.
 
-Use [System Requests](../requests/request-types/system-requests.md) when you want to set, get, or delete variables as part of an automated flow.
+Use [System Requests](https://docs.apiease.com/docs/requests/request-types/system-requests) when you want to set, get, or delete variables as part of an automated flow.
 
 SOURCE
 https://docs.apiease.com/docs/widgets/widgets-overview
@@ -4533,6 +5027,11 @@ CONTENT
 
 APIEase widgets are reusable storefront UI components that you build and manage in APIEase, then render in your Shopify theme through the APIEase Widget App Block or Widget App Embed. A widget can output Liquid (markup) and optionally run JavaScript, which makes it a good fit for UI that needs to stay flexible but still integrate with your backend logic.
 
+Add a description to explain what the widget renders, where it is intended to be
+used, and which requests or variables it relies on. The description travels with
+the widget through the public API, CLI, and project review, but it is not rendered
+on the storefront.
+
 ## Why widgets are useful
 
 - **UI + secure API requests, together:** Widgets help you connect storefront UI components to secure API requests powered by APIEase, without moving secrets or request logic into the theme.
@@ -4541,7 +5040,7 @@ APIEase widgets are reusable storefront UI components that you build and manage 
 
 ## Learn more
 
-Learn more about the [Widgets page](./widgets-page.md) to manage and organize your widgets, the [Widget edit page](./widget-edit-page.md) to configure a widget's Liquid, JavaScript, and handle, and [Widget App Extensions](./widget-app-extensions.md) to choose between placement-specific and global widget rendering.
+Learn more about the [Widgets page](https://docs.apiease.com/docs/widgets/widgets-page) to manage and organize your widgets, the [Widget edit page](https://docs.apiease.com/docs/widgets/widget-edit-page) to configure a widget's Liquid, JavaScript, and handle, and [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions) to choose between placement-specific and global widget rendering.
 
 SOURCE
 https://docs.apiease.com/docs/widgets/widgets-page
@@ -4659,8 +5158,8 @@ If a widget is ordinary page content, use the Widget App Block. Do not add ordin
 
 ## Next steps
 
-- Add a widget to a specific page or template with the [Widget App Block](./widget-app-block.md).
-- Run selected widgets globally with the [Widget App Embed](./widget-app-embed.md).
+- Add a widget to a specific page or template with the [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block).
+- Run selected widgets globally with the [Widget App Embed](https://docs.apiease.com/docs/widgets/widget-app-embed).
 
 SOURCE
 https://docs.apiease.com/docs/widgets/widget-app-block
@@ -4699,8 +5198,8 @@ The APIEase Widget App Block renders a widget in a specific Shopify theme sectio
 
 ## Related pages
 
-- Compare the App Block with the App Embed in [Widget App Extensions](./widget-app-extensions.md).
-- Use the [Widget App Embed](./widget-app-embed.md) for widgets that should run across the storefront.
+- Compare the App Block with the App Embed in [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
+- Use the [Widget App Embed](https://docs.apiease.com/docs/widgets/widget-app-embed) for widgets that should run across the storefront.
 
 SOURCE
 https://docs.apiease.com/docs/widgets/widget-app-embed
@@ -4739,12 +5238,12 @@ Use the **Global widget handles** setting to register one or more widget handles
 
 - If a global widget does not run, confirm the App Embed is enabled and the theme changes are saved.
 - If a widget does not render, confirm the handle matches exactly and the widget is saved in APIEase.
-- If a visual widget appears on pages where it should not appear, remove it from **Global widget handles** and add it with the [Widget App Block](./widget-app-block.md) instead.
+- If a visual widget appears on pages where it should not appear, remove it from **Global widget handles** and add it with the [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block) instead.
 
 ## Related pages
 
-- Compare the App Embed with the App Block in [Widget App Extensions](./widget-app-extensions.md).
-- Use the [Widget App Block](./widget-app-block.md) for ordinary page content or section-specific widgets.
+- Compare the App Embed with the App Block in [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
+- Use the [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block) for ordinary page content or section-specific widgets.
 
 SOURCE
 https://docs.apiease.com/docs/widgets/using-requests-in-widgets
@@ -4755,7 +5254,9 @@ Using Requests in Widgets
 CONTENT
 # Using Requests in Widgets
 
-Widgets can call APIEase requests. The widget runs in the browser, but the request runs on the server. This separation keeps integrations secure by keeping credentials and private logic off the storefront.
+Widgets can call APIEase requests through JavaScript. The widget's JavaScript runs in the browser, but the request runs on the server. This separation keeps integrations secure by keeping credentials and private logic off the storefront.
+
+For the JavaScript call below, add the **Storefront App Proxy** trigger to the directly called request and save it. The JavaScript sends a [storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) through Shopify's app proxy. The widget contains the storefront UI, the request performs the server-side work, and an [App Block or App Embed](https://docs.apiease.com/docs/widgets/widget-app-extensions) determines where the widget loads.
 
 ## Configure a request call
 1. Get the handle for the request you want to run.
@@ -4788,16 +5289,316 @@ FAQ
 CONTENT
 # FAQ
 
-## Do I need a Shopify access token or API Key to call the Shopify Admin API?
-In many cases, no. APIEase can automatically inject the shop access token for Shopify Admin API calls when the request address triggers token injection.
+Choose the category that matches what you are trying to do:
 
-Two common ways to trigger automatic injection:
-1. Select the [Shopify Admin GraphQL address preset](../shopify-api/shopify-admin-graphql-address-preset.md) in the request address dropdown for an HTTP request. This fills the correct shop admin GraphQL address and triggers APIEase to inject the shop access token, so you do not need to add an `X-Shopify-Access-Token` header manually.
-2. Use a Shopify Admin GraphQL request address that matches your shop domain and api path like this: `https://yourstore.myshopify.com/admin/api/2025-10/graphql.json` so the address pattern triggers APIEase token injection.
+- [Understand APIEase and connect another system](https://docs.apiease.com/docs/general/faq/getting-started-and-integrations): capabilities, request management, external APIs, and data synchronization.
+- [Build a request](https://docs.apiease.com/docs/general/faq/building-requests): request types, methods, addresses, parameters, chains, Variables, Functions, Liquid, and System requests.
+- [Manage credentials, authentication, and security](https://docs.apiease.com/docs/general/faq/credentials-and-security): APIEase API keys, Shopify access tokens, external credentials, permissions, and sensitive values.
+- [Run a request](https://docs.apiease.com/docs/general/faq/running-requests): manual, remote, webhook, scheduled, proxy, storefront, Shopify Flow, and widget execution.
+- [Troubleshoot a request](https://docs.apiease.com/docs/general/faq/troubleshooting-requests): safe testing, errors, unexpected responses, trigger differences, and multi-step failures.
+- [Use developer tools and automation](https://docs.apiease.com/docs/general/faq/developer-and-automation): the public API, resource handles, `apiease-cli`, `apiease-template`, and AI-assisted workflows.
 
-## What is my Shopify access token or API Key?
-If you're using APIEase to call the Shopify Admin API, you usually do not need to find a token or API key yourself. APIEase will automatically inject the shop access token when the request address triggers using token injection as described here: [Shopify Admin GraphQL address preset](../shopify-api/shopify-admin-graphql-address-preset.md)).
-If you still want to obtain and use a custom Shopify access token, follow the [Custom access token](../shopify-api/custom-access-token.md) instructions.
+SOURCE
+https://docs.apiease.com/docs/general/faq/getting-started-and-integrations
+
+TITLE
+Getting started and integrations FAQ
+
+CONTENT
+# Getting started and integrations FAQ
+
+## What can I build with APIEase?
+
+APIEase lets you save and run HTTP, Flow, Liquid, and System requests, combine requests into workflows, and build storefront widgets. Common uses include third-party API calls, Shopify automations, scheduled data movement, event-driven actions, and server-side storefront integrations. Start with [What APIEase does](https://docs.apiease.com/docs/overview/what-it-does) and [Requests overview](https://docs.apiease.com/docs/requests/requests-overview).
+
+## Can APIEase connect to any external or third-party API?
+
+APIEase can connect to an external HTTP API when the provider exposes the required operation and gives you the endpoint, authentication, permissions, and payload contract. APIEase cannot guarantee support for every provider or discover a private or undocumented API. Use the [external API setup guide](https://docs.apiease.com/docs/requests/connect-external-api) to evaluate a supplier, ERP, CRM, warehouse, or other provider integration.
+
+## What information do I need from an API provider?
+
+You need the endpoint and HTTP method, authentication instructions and issued credentials, required headers and parameters, request and response shapes, permissions, pagination, rate limits, and preferably a test environment. The provider's current documentation or support team must supply provider-specific details. See the complete [provider information checklist](https://docs.apiease.com/docs/requests/connect-external-api).
+
+## Can APIEase obtain provider documentation or credentials for me?
+
+No. APIEase cannot retrieve missing provider documentation, issue another company's API key or access token, bypass permissions, or infer a safe write payload from incomplete requirements. Ask the provider for the missing contract or credential, then use [Connect to an external API](https://docs.apiease.com/docs/requests/connect-external-api) to map it to APIEase.
+
+## How do I create, find, edit, duplicate, or delete a request?
+
+Open **Requests** in the APIEase admin. Create a request with **Add Request**; find existing requests in the list; select the request name or **Edit** to update it; use **Duplicate** for a new draft based on it; and use **Delete**, then **Save**, to apply a confirmed deletion. The full lifecycle and handle precautions are in [Create and manage requests](https://docs.apiease.com/docs/requests/how-to-add-requests).
+
+## Should I manage resources in the admin, with the CLI, or through the public API?
+
+Use the APIEase admin for interactive work. Use `apiease-cli` when requests, widgets, variables, or functions should be JSON files in source control. Use the public API for direct external automation. CLI and public API workflows use stable resource handles and are separate from clicking actions in the admin. Compare the workflows in [Create and manage requests](https://docs.apiease.com/docs/requests/how-to-add-requests) and read [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
+
+## How do I synchronize or import products and inventory?
+
+Build a workflow that reads the provider data, maps stable product, variant, SKU, inventory-item, and location identifiers correctly, and calls the appropriate Shopify Admin API operation. Choose a one-time, scheduled, or event-driven pattern based on how changes are exposed. Plan it with [Synchronize data with an external system](https://docs.apiease.com/docs/requests/synchronize-external-data), then use the [third-party product import pattern](https://docs.apiease.com/docs/general/apiease-details/importing-third-party-products).
+
+## How do I synchronize orders, customers, or fulfillments?
+
+Define the direction, source of truth, matching identifier, business event, and destination operation first. Then combine provider-neutral HTTP requests with a schedule, Shopify webhook, Liquid orchestration, or a simple request chain as needed. Follow the [order, customer, and fulfillment synchronization guidance](https://docs.apiease.com/docs/requests/synchronize-external-data).
+
+## Is a one-time import the same as an ongoing synchronization?
+
+No. A one-time import is a bounded run. An ongoing sync also needs change detection, stable record matching, pagination, repeated-input behavior, error handling, and a schedule or event trigger. Use the patterns in [Synchronize data with an external system](https://docs.apiease.com/docs/requests/synchronize-external-data) before enabling recurring or event-driven writes.
+
+SOURCE
+https://docs.apiease.com/docs/general/faq/building-requests
+
+TITLE
+Building requests FAQ
+
+CONTENT
+# Building requests FAQ
+
+## Which request type should I choose?
+
+Choose **HTTP** to call an external API, **Flow** to start or continue Shopify Flow, **Liquid** to apply template logic or orchestrate other saved requests, and **System** to manage APIEase Variables without calling an external URL. See the [request types overview](https://docs.apiease.com/docs/requests/request-types/request-types-overview) for a focused comparison.
+
+## Where do I set the HTTP method and endpoint URL?
+
+Set **Method** and **Address** on an HTTP request. The method is the operation the provider documents, such as GET, POST, PUT, PATCH, DELETE, or OPTIONS; the address is the provider's full endpoint URL. Do not put query parameters or a request body into the Address field when APIEase provides a matching parameter location. See [HTTP requests](https://docs.apiease.com/docs/requests/request-types/http-requests).
+
+## Should a value be a header, query parameter, path parameter, or body?
+
+Put the value where the receiving API's contract requires it: headers carry metadata or authentication, query parameters appear after `?` in the URL, path parameters replace placeholders such as `{productId}`, and the body carries the request payload. These locations are not interchangeable. Use the [request parameters overview](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview) to reach the setup page for each location, including JSON and form URL-encoded bodies.
+
+## What is the difference between an in-app parameter and a dynamic embedded parameter?
+
+An **in-app parameter** is saved on the request; a **dynamic embedded parameter** is supplied for one execution by a caller such as storefront code, a widget, or another request. Use a saved value for stable configuration or a sensitive request parameter, and a runtime or embedded value for per-call input. When both provide the same parameter, the dynamic embedded value overrides the saved value. See [In-app parameters vs dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic).
+
+## How do I run a second request with data from the first response?
+
+Set the first request's **Next Request** to the second request's handle, then use `{field}` or `{object.field}` placeholders in the second request to read values from the previous response body. This is a chained request, also called a request chain or multi-step request. Follow [Chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) for supported parameter locations and an authentication example.
+
+## When should I use a Liquid request instead of a request chain?
+
+Use a simple request chain for a linear handoff from one response to the next. Use a Liquid request when the workflow needs conditions, loops, response shaping, several explicit `call` operations, or reusable Function calls. Liquid requests are executable workflows; they do not replace the HTTP requests that perform external API calls. See [Liquid requests](https://docs.apiease.com/docs/requests/request-types/liquid-requests).
+
+## What is the difference between Variables and System requests?
+
+Variables are persisted values for the current store; System requests are executable requests that get, set, or delete those values during a workflow. Manage a value manually on the [Variables page](https://docs.apiease.com/docs/variables/variables-overview), or use a [System request](https://docs.apiease.com/docs/requests/request-types/system-requests) when automation must manage it. A System request does not call an external API.
+
+## What is a Function, and how is it different from a Liquid request?
+
+A Function is reusable Liquid helper logic that runs inside a parent Liquid request. It has no trigger and is not a standalone request execution. Use a Function to reuse transformations or formatting, and use a Liquid request for the overall executable workflow. See [Functions overview](https://docs.apiease.com/docs/functions/functions-overview) and [Using Functions in Liquid requests](https://docs.apiease.com/docs/functions/using-functions-in-liquid-requests).
+
+SOURCE
+https://docs.apiease.com/docs/general/faq/credentials-and-security
+
+TITLE
+Credentials, authentication, and security FAQ
+
+CONTENT
+# Credentials, authentication, and security FAQ
+
+## What is the difference between an APIEase API key, a Shopify access token, and an external API credential?
+
+They authenticate different calls and are not interchangeable:
+
+- An **APIEase API key** authenticates an external system calling APIEase. Create, reveal, copy, and delete these keys from **Settings**. See [APIEase API Key](https://docs.apiease.com/docs/general/settings/apiease-api-key).
+- A **Shopify access token** authenticates a call to the Shopify Admin API. APIEase normally uses the shop access token from the Shopify installation automatically. See [Shopify API calls and access tokens](https://docs.apiease.com/docs/general/shopify-api/shopify-api-calls-and-access-tokens).
+- An **external-provider credential** authenticates an outbound call from APIEase to another service. The provider supplies the API key, Bearer token, OAuth credential, username, or password and defines how it must be sent. See [Authentication example](https://docs.apiease.com/docs/general/apiease-details/authentication-example).
+
+## Can APIEase find, reveal, or generate a credential for another service?
+
+No. APIEase cannot retrieve, reveal, or generate a private API key, token, password, client secret, or other credential owned by Shopify or another provider. Obtain it from that provider's dashboard, authentication endpoint, or support team.
+
+The shop access token installed through APIEase is a separate case: APIEase stores and uses it for eligible Shopify Admin API requests, but you do not retrieve it from APIEase. If you need an explicit Shopify token, create one through Shopify and follow [Custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token).
+
+## Where should I put an external API key, Bearer token, or other provider credential?
+
+Save it as a request parameter in the location required by the provider, and mark the parameter **Sensitive**. Common formats include an `Authorization: Bearer YOUR_ACCESS_TOKEN` header or a provider-specific API-key header. Do not put credentials in storefront JavaScript, theme Liquid, widget code, or dynamic embedded parameters.
+
+The provider's documentation is the authority for the header name, prefix, token endpoint, and required permissions. See [In-app header parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-header-parameters) and [In-app parameters overview](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-parameters-overview).
+
+## Can I recover a sensitive value after I save it?
+
+It depends on the resource:
+
+- A sensitive **request parameter** is masked after saving, omitted from normal read interfaces, and decrypted only when APIEase executes the request. APIEase does not reveal the saved value back to you; replace it if you no longer have the original.
+- A sensitive **Variable** is masked in the APIEase admin, but its value remains available to authorized runtime and programmatic workflows. See [Variables overview](https://docs.apiease.com/docs/variables/variables-overview).
+- An **APIEase API key** remains revealable and copyable from **Settings**. See [APIEase API Key](https://docs.apiease.com/docs/general/settings/apiease-api-key).
+
+Marking a value sensitive does not remove secrets or private data from an external API's response. A publicly callable request must not return credentials or other private response data.
+
+## How do I authenticate with an external API?
+
+Follow the external provider's current authentication contract. For a static credential, add it as a sensitive header, body, query, or path parameter exactly where the provider requires it. For a short-lived token, create one request that obtains the token and chain it to the request that uses the response value.
+
+APIEase does not perform an unspecified OAuth flow automatically. You need the provider's token URL, credential requirements, scopes, and request format. See the [Authentication example](https://docs.apiease.com/docs/general/apiease-details/authentication-example) and [Chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests).
+
+## Why does an authenticated request return 401 or 403?
+
+A `401 Unauthorized` response usually means the receiving API did not accept the credential. Check that the credential is present, current, intended for that environment or account, and formatted exactly as the provider requires.
+
+A `403 Forbidden` response usually means the credential was recognized but is not allowed to perform the operation. Check scopes, roles, resource access, account restrictions, and whether the credential belongs to the correct shop or provider account. Providers can use these status codes differently, so inspect the response body and their documentation before changing the request.
+
+For Shopify calls, also confirm the request qualifies for [automatic token usage](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens) and review [shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions).
+
+## Do I need to add a Shopify access token to every Shopify Admin API request?
+
+Usually not. APIEase automatically injects the installed shop access token when an HTTP request targets the current shop's domain, its path starts with `/admin/api`, and the request does not already contain an `X-Shopify-Access-Token` header.
+
+The [Shopify Admin GraphQL address preset](https://docs.apiease.com/docs/general/shopify-api/shopify-admin-graphql-address-preset) is the simplest way to use the correct address. See [Automatic vs overridden Shopify access tokens](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens) for all prerequisites.
+
+## How do I override the automatic Shopify access token?
+
+Add an `X-Shopify-Access-Token` header containing `YOUR_ACCESS_TOKEN`. APIEase treats any case-insensitive match for that header name as an explicit override and does not inject the installed shop access token.
+
+Use an override only when you intentionally need a different Shopify token. You are responsible for obtaining, storing, rotating, and granting the required scopes to that token. See [Custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token).
+
+## How do I change permissions for the automatic Shopify token?
+
+Open **Settings**, then **Permissions**, select the additional Shopify Admin API scopes, save, and complete Shopify's approval flow. Changing scopes can require reauthorization and does not change the logic of existing requests.
+
+Use the permissions page only for APIEase's installed shop access token. A custom Shopify token or external-provider credential must be managed where it was issued. See [Manage shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions).
+
+## How should I rotate or revoke credentials?
+
+Rotate each credential at its issuing source, update every request or caller that uses it, test the replacement, and then revoke the old credential. For APIEase API keys, create and save a replacement in **Settings**, update external callers, verify them, then delete the old key and save the change. For Shopify or external-provider credentials, use that provider's rotation and revocation workflow.
+
+APIEase cannot rotate a provider-owned credential on your behalf.
+
+SOURCE
+https://docs.apiease.com/docs/general/faq/running-requests
+
+TITLE
+Running requests FAQ
+
+CONTENT
+# Running requests FAQ
+
+## How should I run a request?
+
+Choose the entry point that matches the caller: use a manual call in APIEase admin, a webhook for a Shopify event, cron for a recurring schedule, a remote call from a trusted external system, a proxy endpoint for a purpose-built HTTP route, or a storefront call from theme code or an APIEase widget's JavaScript. The [triggers overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview) compares prerequisites for each option.
+
+## How do I test or run a request once from APIEase admin?
+
+Use a **Manual Call**. From the Requests page, choose **Copy and Execute**, then **Execute and Run**. Manual execution is useful for a one-off action or for checking the saved configuration before adding another entry point. Follow [Manual calls](https://docs.apiease.com/docs/requests/triggers/manual-calls) for the procedure and [Troubleshoot requests](https://docs.apiease.com/docs/requests/troubleshooting-requests) when the run fails or returns an unexpected result.
+
+## What is the difference between a remote call and a proxy endpoint?
+
+Use a **remote call** to run a saved request by handle through APIEase's shared caller URL; it requires an APIEase API key and shop-domain header. Use a **proxy endpoint** when you need a configured path and HTTP method that can be authenticated or unauthenticated. Neither is the Shopify app-proxy route used by storefront code. See [Calling APIEase requests remotely](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely) and [Proxy endpoint](https://docs.apiease.com/docs/requests/triggers/proxy-endpoint).
+
+## How do I run a request when a Shopify event occurs?
+
+Add a **Webhook** trigger and choose the APIEase event constant that corresponds to the Shopify topic, such as `ORDERS_CREATE`. APIEase passes the webhook payload as the body, and you can map payload fields into other request parameters. See [Trigger requests from a webhook](https://docs.apiease.com/docs/requests/triggers/webhooks/trigger-requests-from-a-webhook) and [Mapping webhook parameters](https://docs.apiease.com/docs/requests/triggers/webhooks/mapping-webhook-parameters).
+
+## How do I run a request on a recurring schedule?
+
+Add a **Cron** trigger with a five-field cron expression. APIEase evaluates cron schedules in UTC, so convert the intended local time and account for daylight-saving changes where applicable. See [Cron schedule](https://docs.apiease.com/docs/requests/triggers/cron-schedule).
+
+## How should storefront theme code call an APIEase request?
+
+Use a **Storefront App Proxy** trigger on the request that theme code calls directly, then call APIEase through Shopify's app-proxy path. This keeps saved credentials out of browser code, but the route is callable unless you add customer validation. It also does not promise that arbitrary browser calls to other services will avoid CORS restrictions. See [Storefront calls](https://docs.apiease.com/docs/requests/triggers/storefont-calls).
+
+## How do I require a logged-in customer or allow only selected customers?
+
+For a storefront call, add `validateCustomer=true` as a System parameter to require any logged-in customer. To allow selected customers, add one `customerId` System parameter for each allowed Shopify customer ID--not a JSON array in one value. Customer validation relies on the identity Shopify supplies through its app proxy; it is not authentication for remote calls or proxy endpoints. See [Customer-authenticated requests](https://docs.apiease.com/docs/requests/customer-authenticated-requests).
+
+## What is the difference between a widget, an App Block, and an App Embed?
+
+A **widget** is reusable storefront Liquid, CSS, and JavaScript. An **App Block** places a widget in a specific theme section or template, while an **App Embed** loads selected widgets across the storefront. See [Widgets overview](https://docs.apiease.com/docs/widgets/widgets-overview) and [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
+
+## How do I send APIEase data into Shopify Flow?
+
+Create a **Flow request** and map the values Flow should receive. Add a trigger if the Flow request is the entry point, or set the Flow request as **Next Request** after an HTTP, Liquid, or other APIEase request. See [How to add a Flow request](https://docs.apiease.com/docs/requests/shopify-flow-integration/add-flow-request) and the [APIEase + Shopify Flow architecture](https://docs.apiease.com/docs/requests/shopify-flow-integration/architecture).
+
+## How do I run several requests in sequence?
+
+Set **Next Request** to the next request's handle and reference fields from the previous response in the next request's parameters. This creates a simple linear request chain; it is not an external trigger. For conditions, loops, response shaping, or several explicit calls, use a Liquid request instead. See [Chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests).
+
+SOURCE
+https://docs.apiease.com/docs/general/faq/troubleshooting-requests
+
+TITLE
+Troubleshooting requests FAQ
+
+CONTENT
+# Troubleshooting requests FAQ
+
+## How do I test an APIEase request safely?
+
+Check whether the request can change live data, then use a provider sandbox, test record, or provider-supported dry run when available. Run the smallest valid version as a [manual call](https://docs.apiease.com/docs/requests/triggers/manual-calls), change one setting at a time, and add the trigger only after the saved request works. Follow [Troubleshoot requests](https://docs.apiease.com/docs/requests/troubleshooting-requests) for the ordered workflow.
+
+## Why is my request not working?
+
+First test it manually, then verify the address and method, required parameters and body format, credentials and permissions, and the external provider's response. If the manual call works, isolate the trigger and its runtime values. The [request troubleshooting guide](https://docs.apiease.com/docs/requests/troubleshooting-requests) provides the complete sequence.
+
+## What should I check when the response is unexpected?
+
+Compare the returned status and body with the receiving API's current documentation, then reduce the request to its required fields. Confirm value types, identifiers, content type, and whether a dynamic embedded parameter overrode a saved value. APIEase cannot assign a universal meaning to an undocumented provider response.
+
+## Why does a request work manually but fail from a webhook, schedule, remote call, proxy, storefront, or widget?
+
+The saved request is probably not the first layer to change. Check the failing call's prerequisites and compare its runtime parameters with the successful manual run. For storefront calls from theme or widget JavaScript, the directly called request needs a **Storefront App Proxy** trigger. Missing input, a different name or parameter location, or a runtime override can change the result. Start with the [triggers overview](https://docs.apiease.com/docs/requests/triggers/triggers-overview).
+
+## Why does my request return 401 or 403?
+
+A `401` commonly means the receiving API rejected or did not receive the credential; a `403` commonly means the credential lacks permission for the operation. Providers can define these responses differently. Use the response body and provider documentation, then follow [Credentials, authentication, and security](https://docs.apiease.com/docs/general/faq/credentials-and-security) for external-provider and Shopify-specific checks.
+
+## How do I troubleshoot a timeout or network error?
+
+Recheck the address scheme, host, and path, then confirm that the provider endpoint is available and review its status information, rate limits, and expected response time. A timeout alone does not show which system caused the delay. Be careful with retries because repeating a write request can create duplicate side effects.
+
+## How do I find which request in a chain failed?
+
+Test each request independently before reconnecting **Next Request**. Confirm that the first response contains the exact field path and capitalization referenced by the next request, then test the completed chain. See [Chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) and the [multi-step troubleshooting workflow](https://docs.apiease.com/docs/requests/troubleshooting-requests).
+
+## Can APIEase explain every error returned by an external API?
+
+No. The external service controls its statuses and response bodies, and provider-specific behavior may not follow common HTTP conventions. APIEase can help you isolate the request configuration, but an undocumented provider response must be checked against that provider's documentation or support.
+
+SOURCE
+https://docs.apiease.com/docs/general/faq/developer-and-automation
+
+TITLE
+Developer tools and automation FAQ
+
+CONTENT
+# Developer tools and automation FAQ
+
+## Should I use the APIEase admin, Apex, the CLI, the template, or the public API?
+
+Use the APIEase admin for interactive configuration and testing. Use Apex for conversational proposals covering requests, widgets, Variables, and Functions inside APIEase. For source-controlled work, start with [`apiease-template`](https://docs.apiease.com/docs/developers/why-use-the-template) and use [`apiease-cli`](https://docs.apiease.com/docs/developers/apiease-cli) to sync saved resources. Use the [public API](https://docs.apiease.com/docs/developers/apiease-public-api) directly for custom HTTP automation that the CLI does not cover.
+
+A coding agent working in a template repository is a separate workflow from Apex. See the [developer overview](https://docs.apiease.com/docs/developers/developer-overview) for the complete comparison.
+
+## Is the APIEase public API an arbitrary outbound API proxy?
+
+No. The APIEase public API manages saved request, widget, Variable, and Function resources, and it can execute an existing saved request remotely. Create the saved resource first; you cannot send the remote caller an arbitrary destination URL and use APIEase as a one-off proxy. See the [public API contract](https://docs.apiease.com/docs/developers/apiease-public-api).
+
+## How do I authenticate to the APIEase public API?
+
+Send your APIEase API key in `x-apiease-api-key` and the target shop domain in `x-shop-myshopify-domain`. This key authenticates calls into APIEase; it is not a Shopify access token or an external provider credential. Learn how the key is stored and rotated on the [APIEase API Key](https://docs.apiease.com/docs/general/settings/apiease-api-key) page.
+
+## How do I run a saved request from another system?
+
+Send a request to `/api/remote/caller/call?requestId={request-handle}` with the APIEase authentication headers. Although the query parameter is named `requestId`, use the saved request's handle as its value for new integrations. Follow [Calling APIEase Requests Remotely](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely) for the complete example and parameter behavior.
+
+## What is a resource handle, and should I store an id in git?
+
+A handle is the stable, user-controlled public identifier for a saved request, widget, Variable, or Function. Use it in source files, CLI commands, and public API item routes. Do not store server-owned `id` values in repository resource definitions. See [Resource handles](https://docs.apiease.com/docs/developers/resource-handles) for formats, legacy aliases, and execution surfaces that still call the value `requestId`.
+
+## How do I keep APIEase resources in source control?
+
+Initialize a repository with `apiease init`, store request, widget, Variable, and Function definitions under the directories configured by `apiease.config.js`, and commit those files to git. Use the [template quickstart](https://docs.apiease.com/docs/developers/quickstart-with-apiease-template) for setup and the [`apiease-template` reference](https://docs.apiease.com/docs/developers/apiease-template) for file ownership and upgrade behavior.
+
+## Does `apiease create` create duplicates when I rerun it?
+
+Not when a request, widget, Variable, or Function file has a valid `handle`. `apiease create <resource> --file <path>` reads the remote resource by handle, updates it when found, and creates it when missing. Lookup failures other than not found stop the command. See [`apiease-cli`](https://docs.apiease.com/docs/developers/apiease-cli) for supported resources, flags, and migration options.
+
+## Can an AI agent manage APIEase resources for me?
+
+Yes, but choose the workflow deliberately. Apex can propose creates, updates, and deletes for requests, widgets, Variables, and Functions, with an in-product review before approval. A coding agent in an `apiease-template` repository can manage the same families as files and sync them with `apiease-cli`, with git diffs providing a review boundary. Follow [Using APIEase with AI agents](https://docs.apiease.com/docs/developers/using-apiease-with-ai-agents).
+
+## Does Apex preview or wait for approval before changing a resource?
+
+Yes. Apex presents an immutable proposal with the exact resource operations and full before-and-after description changes for creates and updates. Approve it to apply those reviewed bytes, reject it to leave live resources unchanged, or request changes to begin a new proposal revision. Approval and application do not by themselves verify that an external integration works end to end.
+
+Request execution safety is narrower: Apex may initially use an integration-specific dry-run setting or disabled `ALLOW_*` Variable where appropriate. Inspect and test the request before enabling live behavior. See [Using APIEase with AI agents](https://docs.apiease.com/docs/developers/using-apiease-with-ai-agents) for this distinction.
 
 SOURCE
 https://docs.apiease.com/docs/general/settings/apiease-api-key
@@ -4815,25 +5616,615 @@ It is not a Shopify access token and cannot be used to call Shopify APIs directl
 
 Use this key for Remote Calls (calling APIEase Requests remotely from an external system).
 
-See: [Remote Calls](../../requests/triggers/calling-requests-remotely.md)
+See: [Remote Calls](https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely)
 
 ## Add an API key
 
 1. In APIEase, open the **Settings** page.
-2. In **API Key Name**, enter a descriptive name (for example, `production`, `staging`, or `ci`).
-3. Click **Add**.
-4. Copy the generated key and store it securely (for example, in a password manager or secret manager).
+2. Select **Add API Key**.
+3. In **API Key Name**, enter a descriptive name (for example, `production`, `staging`, or `ci`).
+4. Save the change.
+5. Use **Show** or **Copy**, then store the generated key securely (for example, in a password manager or secret manager).
 
-If you lose a key, create a new one and update any systems that use it.
+The key remains available on the **Settings** page. Use **Show** to reveal it or **Copy** to copy it. Anyone with access to this page can reveal or copy the key, so limit admin access appropriately.
+
+## Use the key name during execution
+
+The friendly name of the key that authenticated the initiating request is available as `{apieaseMetaData.apieaseApiKeyName}`. This contains the name, never the secret key, and remains available through chained requests and nested Liquid calls. See [apieaseMetaData](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/apiease-metadata) for availability and a Shopify Flow example.
 
 ## What it is not
 
 This is different from the shop access token APIEase uses to call the Shopify Admin API:
-[Shop access token](../shopify-api/shop-access-token.md)
+[Shop access token](https://docs.apiease.com/docs/general/shopify-api/shop-access-token)
 
 ## Security
 
-Treat this key like a secret (store securely, create separate keys per system, rotate by deleting/creating keys).
+Treat this key like a secret. Store it securely and create separate keys for separate external systems. To rotate a key, create and save a replacement, update and verify its callers, then delete the old key and save the change.
+
+Deleting a key revokes access for callers that still use it. APIEase API keys are different from sensitive request parameters: API keys remain revealable and copyable in **Settings**, while sensitive request parameters are masked after saving and are not returned through normal read interfaces.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview
+
+TITLE
+System Parameters
+
+CONTENT
+# System Parameters
+
+System Parameters are named settings that control how APIEase handles a request. Use them to adjust timeouts, choose response formats, return before processing finishes, or control other supported request behavior.
+
+Add them using the **System** parameter type on the request. For example, an HTTP request can have a System parameter named `REQUEST_TIMEOUT_SECONDS` with value `30`.
+
+System Parameters configure request behavior. [System Variables](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/overview) provide values you can reference during execution. Choosing the **System** parameter type also does not change the request's type: HTTP, Flow, and Liquid requests can all use their supported System Parameters.
+
+## Add or change a parameter
+
+1. Open the saved request in the APIEase request editor.
+2. Click the **+** icon in the Parameter column.
+3. Select **System**.
+4. Enter the exact **Name** and **Value** shown in the relevant guide below.
+5. Click **Save** at the top of the request editor.
+
+Edit an existing parameter to change its value. Remove an optional parameter to restore its default behavior. Names are case-sensitive; for settings enabled by `true`, enter the lowercase text `true` without quotes in the editor.
+
+## Parameter reference
+
+| Guide | Parameters | Applies to |
+| --- | --- | --- |
+| [HTTP Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/http-parameters) | `REQUEST_TIMEOUT_SECONDS`, `RESPONSE_BODY_MODE`, `VERIFY_SSL_CERT` | HTTP requests |
+| [Flow Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters) | `IMMEDIATE_FLOW_RESPONSE`, `FLOW_RESPONSE_WAIT_TIME` | Flow requests |
+| [Liquid Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/liquid-parameters) | `IMMEDIATE_LIQUID_RESPONSE` | Liquid requests |
+| [Concurrency Limit Response](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/concurrency-limit-response) | `CONCURRENCY_LIMIT_EXCEEDED_RESPONSE` | All request types; applies only at an existing concurrency check |
+| [Response Overrides](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/response-overrides) | `APIEASE_RESPONSE_CODE_OVERRIDE`, `APIEASE_RESPONSE_MESSAGE_OVERRIDE`, `OVERRIDE_APIEASE_RESPONSE_CODE`, `OVERRIDE_APIEASE_RESPONSE_MESSAGE` | Completed responses; result-driven overrides are specific to Flow and Liquid |
+| [Runtime History](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/runtime-history) | `RECORD_RUNTIME_HISTORY` | Request execution and chains |
+| [Customer-authenticated requests](https://docs.apiease.com/docs/requests/customer-authenticated-requests) | `validateCustomer`, `customerId` | Shopify storefront app-proxy calls |
+| [System Requests](https://docs.apiease.com/docs/requests/request-types/system-requests) | `function`, `arguments` | System requests that manage shop variables |
+
+A parameter only affects the request types and execution paths that support it. Adding an arbitrary System parameter does not create a new APIEase feature or change a service-wide limit.
+
+## Saved settings and runtime values
+
+Save these settings on the request for consistent behavior across calls. Some System parameters also accept dynamic values through supported request execution interfaces, but the usual dynamic-override rule has exceptions:
+
+- `CONCURRENCY_LIMIT_EXCEEDED_RESPONSE` accepts only the saved literal `429`; runtime callers cannot override it.
+- `REQUEST_TIMEOUT_SECONDS` uses the saved request setting; runtime callers cannot override it.
+- `IMMEDIATE_FLOW_RESPONSE` and `RECORD_RUNTIME_HISTORY` are read from the saved request parameters. Configure them in the editor.
+
+See [in-app parameters vs dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic) for the general distinction. Follow each parameter's guide for defaults, supported values, and limits.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/http-parameters
+
+TITLE
+HTTP Parameters
+
+CONTENT
+# HTTP Parameters
+
+These [System Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) apply to saved [HTTP requests](https://docs.apiease.com/docs/requests/request-types/http-requests). Add each setting with the **System** parameter type and save the request.
+
+| Name | Example value | Default |
+| --- | --- | --- |
+| `REQUEST_TIMEOUT_SECONDS` | `30` | 15 seconds |
+| `RESPONSE_BODY_MODE` | `TEXT` | Normal automatic response handling |
+| `VERIFY_SSL_CERT` | `true` | Certificate verification enabled |
+
+## Set the request timeout
+
+Set `REQUEST_TIMEOUT_SECONDS` to a positive number of seconds, such as `30` for a 30-second outbound HTTP timeout. Omitted, invalid, zero, or negative values use the 15-second default.
+
+Configure this parameter on the saved request. Dynamic embedded values cannot override it. This timeout applies to the outbound HTTP call; it does not extend the calling application's connection timeout or the [Flow response wait time](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters).
+
+## Choose the response body format
+
+Set `RESPONSE_BODY_MODE` to one of these values:
+
+| Value | Behavior |
+| --- | --- |
+| `JSON` | Parse a JSON response into structured data. If text cannot be parsed as JSON, keep the original text. |
+| `TEXT` | Return the response body as UTF-8 text, including when it contains JSON. |
+| `BASE64` | Encode the response bytes as Base64, useful for binary content such as images or PDFs. |
+
+With `BASE64`, the response contains `data.base64` and a top-level `mimeType`. The MIME type comes from the destination's Content-Type header, with `application/octet-stream` as the fallback.
+
+Mode values are trimmed and normalized to uppercase. Omitting the parameter or entering an unsupported value restores normal automatic response handling. This setting changes how APIEase reads the response; it does not change the outbound request's Content-Type.
+
+## Control HTTPS certificate verification
+
+`VERIFY_SSL_CERT` defaults to `true`, which verifies the destination's HTTPS certificate. Keep this enabled for normal use.
+
+Setting it to `false` disables certificate verification. This weakens HTTPS authentication and should only be used for a controlled endpoint whose certificate issue you understand. The current setting uses an exact text comparison: only `true` enables verification when the parameter is present. Use `true` or remove the parameter to restore verification.
+
+To change the status or message APIEase returns after a completed HTTP response, see [Response Overrides](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/response-overrides).
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters
+
+TITLE
+Flow Parameters
+
+CONTENT
+# Flow Parameters
+
+Use System parameters on a saved [Flow request](https://docs.apiease.com/docs/requests/request-types/flow-requests) to control whether APIEase waits for the workflow's response and how long it waits.
+
+Add these settings with the **System** parameter type. The **Flow** parameter type is for values you pass into the workflow.
+
+For settings shared with other request types, see [Response Overrides](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/response-overrides) and [Runtime History](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/runtime-history).
+
+## Add a setting
+
+1. Open your saved Flow request in the APIEase request editor.
+2. Click the **+** icon in the Parameter column.
+3. Select **System**.
+4. Enter the **Name** and **Value** from the table below, using the exact capitalization shown.
+5. Click **Save** at the top of the request editor.
+
+| Name | Example value | Effect |
+| --- | --- | --- |
+| `IMMEDIATE_FLOW_RESPONSE` | `true` | Return without waiting for the Flow result. |
+| `FLOW_RESPONSE_WAIT_TIME` | `60` | Wait up to 60 seconds for the Flow result when immediate response is disabled. |
+
+## Enable immediate response
+
+Set `IMMEDIATE_FLOW_RESPONSE` to `true` to let the caller continue while the workflow runs in the background. The immediate response does not contain the final Flow result or confirm that the workflow has completed.
+
+To restore waiting, set `IMMEDIATE_FLOW_RESPONSE` to `false` or remove the parameter. Waiting is the default.
+
+If both parameters are present and immediate response is enabled, `FLOW_RESPONSE_WAIT_TIME` does not make the caller wait.
+
+For how concurrent requests are handled, see [Concurrent calls and queued responses](https://docs.apiease.com/docs/requests/request-types/flow-requests).
+
+## Adjust the response wait time
+
+Set `FLOW_RESPONSE_WAIT_TIME` to the number of **seconds** APIEase should wait for the Flow response. For example, use `60` to allow up to one minute. Keep `IMMEDIATE_FLOW_RESPONSE` disabled when you want the caller to wait.
+
+- **Default:** 25 seconds when the parameter is omitted.
+- **Minimum:** 10 seconds. Lower values are raised to 10.
+- **Maximum:** 86,400 seconds (24 hours). Higher values are capped at 86,400.
+
+Use a whole number without a unit suffix. This setting controls APIEase's Flow response wait; it does not extend timeouts imposed by the calling application or the connection. Reaching the wait limit does not mean the Shopify workflow has completed or been canceled.
+
+See [Return a result from the workflow](https://docs.apiease.com/docs/requests/request-types/flow-requests) for how APIEase receives the response it is waiting for.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/liquid-parameters
+
+TITLE
+Liquid Parameters
+
+CONTENT
+# Liquid Parameters
+
+Use the `IMMEDIATE_LIQUID_RESPONSE` [System parameter](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) on a [Liquid request](https://docs.apiease.com/docs/requests/request-types/liquid-requests) when the caller can continue without waiting for the rendered result.
+
+## Enable immediate response
+
+Add a parameter with these editor values, then save the request:
+
+| Field | Value |
+| --- | --- |
+| Type | **System** |
+| Name | `IMMEDIATE_LIQUID_RESPONSE` |
+| Value | `true` |
+
+APIEase starts rendering the Liquid template and returns status `200` with the acknowledgment `Liquid request received and processing.` as its response data. The acknowledgment does not contain the rendered result or confirm that rendering or any requests invoked by the template succeeded.
+
+Errors that occur during background processing cannot be returned through that already-sent response. Use immediate response when the caller does not need the final result.
+
+## Restore waiting
+
+Set `IMMEDIATE_LIQUID_RESPONSE` to `false` or remove it to wait for the rendered result. Waiting is the default. Only the lowercase text `true` enables immediate response.
+
+[Response Overrides](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/response-overrides) can customize a completed Liquid result, including values returned by the template. They do not change an immediate Liquid acknowledgment.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/concurrency-limit-response
+
+TITLE
+Concurrency Limit Response
+
+CONTENT
+# Concurrency limit response
+
+Add the System parameter `CONCURRENCY_LIMIT_EXCEEDED_RESPONSE` with value `429`
+to reject a new call immediately when its existing concurrency limit is exceeded.
+Rejected work will not execute later.
+
+## Configure a request
+
+1. Open the request in the APIEase editor and add a parameter.
+2. Choose **System** as the parameter type.
+3. Enter **Name** `CONCURRENCY_LIMIT_EXCEEDED_RESPONSE` and **Value** `429`.
+4. Save the request.
+
+For programmatic request configuration, add this entry to `parameters`:
+
+```json
+{
+  "type": "system",
+  "name": "CONCURRENCY_LIMIT_EXCEEDED_RESPONSE",
+  "value": "429",
+  "sensitive": false
+}
+```
+
+Use exactly `429`, without quotes in the editor. Empty values, other codes,
+whitespace-padded values, and dynamic expressions such as `{responseCode}` are
+invalid. Runtime embedded parameters cannot override this saved setting.
+Remove the parameter to restore the request type's normal overflow behavior.
+
+## Behavior by request type
+
+| Type | When its existing concurrency limit is exceeded |
+| --- | --- |
+| HTTP | Reject before sending the outbound call. |
+| Flow | Reject before triggering Shopify Flow, without adding the call to the queue. |
+| Liquid and System | The parameter is accepted, but these types currently have no concurrency limit for it to change. |
+
+This setting does not change any limit, threshold, or counting scope. HTTP keeps
+its existing approximate overload protection; Flow keeps its existing shared
+request limit. When capacity is available, execution proceeds normally.
+
+## HTTP status and result status
+
+With the setting enabled, a direct API caller still waiting for the result gets
+actual **HTTP 429** and a result containing:
+
+```json
+{
+  "status": 429,
+  "error": "rate_limit_exceeded",
+  "message": "The concurrency limit was exceeded. This request was rejected and will not execute later."
+}
+```
+
+The result may also include execution metadata. No `Retry-After` header is sent.
+Response-code or message overrides cannot turn this rejection into success.
+`IMMEDIATE_FLOW_RESPONSE=true` cannot turn a rejected Flow submission into a
+successful or queued acknowledgment.
+
+Without the setting, HTTP keeps its existing direct API response of **HTTP 200**
+with JSON `status: 429` on concurrency overflow. That JSON field alone is not the
+HTTP transport status. Flow keeps its existing queueing behavior without the
+setting. Request types that do not queue will not start queueing.
+
+## Chains and background calls
+
+Each chain member uses its own setting. For `A -> B -> C`, if B has the parameter
+and exceeds its limit, B is rejected and C does not execute. A's parameter does
+not enable the setting for B. Without the parameter, B keeps its existing
+overflow and chain behavior.
+
+A may already have performed its work. APIEase does not roll back or
+automatically retry earlier members. **Retrying the entire chain can repeat
+those earlier effects.** A waiting caller receives the rejection as HTTP 429.
+
+An asynchronous acknowledgment already sent cannot be changed retroactively.
+The later execution result and existing history mechanisms retain the rejection.
+Background calls without a waiting HTTP client retain the equivalent rejected
+result. The behavior is consistent across local and standalone execution.
+
+Rejected submissions are not queued, triggered, dispatched, or recovered for
+later execution. The setting applies to new submissions and does not cancel
+previously accepted or queued work.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/response-overrides
+
+TITLE
+Response Overrides
+
+CONTENT
+# Response Overrides
+
+Use these [System Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) to customize the status code or message APIEase returns after a request completes. For example, a workflow can complete successfully but return a business result such as `409` with the message `Item unavailable`.
+
+## Set a response code or message
+
+Add either or both parameters to the saved request with type **System**:
+
+| Name | Example value | Effect |
+| --- | --- | --- |
+| `APIEASE_RESPONSE_CODE_OVERRIDE` | `409` | Set the response status code. |
+| `APIEASE_RESPONSE_MESSAGE_OVERRIDE` | `Item unavailable` | Set the response's `message` field. |
+
+The code must be an integer from **200 through 599**, or its three-digit text representation. The message must be text; an empty string is allowed. Unresolved variable references are not accepted as override values.
+
+Direct overrides do not require either of the flags below. Their values can also use normal request variable substitution, such as `{responseCode}` or `{responseMessage}` from a previous request's response. The resolved values must meet the same code and message rules.
+
+These direct overrides apply to completed HTTP responses and successful System, Liquid, or Flow results. An HTTP destination's error status, such as `404`, can be overridden when APIEase received a normal HTTP response; a transport failure cannot.
+
+Overrides change the APIEase response, not the destination API or the work already performed. The message is a response field, not an HTTP reason phrase. Response data remains unchanged by the override, although HTTP statuses **204**, **205**, and **304**, and HEAD responses, are sent without a body.
+
+## Read overrides from a Flow or Liquid result
+
+For a result-dependent status or message, add either or both flags to the saved request with type **System**:
+
+| Name | Value | Field read from the result |
+| --- | --- | --- |
+| `OVERRIDE_APIEASE_RESPONSE_CODE` | `true` | `apieaseSystemData.apieaseResponseCodeOverride` |
+| `OVERRIDE_APIEASE_RESPONSE_MESSAGE` | `true` | `apieaseSystemData.apieaseResponseMessageOverride` |
+
+The flags default to disabled. Enter lowercase `true` as the parameter value to enable each one independently. These flags read completed **Flow or Liquid** output; HTTP and System results do not supply output-based overrides.
+
+The returned `apieaseSystemData` object is separate from the [apieaseMetaData System Variable](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/apiease-metadata). It must be at the top level of the current result, not nested inside another result property.
+
+### Set overrides in a Liquid result
+
+Make the rendered result a JSON object with `apieaseSystemData` at its top level:
+
+```json
+{
+  "available": false,
+  "apieaseSystemData": {
+    "apieaseResponseCodeOverride": 409,
+    "apieaseResponseMessageOverride": "Item unavailable"
+  }
+}
+```
+
+### Set overrides in a Shopify Flow result
+
+Set `apieaseSystemData.apieaseResponseCodeOverride` in the JSON sent through **APIEase Flow Action → Flow Parameters**. A **Run code** step can add the override while preserving the original `executionId` that APIEase needs to resolve the waiting call.
+
+Start with a workflow using the **APIEase Flow Trigger**, as described in [Minimal Flow integration](https://docs.apiease.com/docs/requests/shopify-flow-integration/minimal-flow-integration).
+
+1. On the saved APIEase Flow request, add a **System** parameter named `OVERRIDE_APIEASE_RESPONSE_CODE` with value `true`, then save. Keep `IMMEDIATE_FLOW_RESPONSE` set to `false` or remove it so APIEase waits for the result.
+2. In Shopify Flow, add a **Run code** step after the workflow steps that determine the result. Configure its **Input** to include the trigger's `flowParameters`:
+
+   ```graphql
+   {
+     flowParameters
+   }
+   ```
+
+3. Define the Run code **Output** schema:
+
+   ```graphql
+   type Output {
+     message: String!
+   }
+   ```
+
+4. Use this **Code** to return a `409` response:
+
+   ```javascript
+   export default function main(input) {
+     const parameters = JSON.parse(input.flowParameters);
+
+     parameters.apieaseSystemData = {
+       ...parameters.apieaseSystemData,
+       apieaseResponseCodeOverride: 409
+     };
+
+     return { message: JSON.stringify(parameters) };
+   }
+   ```
+
+   Replace `409` with the code appropriate to your workflow result. Codes must be integers from **200 through 599**.
+
+5. Add **APIEase Flow Action** after Run code. In its **Flow Parameters** field, use the variable picker to select that **Run code → message** output. This passes the serialized JSON back to APIEase. The Run code output named `message` carries the entire callback JSON; it does not itself override the APIEase response message.
+
+The returned JSON has this shape, alongside any other preserved input or result fields:
+
+```json
+{
+  "executionId": "<original execution ID from the APIEase trigger>",
+  "apieaseSystemData": {
+    "apieaseResponseCodeOverride": 409
+  }
+}
+```
+
+Preserve the trigger's actual `executionId`; do not replace it with the placeholder above. Keep `apieaseSystemData` at the top level, without an extra `data` wrapper.
+
+To also override the response message, add `apieaseResponseMessageOverride: "Item unavailable"` to the same `apieaseSystemData` object and enable the **System** parameter `OVERRIDE_APIEASE_RESPONSE_MESSAGE` with value `true` on the saved request.
+
+The override applies to the original caller's response when the callback arrives while APIEase is still waiting. The Flow action's callback acknowledgment is independent of that response code. A late callback cannot change an immediate, queued, or timed-out response already returned to the caller. See [Flow Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters) for response wait settings.
+
+## Precedence and invalid values
+
+APIEase resolves the code and message independently, using this order:
+
+1. A valid value from the Flow or Liquid result, when its corresponding flag is `true`.
+2. A valid direct System parameter value.
+3. The normal response code or message.
+
+Invalid override values are ignored and reported with an `INVALID_RESPONSE_OVERRIDE` warning. An invalid output override can therefore fall back to a valid direct setting. Removing the parameters restores normal response behavior.
+
+## Responses that are not overridden
+
+Overrides do not replace authentication or validation failures, concurrency rejections, transport errors, failed execution, or incomplete Flow results. In particular, queued Flow acknowledgments, immediate Flow responses, Flow wait timeouts, and immediate Liquid acknowledgments keep their normal responses.
+
+To use a Flow or Liquid result to determine the response, keep immediate response disabled. See [Flow Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/flow-parameters) and [Liquid Parameters](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/liquid-parameters).
+
+In a request chain, these settings apply to the current request's result. A later request can supply the final response returned by the chain; configure overrides on the request whose response you intend to return.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/runtime-history
+
+TITLE
+Runtime History
+
+CONTENT
+# Runtime History
+
+`RECORD_RUNTIME_HISTORY` is a [System parameter](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) that controls the detail retained in a request's runtime history entry. This is the execution history carried through a request chain, including when that chain passes history into a Shopify Flow workflow.
+
+## Retain runtime values
+
+On the saved request whose values you want to retain, add:
+
+| Field | Value |
+| --- | --- |
+| Type | **System** |
+| Name | `RECORD_RUNTIME_HISTORY` |
+| Value | `true` |
+
+With `true`, APIEase includes runtime parameter values and response data in that request's history entry. Saved parameters explicitly marked **Sensitive** remain redacted. Response bodies and other runtime values can still contain confidential data, so enable this only when the chain needs those details.
+
+## Default behavior
+
+The default is `false`. Remove the parameter or set it to `false` to redact response data and runtime parameter values from the history entry. APIEase still records the history entry; this setting controls its detail rather than turning history collection on or off.
+
+Configure this on each saved request whose history should include runtime detail. A setting on one request does not enable it for every request in the chain, and dynamic embedded values do not override this saved setting.
+
+This parameter does not control the ordinary response sent to the caller or the previous-response data passed to the next request. It is not required for normal [chained request](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) parameter substitution, and it does not configure persistent log retention.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-variables/overview
+
+TITLE
+System Variables overview
+
+CONTENT
+# System Variables overview
+
+System Variables are built-in values provided by APIEase during request execution. Reference them wherever APIEase supports runtime variable substitution or Liquid rendering.
+
+They are distinct from [persisted shop variables](https://docs.apiease.com/docs/variables/variables-overview), which you create and manage on the Variables page. They are also distinct from [System-type request parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-system-parameters), which control request behavior. You do not need to create or configure a System parameter to enable System Variables.
+
+## Reference a System Variable
+
+Names are case-sensitive. Use single braces, such as `{variableName}`, for APIEase runtime substitution. Use dot notation to access a child of an object.
+
+For example, [apieaseMetaData](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/apiease-metadata) provides supported information about the current execution:
+
+- Whole object: `{apieaseMetaData}`
+- API key friendly name: `{apieaseMetaData.apieaseApiKeyName}`
+
+A bare `apieaseMetaData` value without braces is literal text. In native Liquid expressions, use Liquid syntax instead, such as `{{ apieaseMetaData.apieaseApiKeyName }}`.
+
+Availability depends on where APIEase performs runtime substitution or Liquid rendering. Arbitrary widget JavaScript is not automatically rewritten to replace System Variable references.
+
+## Unresolved references
+
+If APIEase cannot resolve a single-brace reference, such as `{apieaseMetaDataFFFFF}`, it leaves the reference unchanged and execution continues.
+
+APIEase reports an `UNRESOLVED_VARIABLE` warning in backend logs, the response's `warnings` array, and call history. The warning identifies the variable and the parameter's type and name, includes the request ID when available, and explains that execution continued. Parameter values are not included in the warning.
+
+Referencing an absent object child can also produce this warning. For example, `{apieaseMetaData.apieaseApiKeyName}` is unresolved when the initiating request did not authenticate with a named APIEase API key. Check the spelling and case of the reference and whether the child is available for that execution.
+
+These unchanged-reference and warning rules apply to APIEase single-brace substitution. They do not apply to native Liquid expressions such as `{{ apieaseMetaData.apieaseApiKeyName }}`, which are handled by Liquid rendering.
+
+SOURCE
+https://docs.apiease.com/docs/general/apiease-details/system/system-variables/apiease-metadata
+
+TITLE
+apieaseMetaData
+
+CONTENT
+# apieaseMetaData
+
+`apieaseMetaData` is an automatically available [System Variable](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/overview) object containing supported information about the current execution. You do not create it on the Variables page or enable it with a System parameter.
+
+## Reference the object or a child
+
+| Reference | Value |
+| --- | --- |
+| `{apieaseMetaData}` | The whole metadata object |
+| `{apieaseMetaData.apieaseApiKeyName}` | The authenticating APIEase API key's friendly name, when available |
+
+The spelling is case-sensitive. A bare `apieaseMetaData` value without braces is literal text.
+
+When `{apieaseMetaData}` is the entire value, Flow, Liquid, System, and JSON body parameter values preserve the object. Text destinations, such as headers and query parameters, receive serialized JSON text for the object.
+
+Metadata is available where APIEase performs runtime substitution or Liquid rendering. Arbitrary widget JavaScript is not automatically rewritten.
+
+## apieaseMetaData.apieaseApiKeyName
+
+`apieaseApiKeyName` contains the friendly name of the [APIEase API key](https://docs.apiease.com/docs/general/settings/apiease-api-key) used to authenticate the initiating request. It contains the name, never the secret key.
+
+It is currently the only supported metadata child. For a fictional API key named `Example integration`, the object is:
+
+```json
+{"apieaseApiKeyName": "Example integration"}
+```
+
+If execution did not authenticate with a named APIEase API key, `apieaseMetaData` is `{}` and `apieaseApiKeyName` is absent. Referencing that absent child with single braces can produce an [unresolved-variable warning](https://docs.apiease.com/docs/general/apiease-details/system/system-variables/overview).
+
+The initiating request's authentication information remains available through [chained requests](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) and nested Liquid calls.
+
+## Pass metadata to Shopify Flow
+
+Create a [Flow request](https://docs.apiease.com/docs/requests/shopify-flow-integration/add-flow-request), then add a Flow-type parameter:
+
+| Setting | Value |
+| --- | --- |
+| Type | `flow` |
+| Name | `myMetadata` |
+| Value | `{apieaseMetaData}` |
+
+You choose the output parameter name: `myMetadata` is an example, not a required name. For this example, initiate the request with an APIEase API key named `Example integration`, either directly or through a request chain.
+
+In Shopify Flow, use the **APIEase Flow Trigger** as described in the [minimal Flow integration](https://docs.apiease.com/docs/requests/shopify-flow-integration/minimal-flow-integration). Its `flowParameters` field is JSON text. After parsing it, the payload includes:
+
+```json
+{
+  "requestFlowParameters": {
+    "myMetadata": {
+      "apieaseApiKeyName": "Example integration"
+    }
+  },
+  "executionId": "example-execution-id"
+}
+```
+
+APIEase generates the actual `executionId`. The metadata object is under `requestFlowParameters.myMetadata`; its friendly name is at `requestFlowParameters.myMetadata.apieaseApiKeyName` after parsing `flowParameters`.
+
+For a **Run code** step, include the trigger field in the input query:
+
+```graphql
+query {
+  flowParameters
+}
+```
+
+Then read the child in the workflow's JavaScript:
+
+```javascript
+export default function main(input) {
+  const parameters = JSON.parse(input.flowParameters);
+  return {
+    callingIntegration:
+      parameters.requestFlowParameters.myMetadata.apieaseApiKeyName ?? ""
+  };
+}
+```
+
+Define the Run code output so later workflow steps can select `callingIntegration`:
+
+```graphql
+type Output {
+  callingIntegration: String!
+}
+```
+
+The output is `Example integration` for this example, or an empty string when the metadata child is absent. If your workflow returns a result to APIEase, follow the minimal integration's instructions to preserve `executionId` in the callback.
+
+### Pass only the name
+
+To send only the friendly name instead of the object, configure:
+
+| Setting | Value |
+| --- | --- |
+| Type | `flow` |
+| Name | `callingIntegration` |
+| Value | `{apieaseMetaData.apieaseApiKeyName}` |
+
+After parsing the trigger's `flowParameters`, `requestFlowParameters.callingIntegration` is `"Example integration"`. If the child is absent, the single-brace reference stays unchanged and can produce an unresolved-variable warning.
+
+## Use native Liquid
+
+In an APIEase Liquid template, access the friendly name directly:
+
+```liquid
+{{ apieaseMetaData.apieaseApiKeyName }}
+```
+
+For the fictional key above, this renders `Example integration`. Native Liquid expressions follow Liquid rendering behavior, not APIEase's single-brace unresolved-reference warning rules.
 
 SOURCE
 https://docs.apiease.com/docs/general/apiease-details/ip-address-whitelisting
@@ -4858,55 +6249,41 @@ SOURCE
 https://docs.apiease.com/docs/general/apiease-details/importing-third-party-products
 
 TITLE
-Importing products from a third-party system
+Import products from a third-party system
 
 CONTENT
-# Importing products from a third-party system
+# Import products from a third-party system
 
-You can use [Liquid requests](../../requests/request-types/liquid-requests.md) to automate the import of products and inventory data from third-party systems into your Shopify store. You can also import using [Shopify Flow Integration](../../requests/shopify-flow-integration/architecture.md). Liquid integration is recommended over Flow integration because it can be configured by the APIEase AI assistant. Whether syncing from a warehouse API, supplier feed, or internal catalog, APIEase enables this process without requiring custom app development or hosting.
+Use APIEase to compose the provider read, data mapping, and Shopify write operations required by a third-party product import. This pattern applies to a supplier catalog, warehouse API, stock feed, or internal product system, but the exact endpoints and field mappings come from the provider and Shopify API contracts.
 
-**Recommended: Liquid integration**
-Liquid requests let you fetch products, loop through the response, and post each product into Shopify. This keeps the entire import inside APIEase and makes it easier to adjust the logic with the AI assistant.
+Start with [Synchronize data with an external system](https://docs.apiease.com/docs/requests/synchronize-external-data). It covers direction, source of truth, record identity, change detection, pagination, and safe write planning.
 
-**Quick Liquid example**
-1. Create an HTTP request that calls the third-party products API.
-2. Create an HTTP request that calls the Shopify Admin API to create or update products.
-3. Use a Liquid request to connect them:
+## Required information
 
-```liquid
-{% call { "requestId": "third-party-products" } as source %}
+- The provider endpoint that lists products or inventory changes
+- The provider's authentication, pagination, and rate-limit requirements
+- The fields and identifiers returned for products, variants, SKUs, inventory items, and locations
+- The Shopify Admin API operations and permissions required for each write
+- The rule for matching an external record to an existing Shopify record
+- The intended create, update, missing-record, and deletion behavior
 
-{% for product in source.data.products %}
-  {% call {
-    "requestId": "shopify-product-upsert",
-    "bodyEmbedded": {
-      "title": "{{ product.title }}",
-      "vendor": "{{ product.vendor }}",
-      "variants": [
-        { "sku": "{{ product.sku }}", "price": "{{ product.price }}" }
-      ]
-    }
-  } as upsert %}
-  {{ upsert.status }}
-{% endfor %}
-```
+If the provider does not document an endpoint, credential, identifier, or payload, obtain that information before configuring the import. APIEase cannot infer or issue it.
 
-More detailed examples of Liquid integrations are coming soon.
+## Build the import from focused requests
 
-**Flow integration (alternative)**
-1. **Start with an APIEase Request**: Create an APIEase request to fetch product and inventory data from the third-party system. Trigger it manually, on a schedule, or via a Shopify webhook event.
-2. **Pass the Response to Shopify Flow**: Use a chained request to send the data to a Shopify Flow workflow configured by store administrators or developers.
-3. **Process the Data in Flow**: Inside Flow, use a Run Code action to transform, validate, or filter the received data.
-4. **Import into Shopify**: Use the Send Admin API request action in Flow to call Shopify's GraphQL Admin API to create or update products and inventory.
+1. Create an [HTTP request](https://docs.apiease.com/docs/requests/request-types/http-requests) that reads a bounded page of provider data.
+2. Create a separate HTTP request for the specific Shopify product or inventory operation.
+3. Use a [Liquid request](https://docs.apiease.com/docs/requests/request-types/liquid-requests) when the workflow must loop through records, transform fields, or call several saved requests.
+4. Run the read and one write with test data before processing a larger page.
+5. Add a [cron schedule](https://docs.apiease.com/docs/requests/triggers/cron-schedule) only after pagination and repeated records behave as intended.
 
-**Why Use APIEase**
-While Shopify Flow provides native actions for updating product data, most real-world integrations require:
-- Authenticated API calls to third-party systems
-- The ability to schedule imports
-- Access to response data from external APIs
-- Dynamic control over how data flows into Shopify
+For a simple response-to-next-request sequence, a [chained request](https://docs.apiease.com/docs/requests/request-parameters/chained-requests) may be enough. Shopify Flow can also participate when the store's workflow should own part of the automation; see [Shopify Flow integration](https://docs.apiease.com/docs/requests/shopify-flow-integration/architecture).
 
-APIEase handles these responsibilities, enabling you to build a complete product import pipeline within your Shopify environment.
+## Keep product and inventory identity separate
+
+A product, variant, SKU, inventory item, and location are different concepts. Do not assume one identifier works for every Shopify operation. Define the mapping explicitly and use the identifier required by the current Shopify Admin API operation.
+
+For Shopify authentication and permissions, see [Shopify API calls and access tokens](https://docs.apiease.com/docs/general/shopify-api/shopify-api-calls-and-access-tokens).
 
 SOURCE
 https://docs.apiease.com/docs/general/apiease-details/automatic-shopify-customer-id-injection
@@ -5044,11 +6421,11 @@ Authentication example
 CONTENT
 # Authentication example
 
-Many external APIs require authentication before you can access their data or services. This usually involves sending a login request to receive an access token, which must then be included in subsequent requests.
+Many external APIs require authentication before you can access their data or services. Some use a static credential. Others require a login or token request followed by a second request that sends the short-lived access token.
 
-With APIEase, you can handle this securely using chained requests - without ever exposing your credentials in the storefront.
+Use the provider's current API documentation to determine the token URL, request fields, response fields, scopes, and required authorization format. APIEase cannot supply or generate provider credentials.
 
-**Step 1: Create the Authentication Request**
+## Step 1: Create the authentication request
 
 Start by setting up your first request to authenticate with the external service. This is typically a POST request with your client credentials in the body.
 
@@ -5060,8 +6437,8 @@ Example:
 
 ```json
 {
-  "client_id": "your-client-id",
-  "client_secret": "your-client-secret"
+  "client_id": "YOUR_CLIENT_ID",
+  "client_secret": "YOUR_CLIENT_SECRET"
 }
 ```
 
@@ -5069,15 +6446,17 @@ This request will return an access token in the response. For example:
 
 ```json
 {
-  "auth_token": "abc123xyz"
+  "auth_token": "YOUR_ACCESS_TOKEN"
 }
 ```
 
-**Step 2: Create the Follow-Up Request**
+Mark saved client credentials as **Sensitive**. APIEase masks sensitive request parameters after saving and decrypts them only when it executes the request.
 
-Next, create a second request to access the secured endpoint. Let's call it "SecureRequest".
+## Step 2: Create the follow-up request
 
-This request will use the auth_token returned from the authentication request.
+Next, create a second request to access the secured endpoint. Give it the handle `secure-request`.
+
+This request will use the `auth_token` returned from the authentication request.
 
 For example, you might need to include the token in a header:
 
@@ -5096,17 +6475,19 @@ Or include it in the body:
 }
 ```
 
-**Step 3: Chain the Requests**
+## Step 3: Chain the requests
 
-Go back to your authentication request and set the Next Request field to the name of your follow-up request (in this case, "SecureRequest").
+Go back to your authentication request and set **Next Request** to the handle of your follow-up request (`secure-request`).
 
 When the authentication request completes successfully, APIEase will automatically execute the next request and insert the token where specified.
 
 ![Chained requests example](https://cdn.shopify.com/s/files/1/0733/1820/3680/files/chained-requests-example.png?v=1744331402)
 
-**Secure by Design**
+## Keep the response private
 
-All credentials and tokens stay on the server and are never exposed to the storefront or customer browser. This ensures a secure authentication flow without needing to build your own app or server.
+Saved sensitive parameters stay in APIEase during request execution, and chained response values can pass directly to the next request. However, APIEase does not remove tokens or private fields from an external API's response. Do not expose this authentication request or a final chained response to a storefront or other public caller if the response can contain credentials or private data.
+
+If the provider uses a static API key or Bearer token instead, you usually need only one request. Save the credential as a sensitive [in-app header parameter](https://docs.apiease.com/docs/requests/request-parameters/in-app-parameters/in-app-header-parameters) using the exact header name and format required by the provider.
 
 SOURCE
 https://docs.apiease.com/docs/general/shopify-api/shopify-api-calls-and-access-tokens
@@ -5117,16 +6498,16 @@ Shopify API calls and access tokens
 CONTENT
 # Shopify API calls and access tokens
 
-APIEase can call the Shopify Admin API on your behalf. It uses the [shop access token](./shop-access-token.md) that was issued during Shopify OAuth and stored for the shop. If for some reason you need to use a [custom access token](./custom-access-token.md) you can override the system injected shop access token.
+APIEase can call the Shopify Admin API on your behalf. It uses the [shop access token](https://docs.apiease.com/docs/general/shopify-api/shop-access-token) that was issued during Shopify OAuth and stored for the shop. If for some reason you need to use a [custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token) you can override the system injected shop access token.
 
-[Manage shop access token permissions](./manage-shop-access-token-permissions.md) controls which scopes are granted to the shop access token. When you request new scopes, Shopify reauthorizes the app and issues an updated shop access token with the new permissions.
+[Manage shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions) controls which scopes are granted to the shop access token. When you request new scopes, Shopify reauthorizes the app and issues an updated shop access token with the new permissions.
 
 ## Key concepts
-- [Automatic token usage](./automatic-vs-overridden-shopify-access-tokens.md#automatic-shop-access-token-usage): APIEase injects the shop access token when a request targets the Shopify Admin API and no override token is provided.
-- [Override token usage](./automatic-vs-overridden-shopify-access-tokens.md#overridden-custom-access-token-usage): A request includes an explicit `X-Shopify-Access-Token` header and APIEase uses that token instead of the shop access token.
-- [Shop access token](./shop-access-token.md): The Shopify OAuth token stored for the shop and used for Shopify Admin API calls.
-- [Custom access token](./custom-access-token.md): A standalone token you generate and provide explicitly when a request must use a different Shopify Admin API token.
-- [Scope and permissions](./manage-shop-access-token-permissions.md): The specific Shopify Admin API permissions granted to the shop access token, and the reauthorization flow that updates it after scope changes.
+- [Automatic token usage](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens): APIEase injects the shop access token when a request targets the Shopify Admin API and no override token is provided.
+- [Override token usage](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens): A request includes an explicit `X-Shopify-Access-Token` header and APIEase uses that token instead of the shop access token.
+- [Shop access token](https://docs.apiease.com/docs/general/shopify-api/shop-access-token): The Shopify OAuth token stored for the shop and used for Shopify Admin API calls.
+- [Custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token): A standalone token you generate and provide explicitly when a request must use a different Shopify Admin API token.
+- [Scope and permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions): The specific Shopify Admin API permissions granted to the shop access token, and the reauthorization flow that updates it after scope changes.
 
 ## Caution on write permissions
 Write permissions allow APIEase to create, update, or delete store data when triggered by configured requests, flows, schedules, webhooks, or proxy endpoints. This capability is powerful and potentially destructive if used incorrectly, and some write operations cannot be reversed.
@@ -5138,7 +6519,7 @@ We strongly recommend backing up relevant store data or testing write-enabled re
 ## When to use what
 - Use automatic token usage for most Shopify Admin API calls inside APIEase.
 - Use an override token when a call must run with a different token for a different shop or with permissions that need to differ from the Shop access token.
-- Update scopes on [Manage shop access token permissions](./manage-shop-access-token-permissions.md) when a request needs new Shopify Admin API access.
+- Update scopes on [Manage shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions) when a request needs new Shopify Admin API access.
 
 SOURCE
 https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens
@@ -5152,10 +6533,10 @@ CONTENT
 APIEase determines how to authenticate Shopify Admin API requests based on the request address and headers. It does not validate business correctness. It executes requests exactly as configured.
 
 ## Automatic shop access token usage
-APIEase injects the [shop access token](./shop-access-token.md) when a request targets the Shopify Admin API and no override token is provided. This is useful because you do not need to generate a token manually, you do not need to configure a token header in each request, and you can update its permissions quickly on [Manage shop access token permissions](./manage-shop-access-token-permissions.md). For the fastest setup, select the [Shopify Admin GraphQL address preset](./shopify-admin-graphql-address-preset.md) in the request address dropdown to ensure the request qualifies for automatic token usage.
+APIEase injects the [shop access token](https://docs.apiease.com/docs/general/shopify-api/shop-access-token) when a request targets the Shopify Admin API and no override token is provided. This is useful because you do not need to generate a token manually, you do not need to configure a token header in each request, and you can update its permissions quickly on [Manage shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions). For the fastest setup, select the [Shopify Admin GraphQL address preset](https://docs.apiease.com/docs/general/shopify-api/shopify-admin-graphql-address-preset) in the request address dropdown to ensure the request qualifies for automatic token usage.
 
 ## Overridden custom access token usage
-APIEase overrides your shop access token when you provide a [custom access token](./custom-access-token.md) in an explicitly set `X-Shopify-Access-Token` header. This is useful when a call must run under a different Shopify token, such as testing a separate app, using a token from another shop, or matching permissions that differ from the stored shop access token.
+APIEase overrides your shop access token when you provide a [custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token) in an explicitly set `X-Shopify-Access-Token` header. This is useful when a call must run under a different Shopify token, such as testing a separate app, using a token from another shop, or matching permissions that differ from the stored shop access token.
 
 ## Decision rules
 1. If the request targets a Shopify Admin API endpoint and no explicit override token is provided, APIEase injects the shop access token automatically.
@@ -5194,7 +6575,7 @@ This request includes an `X-Shopify-Access-Token` header. APIEase uses the overr
 - Address: `https://yourstore.myshopify.com/admin/api/2024-07/graphql.json`
 - Method: `POST`
 - Headers:
-  - `X-Shopify-Access-Token`: `your-override-token`
+  - `X-Shopify-Access-Token`: `YOUR_ACCESS_TOKEN`
   - `Content-Type`: `application/json`
 - Body:
 
@@ -5210,7 +6591,7 @@ The Shopify REST Admin API is deprecated. Only use REST if you understand the im
 - Address: `https://yourstore.myshopify.com/admin/api/2024-07/products/count.json`
 - Method: `GET`
 - Headers:
-  - `X-Shopify-Access-Token`: `your-override-token`
+  - `X-Shopify-Access-Token`: `YOUR_ACCESS_TOKEN`
 
 ## What the UI communicates
 When a request targets the Shopify Admin API, the request editor uses labels to show which token is used:
@@ -5222,7 +6603,8 @@ When a request targets the Shopify Admin API, the request editor uses labels to 
 - 403 Forbidden usually means the token is valid but missing the required scope.
 - Missing scope symptoms include access denied errors or empty data where the Admin API expects permissions.
 - Token override mistakes include using the wrong shop domain, using an expired token, or entering the header name or value incorrectly.
-- Confirm granted scopes on [Manage shop access token permissions](./manage-shop-access-token-permissions.md) and reauthorize if you need more access.
+- Confirm granted scopes on [Manage shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions) and reauthorize if you need more access.
+- The Permissions page changes APIEase's installed shop access token. Manage an override token's scopes and rotation through the Shopify app that issued it.
 
 SOURCE
 https://docs.apiease.com/docs/general/shopify-api/shopify-admin-graphql-address-preset
@@ -5233,7 +6615,7 @@ Shopify Admin GraphQL address preset
 CONTENT
 # Shopify Admin GraphQL address preset
 
-You can take advantage of [automatic shop access token usage](./automatic-vs-overridden-shopify-access-tokens.md#automatic-shop-access-token-usage) by selecting the prepopulated Shopify Admin GraphQL option in the request address dropdown for HTTP requests.
+You can take advantage of [automatic shop access token usage](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens) by selecting the prepopulated Shopify Admin GraphQL option in the request address dropdown for HTTP requests.
 
 ## Why this helps
 The preset fills in a Shopify Admin API address that matches your shop domain and api path like this: `https://yourstore.myshopify.com/admin/api/2025-10/graphql.json`. That address pattern triggers APIEase to inject the shop access token automatically, so you do not need to add an `X-Shopify-Access-Token` header manually.
@@ -5254,7 +6636,9 @@ CONTENT
 # Shop access token
 
 The shop access token is the Shopify OAuth token issued when a shop installs APIEase. APIEase stores it per shop and uses it to call the Shopify Admin API on that shop's behalf.
-If the shop access token does not have the permissions your request needs, you can adjust its permissions as described in [Manage shop access token permissions](./manage-shop-access-token-permissions.md).
+If the shop access token does not have the permissions your request needs, you can adjust its permissions as described in [Manage shop access token permissions](https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions).
+
+You do not need to retrieve or reveal this installed token to use it. APIEase injects it into eligible requests during execution. APIEase does not provide the stored Shopify OAuth token for copying; if you require an explicit token, obtain a [custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token) from Shopify.
 
 ## How APIEase uses it
 - APIEase app usage: internal Shopify Admin API calls that APIEase makes for the shop use the shop access token.
@@ -5269,9 +6653,11 @@ Custom access token
 CONTENT
 # Custom access token
 
-If you decide that you need a custom access token rather than using the [shop access token](./shop-access-token.md) that can be [used automatically](./automatic-vs-overridden-shopify-access-tokens.md#automatic-shop-access-token-usage) follow these instructions to get a custom Shopify access token.
+If you decide that you need a custom access token rather than using the [shop access token](https://docs.apiease.com/docs/general/shopify-api/shop-access-token) that can be [used automatically](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens) follow these instructions to get a custom Shopify access token.
 
-For how APIEase uses custom tokens in requests, see [Overridden custom access token usage](./automatic-vs-overridden-shopify-access-tokens.md#overridden-custom-access-token-usage).
+APIEase cannot generate, retrieve, or reveal a custom Shopify access token. Shopify issues the token, and you are responsible for copying it when Shopify displays it, storing it securely, granting its scopes, and rotating or revoking it.
+
+For how APIEase uses custom tokens in requests, see [Overridden custom access token usage](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens).
 
 1. In your store admin, go to **Settings**.
 2. Go to **Apps and sales channels**.
@@ -5280,6 +6666,8 @@ For how APIEase uses custom tokens in requests, see [Overridden custom access to
 5. Configure permissions: click **Configure Admin API scopes** or **Configure Storefront API scopes** and choose the permissions required. (You must set scopes before you can install and get a token.)
 6. Click **Install app** (top right).
 7. Click **Reveal token once**. Copy and save your access token—this is the only time it will be shown.
+
+Add the token to the APIEase request as a sensitive `X-Shopify-Access-Token` header with a value such as `YOUR_ACCESS_TOKEN`. Adding this header overrides APIEase's automatically injected shop access token.
 
 SOURCE
 https://docs.apiease.com/docs/general/shopify-api/manage-shop-access-token-permissions
@@ -5290,7 +6678,9 @@ Manage shop access token permissions
 CONTENT
 # Manage shop access token permissions
 
-The Permissions page manages Shopify Admin API permissions for the [shop access token](./shop-access-token.md) that APIEase stores for each shop. Use it to review current permissions, request new scopes, and reauthorize the shop token when access needs change.
+The Permissions page manages Shopify Admin API permissions for the [shop access token](https://docs.apiease.com/docs/general/shopify-api/shop-access-token) that APIEase stores for each shop. Use it to review current permissions, request new scopes, and reauthorize the shop token when access needs change.
+
+These settings do not change a [custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token) supplied in an `X-Shopify-Access-Token` header. Manage that token's scopes through the Shopify app that issued it.
 
 ## What the Permissions page is for
 - Manage OAuth scopes for the stored shop access token.
@@ -5329,7 +6719,7 @@ Demo store password: eacoht
 
 [https://apiease-demo.myshopify.com/pages/shopify-graphql-api-products](https://apiease-demo.myshopify.com/pages/shopify-rest-api-products)
 
-This example includes an explicit `X-Shopify-Access-Token` header. For automatic shop access token usage and overrides, see [Automatic vs overridden Shopify access tokens](./automatic-vs-overridden-shopify-access-tokens.md).
+This example includes an explicit `X-Shopify-Access-Token` header. For automatic shop access token usage and overrides, see [Automatic vs overridden Shopify access tokens](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens).
 
 Example of APIEase Request for Shopify Product Count
 
@@ -5337,7 +6727,7 @@ Example of APIEase Request for Shopify Product Count
 - **Method**: `POST`
 - **Header parameters:**
   - **Name**: `X-Shopify-Access-Token`  
-    **Value**: `your-shopify-access-token` (see [Custom access token](./custom-access-token.md))
+    **Value**: `your-shopify-access-token` (see [Custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token))
   - **Name**: `Content-Type`  
     **Value**: `application/json`
 - **Body parameters:**
@@ -5362,7 +6752,7 @@ Demo store password: eacoht
 
 [https://apiease-demo.myshopify.com/pages/shopify-rest-api-products](https://apiease-demo.myshopify.com/pages/shopify-rest-api-products)
 
-This example includes an explicit `X-Shopify-Access-Token` header. For automatic shop access token usage and overrides, see [Automatic vs overridden Shopify access tokens](./automatic-vs-overridden-shopify-access-tokens.md).
+This example includes an explicit `X-Shopify-Access-Token` header. For automatic shop access token usage and overrides, see [Automatic vs overridden Shopify access tokens](https://docs.apiease.com/docs/general/shopify-api/automatic-vs-overridden-shopify-access-tokens).
 
 Example of APIEase Request for Shopify Product Count
 
@@ -5370,4 +6760,4 @@ Example of APIEase Request for Shopify Product Count
 - **Method**: `GET`
 - **Header**:
   - **Name**: `X-Shopify-Access-Token`
-  - **Value**: your access token (see [Custom access token](./custom-access-token.md))
+  - **Value**: your access token (see [Custom access token](https://docs.apiease.com/docs/general/shopify-api/custom-access-token))
