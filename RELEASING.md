@@ -6,6 +6,37 @@ This document is for maintainers publishing packages from this repository.
 
 This repository publishes one npm package from the repository root: `apiease`.
 
+## Test Locally Without Publishing
+
+From your local `apiease-cli` checkout, install dependencies and expose the local CLI globally:
+
+```bash
+cd /path/to/apiease-cli
+npm install
+npm link
+apiease --version
+```
+
+You can then run `apiease` from any directory. The command uses your local checkout, so source changes take effect on the next invocation without publishing or running a build step.
+
+To test without creating a global link, invoke the local CLI directly:
+
+```bash
+/path/to/apiease-cli/bin/apiease-cli --help
+```
+
+### Switch Back to the Published Version
+
+Remove the global link and install the latest published package:
+
+```bash
+npm unlink -g apiease
+npm install -g apiease@latest
+apiease --version
+```
+
+The `apiease` command now uses the npm-published version. Your local checkout remains untouched. Run `npm link` from the CLI checkout again whenever you want to resume testing local changes.
+
 ## Release the CLI
 
 1. Confirm you are logged in to the correct npm account:
