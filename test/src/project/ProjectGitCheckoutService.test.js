@@ -222,7 +222,8 @@ async function writeProjectMetadata(repositoryTopLevelPath, templateOverrides = 
 function buildLocalState() {
   return {
     localStateVersion: 1,
-    projectId: 'project_01',
+    projectIdentity: { projectId: 'project_01', normalizedShopDomain: 'example.myshopify.com',
+      templateOwner: 'APIEase', templateRef: 'main', templateRepository: 'apiease-template' },
     baseline: {
       liveRevision: 1,
       snapshotDigest: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',

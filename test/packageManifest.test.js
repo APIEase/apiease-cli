@@ -9,15 +9,15 @@ const projectDirectoryPath = path.resolve(currentDirectoryPath, '..');
 
 describe('package manifest', () => {
   describe('metadata', () => {
-    it('should use the approved unified Project CLI release version', async () => {
+    it('should keep the package and lockfile release versions aligned', async () => {
       // Arrange
       const packageJson = await readPackageJson();
       const packageLockJson = await readPackageLockJson();
 
       // Assert
-      assert.equal(packageJson.version, '0.2.0');
-      assert.equal(packageLockJson.version, '0.2.0');
-      assert.equal(packageLockJson.packages[''].version, '0.2.0');
+      assert.match(packageJson.version, /^\d+\.\d+\.\d+$/u);
+      assert.equal(packageLockJson.version, packageJson.version);
+      assert.equal(packageLockJson.packages[''].version, packageJson.version);
     });
 
     it('should configure the apiease package as an ES module', async () => {

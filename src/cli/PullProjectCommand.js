@@ -35,7 +35,7 @@ class PullProjectCommand {
     try {
       return await this.runVerifiedPull({ currentWorkingDirectoryPath, parseResult });
     } catch (error) {
-      return this.renderResult(this.buildCommandErrorFailure(error), parseResult.json);
+      return this.renderResult(this.buildCommandErrorFailure(error), parseResult.json, this.buildRecoveryGuidance(error));
     }
   }
 
@@ -111,7 +111,7 @@ class PullProjectCommand {
   }
 
   async synchronizeCheckout({ currentWorkingDirectoryPath, parseResult, requestConfiguration }) {
-    const checkout = await this.projectGitCheckoutService.validateProjectCheckout(currentWorkingDirectoryPath);
+    const checkout = await this.projectGitCheckoutService.validateProjectCheckout(currentWorkingDirectoryPath, { allowLegacy: true });
     const synchronization = await this.pullVerifiedProject({
       checkout,
       force: parseResult.force,
@@ -123,6 +123,7 @@ class PullProjectCommand {
   async pullVerifiedProject({ checkout, force, requestConfiguration }) {
     return await this.resolveProjectSynchronizationService().pullProject({
       force,
+      ...(checkout.legacyMetadata ? { legacyMetadata: checkout.legacyMetadata } : {}),
       projectDirectoryPath: checkout.repositoryTopLevelPath,
       projectApiInvocation: {
         apiBaseUrl: requestConfiguration.apiBaseUrl,
@@ -215,6 +216,16 @@ class PullProjectCommand {
     if (status === 409) return 'conflict';
     if ([429, 503].includes(status)) return 'service';
     return 'internal';
+  }
+
+  buildRecoveryGuidance(error) {
+    if (error?.code === 'PROJECT_LEGACY_RESOURCE_CONFLICT') {
+      return ['Back up and reconcile the existing resource files with APIEase, then run "apiease pull" again. Recovery requires matching canonical bytes; --force cannot discard unbound files.'];
+    }
+    if (error?.code === 'PROJECT_LEGACY_TEMPLATE_METADATA_CONFLICT') {
+      return ['Back up and reconcile .apiease/template.json with the legacy template metadata before running "apiease pull" again.'];
+    }
+    return [];
   }
 
   buildCommandErrorFailure(error) {

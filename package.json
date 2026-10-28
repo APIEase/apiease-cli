@@ -33,6 +33,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@babel/parser": "7.29.9",
     "ajv": "8.17.1"
   }
 }

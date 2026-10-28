@@ -4,6 +4,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 
 import { PUBLIC_TEMPLATE_IDENTITY } from './ProjectBootstrapArtifactService.js';
+import { ProjectMetadataFileService } from './ProjectMetadataFileService.js';
 import { ProjectLocalStateService } from './ProjectLocalStateService.js';
 
 const executeFile = promisify(execFile);
@@ -37,9 +38,11 @@ class ProjectGitCheckoutService {
   constructor({
     gitExecution = defaultGitExecution,
     projectLocalStateService = new ProjectLocalStateService(),
+    projectMetadataFileService = new ProjectMetadataFileService(),
   } = {}) {
     this.gitExecution = gitExecution;
     this.projectLocalStateService = projectLocalStateService;
+    this.projectMetadataFileService = projectMetadataFileService;
   }
 
   async clonePublicTemplate({ destinationDirectoryPath }) {
@@ -60,14 +63,25 @@ class ProjectGitCheckoutService {
     return { repositoryTopLevelPath: resolvedDestinationPath };
   }
 
-  async validateProjectCheckout(projectDirectoryPath) {
+  async validateProjectCheckout(projectDirectoryPath, { allowLegacy = false } = {}) {
     const repositoryTopLevelPath = await this.resolveRepositoryTopLevelPath(projectDirectoryPath);
     const metadata = await this.readProjectMetadata(repositoryTopLevelPath);
     const localStateRead = await this.readLocalState(repositoryTopLevelPath);
+    if (this.projectMetadataFileService.isLegacyTemplateMetadata(metadata)) {
+      return this.validateLegacyCheckout({ metadata, localStateRead, repositoryTopLevelPath, allowLegacy });
+    }
     this.requireReadableLocalState(localStateRead);
     this.requireMatchingCheckout(metadata, localStateRead, repositoryTopLevelPath);
 
     return { repositoryTopLevelPath, localState: localStateRead.localState };
+  }
+
+  validateLegacyCheckout({ metadata, localStateRead, repositoryTopLevelPath, allowLegacy }) {
+    if (localStateRead.ok || localStateRead.error.code !== 'PROJECT_LOCAL_STATE_NOT_FOUND') {
+      throw buildCheckoutError('PROJECT_CHECKOUT_STATE_MISMATCH');
+    }
+    if (!allowLegacy) throw buildCheckoutError('PROJECT_CHECKOUT_INITIALIZATION_REQUIRED');
+    return { repositoryTopLevelPath, legacyMetadata: metadata };
   }
 
   async readLocalState(repositoryTopLevelPath) {
@@ -110,7 +124,8 @@ class ProjectGitCheckoutService {
       const metadataFilePath = path.join(repositoryTopLevelPath, PROJECT_METADATA_PATH);
       const metadataContent = await fs.readFile(metadataFilePath, 'utf8');
       const metadata = JSON.parse(metadataContent);
-      if (!isValidProjectMetadata(metadata, metadataContent)) {
+      if (!isValidProjectMetadata(metadata, metadataContent)
+        && !this.projectMetadataFileService.isLegacyTemplateMetadata(metadata)) {
         throw buildCheckoutError('PROJECT_CHECKOUT_METADATA_INVALID');
       }
 
@@ -128,7 +143,8 @@ class ProjectGitCheckoutService {
 
   requireMatchingCheckout(metadata, localStateRead, repositoryTopLevelPath) {
     if (path.resolve(localStateRead.repositoryTopLevelPath) !== repositoryTopLevelPath
-      || metadata.projectId !== localStateRead.localState.projectId) {
+      || metadata.projectId !== localStateRead.localState.projectIdentity.projectId
+      || metadata.normalizedShopDomain !== localStateRead.localState.projectIdentity.normalizedShopDomain) {
       throw buildCheckoutError('PROJECT_CHECKOUT_STATE_MISMATCH');
     }
   }

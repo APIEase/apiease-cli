@@ -1,0 +1,18 @@
+{
+  "sourceRepository": "https://github.com/APIEase/apiease.git",
+  "sourceCommit": "95ecafc96097ab408471de40f372c463c15c500b",
+  "sourceFiles": {
+    "backend/service/projects/CanonicalResourceSourceCodec.js": "60ee3f193c82387da247bd20d1c8f867074692856994c4114c119fe60e7a59f8",
+    "backend/service/widget/WidgetEditorValidationService.js": "6f129b8da52190360020fee11ba9ecf3c1b1813fe6cd3c7112dacb03559d107a",
+    "backend/service/widget/AdminWidgetDefinitionService.js": "698db53e787c4920bc7a937841328252f3bdd0b3dd41aced87c45acf9492a3e9",
+    "backend/service/widget/AdminWidgetSourceCompiler.js": "5101d3e52a3fb897e0a1555cae059d892c64a619dcf290c3c5ea532e3033c248",
+    "backend/common/adminWidgetTargets.js": "ffd44c5ad66c31445be70168bbc18a457ed61c37e24eb78cbab95186bd4be96d",
+    "backend/common/constants.js": "da6ee5744d5c1c9dcd84f61c4fbb216955f2696cc51eeb73c504fb09008e398c",
+    "contracts/project-design/v1/schemas/canonical-resource-source.schema.json": "34caf6fdc3ccf6366bc4ef33e4dee669d4b9dd61b9569720560ca0c822a492e2"
+  },
+  "adaptations": {
+    "src/project/AdminWidgetSourceCompiler.js": "Server compiler with its constants import redirected to the packaged widget constants. Compilation returns data and never executes source.",
+    "src/project/ProjectWidgetSourceValidator.js": "Canonical widget type, target, bounds, Admin v1 definition and v2 Block validation, without editor draft conversion.",
+    "contracts/widgets/v1/constants.js": "Supported targets from the shared canonical schema; UI limits, sample request IDs, and embedded parameter group names from server constants."
+  }
+}

@@ -225,7 +225,7 @@ function buildBindingId(binding) {
 }
 
 function buildSecureInputIdentity(secureInput) {
-  return [secureInput.resourceType, secureInput.handle, secureInput.fieldPath].join('\0');
+  return [secureInput.resourceType, secureInput.handle, secureInput.fieldPath].join(':');
 }
 
 function compareText(leftText, rightText) {

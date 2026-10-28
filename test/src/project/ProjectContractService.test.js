@@ -483,3 +483,32 @@ async function readBootstrapFixture(fixtureName) {
 
   return bootstrapFixture.fixtures.find(fixture => fixture.name === fixtureName);
 }
+
+describe('ProjectContractService function parameter descriptions', () => {
+  describe('validateFixtureDocument', () => {
+    const source = { contractVersion: 1, formatVersion: 1, resourceType: 'function',
+      handle: 'legacy-function', name: 'Legacy function', description: 'Top-level purpose',
+      type: 'liquid', liquid: '{{ input }}', parameters: [{ name: 'input', type: 'string' }] };
+    it('should accept a server-exported function with an omitted optional parameter description', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      // Act and Assert
+      assert.deepEqual(new ProjectContractService().validateFixtureDocument('canonicalFunctionSource', source), { ok: true });
+      assert.equal(Object.hasOwn(source.parameters[0], 'description'), false);
+    });
+    it('should still reject a null parameter description', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const invalidSource = { ...source, parameters: [{ ...source.parameters[0], description: null }] };
+      // Act and Assert
+      assert.equal(new ProjectContractService().validateFixtureDocument('canonicalFunctionSource', invalidSource).ok, false);
+    });
+    it('should still require the function top-level description', async () => {
+      // Arrange
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const { description, ...invalidSource } = source;
+      // Act and Assert
+      assert.equal(new ProjectContractService().validateFixtureDocument('canonicalFunctionSource', invalidSource).ok, false);
+    });
+  });
+});

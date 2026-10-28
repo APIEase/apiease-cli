@@ -74,6 +74,8 @@ class ProjectManagedNamespaceService {
   }
 
   async appendResourceFiles({ files, repositoryTopLevelPath }) {
+    const resourcesPath = path.join(repositoryTopLevelPath, 'resources');
+    if (await this.readOptionalStatus(resourcesPath)) await this.requireDirectory(resourcesPath);
     for (const resourceDirectory of Object.values(RESOURCE_SOURCE_DIRECTORIES)) {
       await this.appendResourceDirectoryFiles({ files, repositoryTopLevelPath, resourceDirectory });
     }
@@ -105,6 +107,7 @@ class ProjectManagedNamespaceService {
   }) {
     const entryPath = path.join(repositoryTopLevelPath, resourceDirectory, entry.name);
     if (entry.isDirectory()) {
+      if (entry.name.endsWith('.json')) throw buildServiceError('PROJECT_MANAGED_FILE_NOT_REGULAR');
       await this.inspectUnmanagedDirectory(entryPath, entry.name);
       return;
     }

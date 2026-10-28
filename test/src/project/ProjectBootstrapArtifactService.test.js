@@ -72,6 +72,15 @@ describe('ProjectBootstrapArtifactService', () => {
       assert.deepEqual(verifiedArtifact.localState.resources, bootstrapResponse.result.bindings);
     });
 
+    it('should reject a bootstrap project identity for a different shop than its metadata', async () => {
+      // Arrange
+      const bootstrapResponse = await readBootstrapResponse();
+      bootstrapResponse.result.projectIdentity.normalizedShopDomain = 'different.myshopify.com';
+      // Act and Assert
+      assert.throws(() => new ProjectBootstrapArtifactService().verifySynchronizedArtifact(bootstrapResponse),
+        { code: PROJECT_BOOTSTRAP_ARTIFACT_ERROR_CODES.metadataInvalid });
+    });
+
     it('should preserve validated skipped-resource diagnostics', async () => {
       // Arrange
       const projectBootstrapArtifactService = new ProjectBootstrapArtifactService();

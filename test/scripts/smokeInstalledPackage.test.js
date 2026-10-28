@@ -18,6 +18,7 @@ describe('smokeInstalledPackage', () => {
       // Arrange
       const arbitraryWorkingDirectoryPath = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-smoke-cwd-'));
       const npmCacheDirectoryPath = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-smoke-cache-'));
+      const packageJson = JSON.parse(await fs.readFile(path.join(projectDirectoryPath, 'package.json'), 'utf8'));
 
       // Act
       const { stdout } = await execFileAsync(process.execPath, [smokeScriptPath], {
@@ -30,7 +31,7 @@ describe('smokeInstalledPackage', () => {
       });
 
       // Assert
-      assert.match(stdout, /Installed apiease 0\.2\.0 smoke verification passed\./);
+      assert.equal(stdout, `Installed apiease ${packageJson.version} smoke verification passed.\n`);
     });
 
     it('should fail when the expected package version does not match the artifact', async () => {

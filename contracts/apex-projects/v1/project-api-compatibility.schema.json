@@ -403,7 +403,6 @@
       "additionalProperties": false,
       "required": [
         "name",
-        "description",
         "type"
       ],
       "properties": {
@@ -529,8 +528,93 @@
         },
         "disableJavascript": {
           "type": "boolean"
+        },
+        "type": {
+          "enum": [
+            "storefront",
+            "admin"
+          ]
+        },
+        "adminText": {
+          "$ref": "#/$defs/boundedString"
+        },
+        "adminUi": {
+          "$ref": "#/$defs/boundedString"
+        },
+        "adminTarget": {
+          "type": "string",
+          "enum": [
+            "",
+            "admin.order-details.block.render",
+            "admin.product-details.block.render",
+            "admin.product-variant-details.block.render",
+            "admin.customer-details.block.render",
+            "admin.collection-details.block.render",
+            "admin.draft-order-details.block.render",
+            "admin.abandoned-checkout-details.block.render",
+            "admin.gift-card-details.block.render",
+            "admin.catalog-details.block.render",
+            "admin.company-details.block.render",
+            "admin.company-location-details.block.render",
+            "admin.order-details.action.render",
+            "admin.product-details.action.render",
+            "admin.product-variant-details.action.render",
+            "admin.customer-details.action.render",
+            "admin.collection-details.action.render",
+            "admin.draft-order-details.action.render",
+            "admin.abandoned-checkout-details.action.render",
+            "admin.gift-card-details.action.render",
+            "admin.catalog-details.action.render",
+            "admin.company-details.action.render",
+            "admin.discount-details.action.render",
+            "admin.order-index.selection-action.render",
+            "admin.product-index.selection-action.render",
+            "admin.customer-index.selection-action.render",
+            "admin.draft-order-index.selection-action.render",
+            "admin.discount-index.selection-action.render"
+          ]
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "admin"
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "adminText"
+                ],
+                "properties": {
+                  "adminText": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  }
+                }
+              },
+              {
+                "required": [
+                  "adminUi"
+                ],
+                "properties": {
+                  "adminUi": {
+                    "type": "string",
+                    "pattern": "\\S"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
     },
     "canonicalVariableSource": {
       "type": "object",
@@ -2906,22 +2990,15 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "changeSetContractVersion",
             "baseline",
-            "summary",
+            "changeSetDigest",
             "diagnostics",
             "requiredSecureValues",
             "requiredSecureValuesWarning"
           ],
           "properties": {
-            "changeSetContractVersion": {
-              "const": 1
-            },
             "baseline": {
               "$ref": "#/$defs/baseline"
-            },
-            "summary": {
-              "$ref": "#/$defs/validationSummary"
             },
             "diagnostics": {
               "type": "array",
@@ -2935,6 +3012,9 @@
             },
             "requiredSecureValuesWarning": {
               "$ref": "#/$defs/requiredSecureValuesWarning"
+            },
+            "changeSetDigest": {
+              "$ref": "#/$defs/digest"
             }
           }
         }

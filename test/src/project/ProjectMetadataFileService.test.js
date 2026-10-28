@@ -88,3 +88,47 @@ describe('ProjectMetadataFileService', () => {
     });
   });
 });
+
+describe('ProjectMetadataFileService legacy preservation', () => {
+  const metadata = { cliVersion: '0.2.1', template: { displayTemplateSource: '../apiease-template',
+    publicRepositoryUrl: 'https://github.com/kevinstl-org/apiease-template', sourceType: 'localDevelopment',
+    version: { type: 'gitCommit', value: 'a'.repeat(40) }, manifest: { 'README.md': 'a'.repeat(64) } } };
+  describe('isLegacyTemplateMetadata', () => {
+    it('should recognize the metadata produced by plain init', async () => {
+      const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
+      assert.equal(new ProjectMetadataFileService().isLegacyTemplateMetadata(metadata), true);
+    });
+    it('should reject partial operational identities and malformed manifests', async () => {
+      const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
+      assert.equal(new ProjectMetadataFileService().isLegacyTemplateMetadata({ ...metadata, projectId: 'other' }), false);
+    });
+  });
+  describe('preserveTemplateMetadata', () => {
+    it('should preserve a legacy manifest once and refuse to replace a conflicting sidecar', async context => {
+      const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
+      const service = new ProjectMetadataFileService();
+      const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-template-metadata-'));
+      context.after(() => fs.rm(directory, { recursive: true, force: true }));
+      await fs.mkdir(path.join(directory, '.apiease'));
+      await service.preserveTemplateMetadata({ projectDirectoryPath: directory, projectMetadata: metadata });
+      await service.preserveTemplateMetadata({ projectDirectoryPath: directory, projectMetadata: metadata });
+      await assert.rejects(service.preserveTemplateMetadata({ projectDirectoryPath: directory,
+        projectMetadata: { ...metadata, cliVersion: '0.2.2' } }), { code: 'PROJECT_LEGACY_TEMPLATE_METADATA_CONFLICT' });
+      assert.deepEqual(JSON.parse(await fs.readFile(path.join(directory, '.apiease/template.json'), 'utf8')), metadata);
+    });
+  });
+  describe('operational checkout upgrades', () => {
+    it('should read and update template metadata without replacing operational metadata', async context => {
+      const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
+      const service = new ProjectMetadataFileService();
+      const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-template-upgrade-'));
+      context.after(() => fs.rm(directory, { recursive: true, force: true }));
+      await fs.mkdir(path.join(directory, '.apiease'));
+      const operational = '{"formatVersion":1,"projectId":"project_01"}\n';
+      await fs.writeFile(path.join(directory, '.apiease/project.json'), operational);
+      await service.writeProjectMetadata({ projectDirectoryPath: directory, projectMetadata: metadata });
+      assert.deepEqual((await service.readProjectMetadata(directory)).projectMetadata, metadata);
+      assert.equal(await fs.readFile(path.join(directory, '.apiease/project.json'), 'utf8'), operational);
+    });
+  });
+});

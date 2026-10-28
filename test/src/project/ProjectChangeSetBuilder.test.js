@@ -275,3 +275,33 @@ function sortCanonicalValue(value) {
   if (value === null || typeof value !== 'object') return value;
   return Object.fromEntries(Object.keys(value).sort().map(key => [key, sortCanonicalValue(value[key])]));
 }
+
+describe('ProjectChangeSetBuilder secure-input identity', () => {
+  describe('sortSecureInputs', () => {
+    it('should use the server colon-delimited ordering when one handle prefixes another', () => {
+      // Arrange
+      const instructions = [
+        { resourceType: 'variable', handle: 'token', fieldPath: 'value', mode: 'preserve' },
+        { resourceType: 'variable', handle: 'token-extra', fieldPath: 'value', mode: 'preserve' },
+      ];
+      // Act
+      const sorted = new ProjectChangeSetBuilder().sortSecureInputs(instructions);
+      // Assert
+      assert.deepEqual(sorted, [instructions[1], instructions[0]]);
+      assert.equal(instructions[0].handle, 'token');
+    });
+  });
+  describe('computeChangeSetDigest', () => {
+    it('should retain secure-input modes in the change-set digest', () => {
+      // Arrange
+      const builder = new ProjectChangeSetBuilder();
+      const changeSet = { contractVersion: 1, changeSetId: 'secure-order', changeSetDigest: '',
+        baseline: { liveRevision: 1, snapshotDigest: BASELINE_DIGEST }, creates: [], updates: [], deletes: [],
+        verifiedBindings: [], secureInputs: [{ resourceType: 'variable', handle: 'token', fieldPath: 'value', mode: 'preserve' }] };
+      const altered = structuredClone(changeSet);
+      altered.secureInputs[0].mode = 'defer';
+      // Act and Assert
+      assert.notEqual(builder.computeChangeSetDigest(changeSet), builder.computeChangeSetDigest(altered));
+    });
+  });
+});

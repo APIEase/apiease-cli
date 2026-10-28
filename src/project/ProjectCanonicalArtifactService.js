@@ -1,5 +1,7 @@
 import crypto from 'node:crypto';
 
+import { ProjectWidgetSourceValidator } from './ProjectWidgetSourceValidator.js';
+
 const CANONICAL_RESOURCE_DIGEST_CONTEXT = 'apiease-canonical-resource-digest-v1';
 const CANONICAL_RESOURCE_SOURCE_CONTRACT_VERSION = 1;
 const CANONICAL_RESOURCE_SOURCE_FORMAT_VERSION = 1;
@@ -121,7 +123,7 @@ const REQUEST_FIELDS = Object.freeze([
   'parameters', 'triggers', 'nextRequestHandle',
 ]);
 const WIDGET_FIELDS = Object.freeze([
-  ...COMMON_FIELDS, 'name', 'description', 'liquid', 'javascript',
+  ...COMMON_FIELDS, 'name', 'description', 'type', 'adminText', 'adminUi', 'adminTarget', 'liquid', 'javascript',
   'externalJavascriptUrls', 'disableJavascript',
 ]);
 const VARIABLE_FIELDS = Object.freeze([
@@ -158,7 +160,7 @@ const STRING_FIELDS_BY_RESOURCE_TYPE = Object.freeze({
     'name', 'description', 'type', 'method', 'address', 'liquid', 'nextRequestHandle',
   ]),
   variable: Object.freeze(['name', 'description']),
-  widget: Object.freeze(['name', 'description', 'liquid', 'javascript']),
+  widget: Object.freeze(['name', 'description', 'type', 'adminText', 'adminUi', 'adminTarget', 'liquid', 'javascript']),
 });
 
 const REQUIRED_FIELDS_BY_RESOURCE_TYPE = Object.freeze({
@@ -223,7 +225,7 @@ function buildCanonicalVariable(variable) {
 function buildCanonicalWidget(widget) {
   const source = buildSourceHeader('widget', widget);
   assignDefinedFields(source, widget, [
-    'name', 'description', 'liquid', 'javascript', 'externalJavascriptUrls',
+    'name', 'description', 'type', 'adminText', 'adminUi', 'adminTarget', 'liquid', 'javascript', 'externalJavascriptUrls',
   ]);
   source.disableJavascript = widget?.disableJavascript === true;
 
@@ -402,6 +404,7 @@ function requireOptionalFieldsOfType(source, fieldNames, expectedType) {
 }
 
 function requireWidgetFields(source) {
+  new ProjectWidgetSourceValidator().validate(source);
   if (typeof source.disableJavascript !== 'boolean') throwArtifactError('invalidContent');
   requireArray(source.externalJavascriptUrls);
   if (source.externalJavascriptUrls.some(url => typeof url !== 'string')) {

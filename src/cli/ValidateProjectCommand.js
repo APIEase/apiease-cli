@@ -33,7 +33,10 @@ class ValidateProjectCommand {
     try {
       return await this.runValidation({ currentWorkingDirectoryPath, parseResult });
     } catch (error) {
-      return this.renderResult(this.buildCommandErrorFailure(error), parseResult.json);
+      return this.renderResult(this.buildCommandErrorFailure(error), parseResult.json,
+        error?.code === 'PROJECT_CHECKOUT_INITIALIZATION_REQUIRED'
+          ? ['Run "apiease pull" to initialize this legacy template checkout before validation.']
+          : [PROJECT_VALIDATION_NON_EXECUTION_GUIDANCE]);
     }
   }
 

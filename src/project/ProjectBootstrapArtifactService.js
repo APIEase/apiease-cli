@@ -248,6 +248,7 @@ class ProjectBootstrapArtifactService {
       && projectIdentity.projectId === manifest.projectId;
     if (!stateMatchesManifest) throwArtifactError('localStateMismatch');
     if (metadata.projectId !== localState.projectId
+      || metadata.normalizedShopDomain !== projectIdentity.normalizedShopDomain
       || !isDeepStrictEqual(readTemplateIdentity(metadata.template), template)) {
       throwArtifactError('metadataInvalid');
     }

@@ -172,6 +172,35 @@ describe('ApiEaseProjectApiClient', () => {
   });
 
   describe('validateProject', () => {
+    it('should accept the authoritative validation response with its change-set digest', async () => {
+      // Arrange
+      const workflow = await readFixture('project-workflow-success.json');
+      const pair = findFixture(workflow.pairs, 'validate');
+      const response = buildCurrentValidationResponse(pair);
+      const client = buildClient({ responses: [buildJsonResponse(200, response)] });
+      // Act
+      const result = await client.validateProject(buildInvocation(pair.request.document));
+      // Assert
+      assert.equal(result.ok, true);
+      assert.equal(result.result.changeSetDigest, pair.request.document.changeSet.changeSetDigest);
+    });
+
+    for (const invalidField of ['missingDigest', 'unknownField']) {
+      it(`should reject an invalid validation response: ${invalidField}`, async () => {
+        // Arrange
+        const workflow = await readFixture('project-workflow-success.json');
+        const pair = findFixture(workflow.pairs, 'validate');
+        const response = buildCurrentValidationResponse(pair);
+        if (invalidField === 'missingDigest') delete response.result.changeSetDigest;
+        else response.result.unknownField = true;
+        const client = buildClient({ responses: [buildJsonResponse(200, response)] });
+        // Act
+        const result = await client.validateProject(buildInvocation(pair.request.document));
+        // Assert
+        assert.equal(result.outcome, 'CONTRACT_INVALID');
+      });
+    }
+
     it('should retry an eligible transport failure with the serialized body unchanged', async () => {
       // Arrange
       const workflow = await readFixture('project-workflow-success.json');
@@ -666,4 +695,16 @@ function findFixture(fixtures, name) {
 
 async function readFixture(fileName) {
   return JSON.parse(await fs.readFile(path.join(fixtureDirectoryPath, fileName), 'utf8'));
+}
+
+function buildCurrentValidationResponse(pair) {
+  return {
+    contractVersion: 1, ok: true, outcome: 'PROJECT_VALID',
+    result: {
+      baseline: pair.request.document.changeSet.baseline,
+      changeSetDigest: pair.request.document.changeSet.changeSetDigest,
+      diagnostics: [], requiredSecureValues: [],
+      requiredSecureValuesWarning: pair.response.document.result.requiredSecureValuesWarning,
+    },
+  };
 }

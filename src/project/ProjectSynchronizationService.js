@@ -1,6 +1,9 @@
+import { isDeepStrictEqual } from 'node:util';
+
 import {
   ProjectBootstrapArtifactService,
 } from './ProjectBootstrapArtifactService.js';
+import { ProjectMetadataFileService } from './ProjectMetadataFileService.js';
 import { ProjectLocalStateService } from './ProjectLocalStateService.js';
 import { ProjectManagedNamespaceService } from './ProjectManagedNamespaceService.js';
 import { ProjectManagedPublicationService } from './ProjectManagedPublicationService.js';
@@ -14,12 +17,14 @@ class ProjectSynchronizationService {
     projectLocalStateService = new ProjectLocalStateService(),
     projectManagedNamespaceService = new ProjectManagedNamespaceService(),
     projectManagedPublicationService = new ProjectManagedPublicationService(),
+    projectMetadataFileService = new ProjectMetadataFileService(),
   } = {}) {
     this.apiEaseProjectApiClient = apiEaseProjectApiClient;
     this.projectBootstrapArtifactService = projectBootstrapArtifactService;
     this.projectLocalStateService = projectLocalStateService;
     this.projectManagedNamespaceService = projectManagedNamespaceService;
     this.projectManagedPublicationService = projectManagedPublicationService;
+    this.projectMetadataFileService = projectMetadataFileService;
   }
 
   async initializeProject({ projectDirectoryPath, projectApiInvocation }) {
@@ -30,9 +35,10 @@ class ProjectSynchronizationService {
     });
   }
 
-  async pullProject({ projectDirectoryPath, projectApiInvocation, force = false }) {
+  async pullProject({ projectDirectoryPath, projectApiInvocation, force = false, legacyMetadata }) {
     return await this.synchronizeProject({
       force,
+      legacyMetadata,
       projectDirectoryPath,
       projectApiInvocation,
       synchronizationMode: 'pull',
@@ -47,7 +53,7 @@ class ProjectSynchronizationService {
     const verifiedArtifact = this.projectBootstrapArtifactService
       .verifySynchronizedArtifact(bootstrapResponse);
     const synchronizationContext = await this.prepareSynchronization(
-      synchronizationRequest,
+      synchronizationRequest, verifiedArtifact,
     );
     const publication = await this.publishVerifiedArtifact(
       synchronizationContext.repositoryTopLevelPath,
@@ -63,9 +69,12 @@ class ProjectSynchronizationService {
     };
   }
 
-  async prepareSynchronization(synchronizationRequest) {
+  async prepareSynchronization(synchronizationRequest, verifiedArtifact) {
+    if (synchronizationRequest.legacyMetadata) {
+      return await this.prepareLegacySynchronization(synchronizationRequest, verifiedArtifact);
+    }
     return synchronizationRequest.synchronizationMode === 'pull'
-      ? await this.preparePullSynchronization(synchronizationRequest)
+      ? await this.preparePullSynchronization(synchronizationRequest, verifiedArtifact)
       : await this.prepareInitialization(synchronizationRequest.projectDirectoryPath);
   }
 
@@ -76,9 +85,12 @@ class ProjectSynchronizationService {
     return { repositoryTopLevelPath: location.repositoryTopLevelPath, warnings: [] };
   }
 
-  async preparePullSynchronization({ projectDirectoryPath, force }) {
+  async preparePullSynchronization({ projectDirectoryPath, force }, verifiedArtifact) {
     const localStateRead = await this.projectLocalStateService.readLocalState(projectDirectoryPath);
     this.requireReadableLocalState(localStateRead);
+    if (!isDeepStrictEqual(localStateRead.localState.projectIdentity, verifiedArtifact.localState.projectIdentity)) {
+      throw buildSynchronizationError('PROJECT_CHECKOUT_IDENTITY_MISMATCH');
+    }
     const managedNamespace = await this.discoverCurrentNamespace(
       projectDirectoryPath,
       localStateRead.localState,
@@ -89,6 +101,51 @@ class ProjectSynchronizationService {
       repositoryTopLevelPath: managedNamespace.repositoryTopLevelPath,
       warnings: managedNamespace.hasLocalEdits ? [PROJECT_FORCE_DISCARD_WARNING] : [],
     };
+  }
+
+  async prepareLegacySynchronization({ projectDirectoryPath, legacyMetadata }, verifiedArtifact) {
+    const localStateRead = await this.projectLocalStateService.readLocalState(projectDirectoryPath);
+    if (localStateRead.ok || localStateRead.error.code !== 'PROJECT_LOCAL_STATE_NOT_FOUND') {
+      throw buildSynchronizationError('PROJECT_CHECKOUT_STATE_MISMATCH');
+    }
+    const namespace = await this.discoverLegacyNamespace(projectDirectoryPath);
+    this.requireMatchingLegacyMetadata(namespace, legacyMetadata);
+    this.requireMatchingLegacyResources(namespace.files, verifiedArtifact.files);
+    await this.projectMetadataFileService.preserveTemplateMetadata({
+      projectDirectoryPath: namespace.repositoryTopLevelPath, projectMetadata: legacyMetadata,
+    });
+    return { repositoryTopLevelPath: namespace.repositoryTopLevelPath, warnings: [] };
+  }
+
+  async discoverLegacyNamespace(projectDirectoryPath) {
+    try {
+      return await this.projectManagedNamespaceService.discoverManagedNamespace({ projectDirectoryPath });
+    } catch (error) {
+      if (error?.code?.startsWith('CANONICAL_RESOURCE_SOURCE_')
+        || ['PROJECT_MANAGED_FILE_NOT_REGULAR', 'PROJECT_MANAGED_PATH_INVALID'].includes(error?.code)) {
+        throw buildSynchronizationError('PROJECT_LEGACY_RESOURCE_CONFLICT');
+      }
+      throw error;
+    }
+  }
+
+  requireMatchingLegacyMetadata(namespace, legacyMetadata) {
+    const currentMetadata = JSON.parse(namespace.files.find(file => file.path === '.apiease/project.json').content);
+    if (!this.projectMetadataFileService.isLegacyTemplateMetadata(currentMetadata)
+      || !isDeepStrictEqual(currentMetadata, legacyMetadata)) {
+      throw buildSynchronizationError('PROJECT_CHECKOUT_METADATA_INVALID');
+    }
+  }
+
+  requireMatchingLegacyResources(currentFiles, verifiedFiles) {
+    const verifiedByPath = new Map(verifiedFiles.map(file => [file.path, file.content.toString('utf8')]));
+    const conflicts = currentFiles.filter(file => file.path !== '.apiease/project.json'
+      && file.content !== verifiedByPath.get(file.path));
+    if (conflicts.length) {
+      throw buildSynchronizationError('PROJECT_LEGACY_RESOURCE_CONFLICT', conflicts.map(file => ({
+        code: 'PROJECT_LEGACY_RESOURCE_CONFLICT', path: file.path,
+      })));
+    }
   }
 
   requireReadableLocalState(localStateRead) {

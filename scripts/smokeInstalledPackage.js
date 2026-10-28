@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs/promises';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -72,6 +72,7 @@ function installPackage(smokeDirectoryPath, packageFilename) {
   const packagePath = path.join(smokeDirectoryPath, packageFilename);
   const localDependencyPaths = [
     'ajv', 'fast-deep-equal', 'fast-uri', 'json-schema-traverse', 'require-from-string',
+    '@babel/parser', '@babel/types', '@babel/helper-string-parser', '@babel/helper-validator-identifier',
   ].map((dependencyName) => path.join(projectDirectoryPath, 'node_modules', dependencyName));
   runCommand('npm', [
     'install', '--prefix', smokeDirectoryPath, '--ignore-scripts', '--no-audit', '--no-fund', '--offline',
@@ -144,7 +145,7 @@ function runCommand(command, commandArguments, environment, workingDirectoryPath
 function readExpectedVersion(commandArguments) {
   const optionIndex = commandArguments.indexOf('--expected-version');
   if (optionIndex === -1) {
-    return '0.2.0';
+    return JSON.parse(readFileSync(path.join(projectDirectoryPath, 'package.json'), 'utf8')).version;
   }
 
   return commandArguments[optionIndex + 1];

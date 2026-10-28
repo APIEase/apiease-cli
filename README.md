@@ -150,7 +150,9 @@ Project API authentication requires both the API key and the matching shop domai
 
 ## Project API Workflow
 
-Run Project API commands from anywhere inside a checkout created with `apiease init --from-existing-resources`. These commands use the repository top level resolved by Git.
+Run Project API commands from anywhere inside a checkout initialized with `apiease init --from-existing-resources`, or after the first successful `apiease pull` in a plain `apiease init` checkout. These commands use the repository top level resolved by Git.
+
+Plain `apiease init` copies the starter files and records template upgrade metadata; it does not authenticate or establish a Project API baseline. Run `git init` if needed, then `apiease pull` to initialize that checkout from APIEase. `apiease validate` remains read-only and explains this recovery step until initialization succeeds. Use `init --from-existing-resources` when starting in a new or empty destination.
 
 ### Design with the APIEase Project Design Protocol
 
@@ -166,6 +168,8 @@ Use the returned context to design by editing canonical resource files locally. 
 
 Canonical version 1 source supports `description` on requests, widgets, variables, and functions. Request, widget, and variable descriptions are optional so legacy files remain byte-stable when the field is absent; functions retain their required description. An explicit empty string clears a description, while `null` is invalid. Descriptions may contain at most 65,536 Unicode code points and participate in source, change-set, validation, plan, and apply identity.
 
+Widgets support `type: "storefront"` and `type: "admin"`. An omitted `type` retains legacy storefront behavior and stays omitted in canonical bytes. Optional `adminTarget`, `adminText`, and `adminUi` fields also retain their exact values or omission. `adminTarget` is an exact supported Shopify Admin location; omission or `""` selects the manual picker. Admin widgets require nonblank `adminText` or `adminUi`. `adminText` is literal text. `adminUi` is a JSON **string**, containing either the supported version 1 components or one version 2 Block with `variables` and `render`; nonblank UI replaces text at render time. The CLI checks allowed fields, targets, bounds, component definitions, and Block source using the server contract. New Admin widgets normally use `liquid: ""`, `javascript: ""`, `externalJavascriptUrls: []`, and `disableJavascript: false`. These fields remain required in canonical files; the CLI does not invent optional defaults or rewrite UI JSON strings.
+
 After local design:
 
 1. Run `apiease validate` for authoritative validation without mutation.
@@ -179,6 +183,10 @@ apiease pull
 ```
 
 `pull` fetches and verifies the same stable Mongo-authoritative snapshot used by existing-resource initialization. It does not read or wait for the store repository, its GitHub availability, repository provisioning, or asynchronous reconciliation. It refuses to change files when the direct managed namespace differs from the ignored local baseline. It does not merge stale local and server source.
+
+For a recognized legacy template checkout containing `cliVersion` and `template.manifest`, the first pull verifies the authenticated bootstrap before publishing canonical files, project identity, bindings, and the baseline. It preserves the existing directory, Git history and remotes, configuration, documentation, and unrelated files. The original template metadata is retained in `.apiease/template.json`, which `apiease upgrade` then reads and updates independently of operational `.apiease/project.json`.
+
+Legacy recovery accepts empty resource directories and existing direct resource files whose canonical bytes exactly match the verified snapshot. Conflicting, unrecognized, or noncanonical resource files require backup and deliberate reconciliation before retrying; `--force` cannot discard unbound legacy files. Malformed metadata, existing incompatible operational state, and project/shop identity mismatches stop recovery. Artifact digests and resource mappings are always verified.
 
 To deliberately discard direct managed-file edits and replace them with the verified server snapshot:
 

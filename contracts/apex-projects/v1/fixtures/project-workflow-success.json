@@ -196,22 +196,14 @@
           "ok": true,
           "outcome": "PROJECT_VALID",
           "result": {
-            "changeSetContractVersion": 1,
             "baseline": {
               "liveRevision": 42,
               "snapshotDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
             },
-            "summary": {
-              "fileCount": 5,
-              "resourceCount": 4,
-              "createCount": 2,
-              "updateCount": 2,
-              "deleteCount": 1,
-              "totalBytes": 1309
-            },
             "diagnostics": [],
             "requiredSecureValues": [],
-            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use."
+            "requiredSecureValuesWarning": "Configure every deferred secure value in the authenticated APIEase UI before runtime use.",
+            "changeSetDigest": "sha256:fae61306b0476f292b3071b8b91321f6f40c369879ccc2d011b3c3798b397409"
           }
         }
       }
