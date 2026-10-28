@@ -6,6 +6,9 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { createHash } from 'node:crypto';
+import { DesignContextCommand } from '../../../src/cli/DesignContextCommand.js';
+import { ProjectDesignContextService } from '../../../src/project/ProjectDesignContextService.js';
+import { ApiEaseProjectApiClient } from '../../../src/client/ApiEaseProjectApiClient.js';
 import { PullProjectCommand } from '../../../src/cli/PullProjectCommand.js';
 import { ValidateProjectCommand } from '../../../src/cli/ValidateProjectCommand.js';
 import { UpgradeProjectCommand } from '../../../src/cli/UpgradeProjectCommand.js';
@@ -25,6 +28,75 @@ const legacyMetadata = {
 };
 
 describe('Legacy project public command workflow', () => {
+  describe('design-context API boundary', () => {
+    for (const requirements of [undefined, {
+      projectName: 'Order status', customerRequirements: [{ id: 'status', text: 'Show order status.' }],
+      confirmedDecisions: [],
+    }]) {
+      it(`should retrieve context with ${requirements ? 'supplied' : 'omitted'} requirements without writes`, async context => {
+        const fixture = await buildFixture(context);
+        assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+        const source = JSON.parse(fixture.response.result.files[1].content);
+        source.name = 'Locally edited';
+        await writeResource(fixture, `${JSON.stringify(source, null, 2)}\n`);
+        const before = await snapshot(fixture.directory);
+        const stateBefore = await fs.readFile(path.join(fixture.directory, '.git/apiease/project-state-v1.json'), 'utf8');
+        const { command, requests, stdout } = buildDesignContextBoundary(fixture);
+        const args = requirements === undefined ? ['design-context']
+          : ['design-context', '--project-requirements', JSON.stringify(requirements)];
+
+        assert.equal(await command.run(args, fixture.options), 0);
+        const result = JSON.parse(stdout.join('')).result;
+        assert.equal(Object.hasOwn(requests[0], 'projectRequirements'), requirements !== undefined);
+        assert.equal(Object.hasOwn(result, 'projectRequirements'), requirements !== undefined);
+        assert.deepEqual(result.projectRequirements, requirements);
+        assert.equal(result.canonicalBodies[0].source.name, 'API Origin');
+        assert.equal(result.localEdits.updates[0].source.name, 'Locally edited');
+        assert.deepEqual(await snapshot(fixture.directory), before);
+        assert.equal(await fs.readFile(path.join(fixture.directory, '.git/apiease/project-state-v1.json'), 'utf8'), stateBefore);
+        assert.equal(requests.length, 1);
+      });
+    }
+
+    it('should explain invalid requirements through stderr while preserving contract exit code and JSON', async context => {
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      const { command, requests, stdout, stderr } = buildDesignContextBoundary(fixture);
+      const before = await snapshot(fixture.directory);
+
+      assert.equal(await command.run(['design-context', '--project-requirements', '{"objective":"private-input"}', '--json'], fixture.options), 4);
+      assert.equal(JSON.parse(stdout.join('')).error.category, 'contract');
+      assert.match(stderr.join(''), /projectName.*customerRequirements.*confirmedDecisions/);
+      assert.match(stderr.join(''), /apiease design-context/);
+      assert.equal((stdout.join('') + stderr.join('')).includes('private-input'), false);
+      assert.deepEqual(requests, []);
+      assert.deepEqual(await snapshot(fixture.directory), before);
+    });
+
+    it('should retain a baseline conflict with omitted requirements without writes', async context => {
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      fixture.response.result.liveRevision += 1;
+      const { command, stdout } = buildDesignContextBoundary(fixture);
+      const before = await snapshot(fixture.directory);
+
+      assert.equal(await command.run(['design-context'], fixture.options), 5);
+      assert.equal(JSON.parse(stdout.join('')).error.code, 'PROJECT_DESIGN_LOCAL_BASELINE_CONFLICT');
+      assert.deepEqual(await snapshot(fixture.directory), before);
+    });
+
+    it('should retain missing initialization with omitted requirements before network access', async context => {
+      const fixture = await buildFixture(context);
+      const { command, requests, stdout } = buildDesignContextBoundary(fixture);
+      const before = await snapshot(fixture.directory);
+
+      assert.equal(await command.run(['design-context'], fixture.options), 6);
+      assert.equal(JSON.parse(stdout.join('')).error.category, 'local-integrity');
+      assert.deepEqual(requests, []);
+      assert.deepEqual(await snapshot(fixture.directory), before);
+    });
+  });
+
   describe('pull and validate', () => {
     it('should explain recovery before initialization without writing files or calling validation', async context => {
       // Arrange
@@ -320,4 +392,48 @@ function changeBootstrapIdentity(response, field, value) {
   result.files[0].content = `${JSON.stringify(metadata, null, 2)}\n`;
   result.files[0].digest = `sha256:${hash(result.files[0].content)}`;
   result.manifest.totalBytes = result.files.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0);
+}
+
+function buildDesignContextBoundary(fixture) {
+  const requests = [], stdout = [], stderr = [];
+  const personalProjectAuthenticationAdapter = {
+    resolveRequestConfiguration: async () => ({ ok: true, apiBaseUrl: 'https://example.invalid', authenticationContext: {} }),
+    buildRequestHeaders: () => ({ 'x-apiease-api-key': 'test-key', 'x-shop-myshopify-domain': 'example.myshopify.com' }),
+    readAuthorityMode: () => 'personal',
+  };
+  const apiEaseProjectApiClient = new ApiEaseProjectApiClient({
+    projectAuthenticationAdapter: personalProjectAuthenticationAdapter,
+    fetchImplementation: async (url, options) => {
+      assert.equal(url, 'https://example.invalid/api/v1/projects/design-context');
+      assert.equal(options.method, 'POST');
+      const request = JSON.parse(options.body);
+      requests.push(request);
+      return new Response(JSON.stringify(buildDesignContextResponse(fixture.response.result, request)), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    },
+  });
+  return { requests, stdout, stderr, command: new DesignContextCommand({
+    personalProjectAuthenticationAdapter,
+    projectDesignContextService: new ProjectDesignContextService({ apiEaseProjectApiClient }),
+    stdout: { write: text => stdout.push(text) }, stderr: { write: text => stderr.push(text) },
+  }) };
+}
+
+function buildDesignContextResponse(snapshot, request) {
+  const commonInstructions = 'Follow the Project Design Protocol.\n';
+  const canonicalBodies = snapshot.files.filter(file => file.path.startsWith('resources/'))
+    .map(file => ({ path: file.path, sourceDigest: file.digest, source: JSON.parse(file.content) }));
+  return {
+    contractVersion: 1, designContextContractVersion: 1, ok: true, outcome: 'PROJECT_DESIGN_CONTEXT_READY',
+    result: {
+      protocol: { protocolVersion: '1.0.0', commonInstructions, commonInstructionDigest: `sha256:${hash(commonInstructions)}`, codexEnvelope: 'Edit local canonical files.' },
+      ...(Object.hasOwn(request, 'projectRequirements') ? { projectRequirements: request.projectRequirements } : {}),
+      snapshot: { projectIdentity: { normalizedShopDomain: snapshot.projectIdentity.normalizedShopDomain, projectId: snapshot.projectIdentity.projectId }, liveRevision: snapshot.liveRevision, snapshotDigest: snapshot.snapshotDigest },
+      inventory: canonicalBodies.map(({ path: resourcePath, sourceDigest, source }) => ({ path: resourcePath, sourceDigest, handle: source.handle, resourceType: source.resourceType })),
+      canonicalBodies, bindings: snapshot.bindings,
+      limits: { maximumFileCount: snapshot.limits.maximumFileCount, maximumAggregateBytes: snapshot.limits.maximumAggregateBytes },
+      diagnostics: [],
+    },
+  };
 }

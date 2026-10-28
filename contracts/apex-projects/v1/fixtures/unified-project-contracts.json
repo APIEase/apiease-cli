@@ -1,13 +1,24 @@
 {
   "schemaId": "https://apiease.com/contracts/apex-projects/v1/apiease-project-contract.schema.json",
   "fixtures": [
+    {"name": "design-context-request-omitted", "schemaDefinition": "projectDesignContextRequest", "document": {"contractVersion": 1, "designContextContractVersion": 1, "projectId": "project_01"}},
+    {"name": "design-context-response-omitted", "schemaDefinition": "projectDesignContextResponse", "document": {"contractVersion": 1, "designContextContractVersion": 1, "ok": true, "outcome": "PROJECT_DESIGN_CONTEXT_READY", "result": {"protocol": {"protocolVersion": "1.0.0", "commonInstructions": "Shared design instructions.\n", "codexEnvelope": "Edit canonical files locally.\n", "commonInstructionDigest": "sha256:1664b459c4dfe626bf6ab7651a0c0e3afebab7711fb3b7f8ad482020f46c5972"}, "snapshot": {"projectIdentity": {"projectId": "project_01", "normalizedShopDomain": "example.myshopify.com"}, "liveRevision": 1, "snapshotDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}, "inventory": [], "canonicalBodies": [], "bindings": [], "limits": {"maximumFileCount": 1000, "maximumAggregateBytes": 25000000}, "diagnostics": []}}},
+    {"name": "design-context-request-supplied", "schemaDefinition": "projectDesignContextRequest", "document": {"contractVersion": 1, "designContextContractVersion": 1, "projectId": "project_01", "projectRequirements": {"projectName": "Order status", "customerRequirements": [{"id": "status", "text": "Show order status."}], "confirmedDecisions": []}}},
+    {"name": "design-context-response-supplied", "schemaDefinition": "projectDesignContextResponse", "document": {"contractVersion": 1, "designContextContractVersion": 1, "ok": true, "outcome": "PROJECT_DESIGN_CONTEXT_READY", "result": {"protocol": {"protocolVersion": "1.0.0", "commonInstructions": "Shared design instructions.\n", "codexEnvelope": "Edit canonical files locally.\n", "commonInstructionDigest": "sha256:1664b459c4dfe626bf6ab7651a0c0e3afebab7711fb3b7f8ad482020f46c5972"}, "snapshot": {"projectIdentity": {"projectId": "project_01", "normalizedShopDomain": "example.myshopify.com"}, "liveRevision": 1, "snapshotDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}, "inventory": [], "canonicalBodies": [], "bindings": [], "limits": {"maximumFileCount": 1000, "maximumAggregateBytes": 25000000}, "diagnostics": [], "projectRequirements": {"projectName": "Order status", "customerRequirements": [{"id": "status", "text": "Show order status."}], "confirmedDecisions": []}}}},
     {
       "name": "project-design-context",
       "schemaDefinition": "projectDesignContext",
       "document": {
+        "goalContextSummary": {},
+        "workContext": {
+          "contextVersion": 1,
+          "objectiveScope": {"requestTurnId": null, "pending": false, "completion": "not_established", "integrationVerification": "not_established"},
+          "sessions": [],
+          "omitted": {"historicalSessions": 0, "assignments": 0}
+        },
         "protocolIdentity": {
           "protocolVersion": "1.0.0",
-          "commonInstructionDigest": "sha256:5b605162f02104d6d17691b6ccaf5e8e97a6f6f6df05002f1f73ddd30272affa"
+          "commonInstructionDigest": "sha256:8673444f3f4cf3fc9f59c5695de87a2a9d20ac43829297c06f5fdcbd60766955"
         },
         "customerRequirements": [{"id": "requirement_01", "text": "Show inventory status."}],
         "confirmedDecisions": ["Use a protected inventory credential."],

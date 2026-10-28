@@ -2246,8 +2246,7 @@
       "required": [
         "contractVersion",
         "designContextContractVersion",
-        "projectId",
-        "projectRequirements"
+        "projectId"
       ],
       "properties": {
         "contractVersion": {
@@ -2476,7 +2475,6 @@
           "additionalProperties": false,
           "required": [
             "protocol",
-            "projectRequirements",
             "snapshot",
             "inventory",
             "canonicalBodies",

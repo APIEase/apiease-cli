@@ -19,7 +19,8 @@ class DesignContextCommand {
     personalProjectAuthenticationAdapter = new PersonalProjectAuthenticationAdapter(),
     projectDesignContextService,
     stdout = process.stdout,
-    projectCommandResultService = new ProjectCommandResultService({ stdout }),
+    stderr = process.stderr,
+    projectCommandResultService = new ProjectCommandResultService({ stdout, stderr }),
   } = {}) {
     this.personalProjectAuthenticationAdapter = personalProjectAuthenticationAdapter;
     this.projectDesignContextService = projectDesignContextService;
@@ -47,7 +48,7 @@ class DesignContextCommand {
       if (nextIndex === null) return this.buildParseFailure(parseResult.diagnosticCode);
       argumentIndex = nextIndex;
     }
-    return parseResult.projectRequirements ? parseResult : this.buildParseFailure();
+    return parseResult;
   }
 
   buildParseResult() {
@@ -77,6 +78,10 @@ class DesignContextCommand {
     if (serializedRequirements === null) return null;
     try {
       parseResult.projectRequirements = JSON.parse(serializedRequirements);
+      if (!parseResult.projectRequirements) {
+        parseResult.diagnosticCode = 'PROJECT_DESIGN_REQUIREMENTS_INVALID';
+        return null;
+      }
       return argumentIndex + 1;
     } catch {
       parseResult.diagnosticCode = 'PROJECT_DESIGN_REQUIREMENTS_JSON_INVALID';
@@ -133,7 +138,8 @@ class DesignContextCommand {
         apiBaseUrl: requestConfiguration.apiBaseUrl,
         authenticationContext: requestConfiguration.authenticationContext,
       },
-      projectRequirements: parseResult.projectRequirements,
+      ...(Object.hasOwn(parseResult, 'projectRequirements')
+        ? { projectRequirements: parseResult.projectRequirements } : {}),
     });
   }
 
@@ -239,8 +245,27 @@ class DesignContextCommand {
 
   renderFailure(commandResult) {
     const envelope = this.projectCommandResultService.normalizeResult(commandResult);
-    this.writeEnvelope(envelope);
+    this.projectCommandResultService.renderResult(envelope, {
+      json: true,
+      guidance: this.buildFailureGuidance(commandResult),
+    });
     return this.projectCommandResultService.resolveExitCode(envelope);
+  }
+
+  buildFailureGuidance(commandResult) {
+    const diagnostics = commandResult.diagnostics ?? [];
+    const invalidRequirements = diagnostics.some(({ code, path }) => (
+      code.startsWith('PROJECT_DESIGN_REQUIREMENTS_') || path?.startsWith('/projectRequirements')
+    ));
+    if (invalidRequirements) return [
+      'Invalid --project-requirements: supply valid JSON with exactly projectName (nonempty string), customerRequirements (array of {id, text}), and confirmedDecisions (array of nonempty strings). Null is invalid.',
+      `Example: --project-requirements '{"projectName":"Order status","customerRequirements":[{"id":"status","text":"Show order status."}],"confirmedDecisions":[]}'`,
+      'Requirements are optional. Run "apiease design-context" when the agent already has the task in its conversation.',
+    ];
+    if (commandResult.error?.category === 'usage') return [
+      'Invalid design-context arguments: use "apiease design-context [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]". Supply each option once with its value.',
+    ];
+    return [];
   }
 
   writeEnvelope(envelope) {

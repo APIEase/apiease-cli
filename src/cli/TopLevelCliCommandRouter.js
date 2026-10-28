@@ -108,7 +108,7 @@ class TopLevelCliCommandRouter {
       `  delete ${supportedResourceToken}   Delete a resource by identifier.`,
       '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
       '  pull                              Pull verified Project API resources.',
-      '  design-context --project-requirements <json>   Retrieve verified Project Design Protocol context.',
+      '  design-context [--project-requirements <json>]   Retrieve verified Project Design Protocol context.',
       '  validate                          Validate the complete project without execution.',
       '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
       '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',

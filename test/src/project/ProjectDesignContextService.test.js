@@ -13,6 +13,19 @@ const SOURCE_DIGEST = `sha256:${'d'.repeat(64)}`;
 
 describe('ProjectDesignContextService', () => {
   describe('buildDesignContext', () => {
+    it('should omit requirements from the request and combined context when absent', async () => {
+      const fixture = buildFixture();
+      delete fixture.serverResponse.result.projectRequirements;
+      const result = await buildService(fixture).buildDesignContext({
+        projectDirectoryPath: '/checkout', projectApiInvocation: fixture.projectApiInvocation,
+      });
+      assert.equal(Object.hasOwn(fixture.receivedRequest, 'projectRequirements'), false);
+      assert.equal(Object.hasOwn(result, 'projectRequirements'), false);
+      const expected = buildExpectedContext(fixture);
+      delete expected.projectRequirements;
+      assert.deepEqual(result, expected);
+    });
+
     it('should combine verified server protocol context with deterministic local design intent', async () => {
       // Arrange
       const fixture = buildFixture();

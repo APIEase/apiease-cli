@@ -11,6 +11,45 @@ const designContextCommandModuleUrl = pathToFileURL(
 
 describe('DesignContextCommand', () => {
   describe('run', () => {
+    it('should retrieve context without inventing requirements for the bare command', async () => {
+      const { DesignContextCommand } = await import(designContextCommandModuleUrl);
+      const calls = [];
+      const stdoutChunks = [];
+      const designContextResult = buildDesignContextSuccess();
+      delete designContextResult.projectRequirements;
+      const command = buildDesignContextCommand({
+        DesignContextCommand, calls, stdoutChunks, designContextResult,
+      });
+
+      assert.equal(await command.run(['design-context']), 0);
+      assert.equal(Object.hasOwn(calls[1][1], 'projectRequirements'), false);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')).result, designContextResult);
+    });
+
+    for (const [argumentsTail, diagnosticCode] of [
+      [['--project-requirements', '{private-input'], 'PROJECT_DESIGN_REQUIREMENTS_JSON_INVALID'],
+      [['--project-requirements', 'null'], 'PROJECT_DESIGN_REQUIREMENTS_INVALID'],
+      [['--project-requirements'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
+      [['--unknown'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
+      [['--project-requirements', '{}', '--project-requirements', '{}'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
+    ]) {
+      it(`should explain invalid supplied arguments: ${argumentsTail.join(' ')}`, async () => {
+        const { DesignContextCommand } = await import(designContextCommandModuleUrl);
+        const stdoutChunks = [];
+        const stderrChunks = [];
+        const calls = [];
+        const command = buildDesignContextCommand({ DesignContextCommand, calls, stdoutChunks, stderrChunks });
+
+        assert.equal(await command.run(['design-context', ...argumentsTail, '--json']), 2);
+        assert.equal(JSON.parse(stdoutChunks.join('')).diagnostics[0].code, diagnosticCode);
+        assert.match(stderrChunks.join(''), /apiease design-context/);
+        assert.match(stderrChunks.join(''), /--project-requirements/);
+        assert.equal(stdoutChunks.join('').includes('private-input'), false);
+        assert.equal(stderrChunks.join('').includes('private-input'), false);
+        assert.deepEqual(calls, []);
+      });
+    }
+
     it('should emit the exact verified protocol and combined local project context as JSON', async () => {
       // Arrange
       const { DesignContextCommand } = await import(designContextCommandModuleUrl);
@@ -91,7 +130,7 @@ describe('DesignContextCommand', () => {
       });
 
       // Act
-      const exitCode = await designContextCommand.run(buildArguments());
+      const exitCode = await designContextCommand.run(['design-context']);
 
       // Assert
       assert.equal(exitCode, 3);
@@ -120,7 +159,7 @@ describe('DesignContextCommand', () => {
       });
 
       // Act
-      const exitCode = await designContextCommand.run(buildArguments());
+      const exitCode = await designContextCommand.run(['design-context']);
 
       // Assert
       assert.equal(exitCode, 2);
@@ -149,7 +188,7 @@ describe('DesignContextCommand', () => {
       });
 
       // Act
-      const exitCode = await designContextCommand.run(buildArguments());
+      const exitCode = await designContextCommand.run(['design-context']);
 
       // Assert
       assert.equal(exitCode, 6);
@@ -178,7 +217,7 @@ describe('DesignContextCommand', () => {
       });
 
       // Act
-      const exitCode = await designContextCommand.run(buildArguments());
+      const exitCode = await designContextCommand.run(['design-context']);
 
       // Assert
       assert.equal(exitCode, 5);
@@ -215,7 +254,7 @@ describe('DesignContextCommand', () => {
       });
 
       // Act
-      const exitCode = await designContextCommand.run(buildArguments());
+      const exitCode = await designContextCommand.run(['design-context']);
 
       // Assert
       assert.equal(exitCode, 4);
@@ -230,6 +269,7 @@ function buildDesignContextCommand({
   DesignContextCommand,
   calls,
   stdoutChunks,
+  stderrChunks = [],
   authenticationContext = Object.freeze(Object.create(null)),
   requestConfiguration = {
     ok: true,
@@ -254,11 +294,8 @@ function buildDesignContextCommand({
       },
     },
     stdout: { write: chunk => stdoutChunks.push(chunk) },
+    stderr: { write: chunk => stderrChunks.push(chunk) },
   });
-}
-
-function buildArguments() {
-  return ['design-context', '--project-requirements', JSON.stringify(buildProjectRequirements())];
 }
 
 function buildProjectRequirements() {

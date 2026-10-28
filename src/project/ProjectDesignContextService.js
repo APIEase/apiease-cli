@@ -54,7 +54,7 @@ class ProjectDesignContextService {
       contractVersion: 1,
       designContextContractVersion: 1,
       projectId: localState.projectIdentity.projectId,
-      projectRequirements,
+      ...(projectRequirements === undefined ? {} : { projectRequirements }),
     };
   }
 
@@ -64,7 +64,8 @@ class ProjectDesignContextService {
       ok: true,
       outcome: serverResponse.outcome,
       protocol: serverContext.protocol,
-      projectRequirements: serverContext.projectRequirements,
+      ...(Object.hasOwn(serverContext, 'projectRequirements')
+        ? { projectRequirements: serverContext.projectRequirements } : {}),
       serverBaseline: serverContext.snapshot,
       localBaseline: this.buildLocalBaseline(changeSetBuildResult.localState),
       inventory: serverContext.inventory,

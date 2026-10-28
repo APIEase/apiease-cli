@@ -10,15 +10,15 @@ const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const projectDirectoryPath = path.resolve(currentDirectoryPath, '..', '..');
 const contractDirectoryPath = path.join(projectDirectoryPath, 'contracts', 'apex-projects', 'v1');
 
-const expectedSourceCommit = '36ad4ecc5b2d00b13ef710d82d4de7b8febd6732';
+const expectedSourceCommit = null;
 const expectedFileHashes = {
-  'apiease-project-contract.schema.json': 'bf5abf2a081409e2cde075a8274f4749c1a0a0f1e9ee6769a2dbe65cc783a72c',
-  'fixtures/unified-project-contracts.json': 'c5df1e2ceec3c23a2e53f42521073eb6dda7ce5c12b599e9ef3e5d0adfeb9a6c',
+  'apiease-project-contract.schema.json': '6f5d8f9cf2ae13bd41b6d603159e165848c267998a28d5f3bb44f98917a15100',
+  'fixtures/unified-project-contracts.json': '320a18bffb90d231d94f3ffe88903f15e9eb3f8bdb9b2e1cbff87164a8f5cce4',
 };
 
 describe('Apex Project contract assets', () => {
   describe('provenance', () => {
-    it('should identify the authoritative APIEase commit and exact hashes of every vendored asset', async () => {
+    it('should record the authoritative source state and exact hashes of every vendored asset', async () => {
       // Arrange
       const provenanceManifest = await readJson('provenance.json');
 
@@ -30,6 +30,9 @@ describe('Apex Project contract assets', () => {
         provenanceVersion: 1,
         sourceRepository: 'https://github.com/APIEase/apiease.git',
         sourceCommit: expectedSourceCommit,
+        sourceBaseCommit: '6cede9de3b26ed525248c8c73423efe3e15b882b',
+        sourceState: 'working-tree',
+        fixtureSourceDirectory: 'test/contracts/apex-projects/v1/fixtures',
         sourceDirectory: 'contracts/apex-projects/v1',
         files: expectedFileHashes,
       });

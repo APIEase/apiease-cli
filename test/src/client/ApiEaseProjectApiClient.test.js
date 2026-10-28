@@ -109,6 +109,31 @@ describe('ApiEaseProjectApiClient', () => {
   });
 
   describe('retrieveProjectDesignContext', () => {
+    it('should accept omitted requirements on both sides of the API boundary', async () => {
+      const request = buildProjectDesignContextRequest();
+      const response = buildProjectDesignContextResponse();
+      delete request.projectRequirements;
+      delete response.result.projectRequirements;
+      const requestBodies = [];
+      const client = buildClient({ responses: [buildJsonResponse(200, response)], requestBodies });
+      const result = await client.retrieveProjectDesignContext(buildInvocation(request));
+      assert.equal(result.ok, true);
+      assert.deepEqual(requestBodies.map(body => JSON.parse(body)), [request]);
+      assert.deepEqual(result.result, response.result);
+    });
+
+    for (const projectRequirements of [null, {}, [], false, 0, 'invalid', { objective: 'unsupported' }]) {
+      it(`should reject explicit invalid requirements ${JSON.stringify(projectRequirements)} before transport`, async () => {
+        const fetchCalls = [];
+        const client = buildClient({ responses: [], fetchCalls });
+        const result = await client.retrieveProjectDesignContext(buildInvocation({
+          ...buildProjectDesignContextRequest(), projectRequirements,
+        }));
+        assert.equal(result.outcome, 'CONTRACT_INVALID');
+        assert.deepEqual(fetchCalls, []);
+      });
+    }
+
     it('should return the exact verified common instructions, Codex envelope, and context', async () => {
       // Arrange
       const responseDocument = buildProjectDesignContextResponse();

@@ -21,6 +21,15 @@ The shipping runtime contract bundle is `contracts/apex-projects/v1/`. Before re
 ./.codex/run_test_suite.sh
 ```
 
+For an uncommitted cross-repository change, `sourceState: "working-tree"` and
+`sourceCommit: null` explicitly mark the imported bundle as pending. The manifest
+records its base commit and exact file hashes. Before release, commit the APIEase
+source, replace this pending provenance with that exact source commit, and verify
+all imported bytes against it. Fixture sources now live under
+`test/contracts/apex-projects/v1/fixtures`; the manifest records that directory.
+The CLI compatibility adapter's `projectDesign*` endpoint definitions must match
+the authoritative bundle, including optional requirements on requests and responses.
+
 Do not release when the authoritative contract changed without a deliberate vendor update, when any recorded hash differs, or when any contract test fails.
 
 ## 3. Inspect the Package

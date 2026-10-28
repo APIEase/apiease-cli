@@ -45,7 +45,7 @@ apiease --version
 apiease init [project-name]
 apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease design-context --project-requirements <json> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
+apiease design-context [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
 apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease apply [--require-approval] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
@@ -159,10 +159,20 @@ Plain `apiease init` copies the starter files and records template upgrade metad
 Command-line Codex acts as the Codex Project Designer by editing canonical local files. Before designing, retrieve the authenticated project context and the current effective APIEase Project Design Protocol:
 
 ```bash
-apiease design-context --project-requirements '{"objective":"Add an order-status experience"}'
+apiease design-context
 ```
 
 The JSON result retrieves the effective protocol version, common-instruction bytes and digest, Codex execution envelope, stable Mongo baseline, canonical resource inventory and bodies, local edits, explicit deletion intent, safe protected-value selectors, and workflow guidance. The CLI verifies the retrieved protocol identity and digest; this README does not copy or pin either value.
+
+Requirements are optional and unnecessary when the coding agent already has the task in its conversation. The bare command returns the existing instructions, server resources, baseline, local changes, and other project context. It omits `projectRequirements` from both the request and returned context instead of inventing requirements.
+
+To include explicit requirements, supply the supported structure:
+
+```bash
+apiease design-context --project-requirements '{"projectName":"Order status","customerRequirements":[{"id":"status","text":"Show order status."}],"confirmedDecisions":[]}'
+```
+
+All three fields are required when the option is supplied: a nonempty `projectName`, `customerRequirements` containing `{id, text}` objects with nonempty strings, and `confirmedDecisions` containing nonempty strings. Both arrays may be empty. Unknown fields, malformed JSON, and explicit `null` are invalid. Failures retain the JSON result and established exit codes; corrective guidance goes to stderr. Authentication and an initialized checkout are still required, and baseline conflicts must be reconciled deliberately.
 
 Use the returned context to design by editing canonical resource files locally. Those files encode Canonical Resource Source objects. Neither the checkout, Git history, nor a Git diff is mutation authority, and `design-context` does not validate, submit, or apply a change.
 
