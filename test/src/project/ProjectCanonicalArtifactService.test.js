@@ -21,6 +21,88 @@ const bootstrapFixturePath = path.join(
 );
 
 describe('ProjectCanonicalArtifactService', () => {
+  describe('working-tree resource source', () => {
+    it('should serialize every family with two-space indentation and unchanged source values', () => {
+      // Arrange
+      const service = new ProjectCanonicalArtifactService();
+      const resources = buildDescribedResourceCases();
+
+      for (const resource of resources) {
+        const canonicalContent = service.serializeResourceSource(resource);
+        const source = JSON.parse(canonicalContent);
+
+        // Act
+        const content = service.serializeWorkingTreeResourceSource(source);
+
+        // Assert
+        assert.equal(content, `${JSON.stringify(source, null, 2)}\n`);
+        assert.equal(service.serializeParsedResourceSource(JSON.parse(content)), canonicalContent);
+      }
+    });
+
+    it('should parse both compact and two-space resource files', () => {
+      // Arrange
+      const service = new ProjectCanonicalArtifactService();
+      const compact = service.serializeResourceSource({ resourceType: 'request', resource: buildRequestResource() });
+      const source = JSON.parse(compact);
+
+      // Act and Assert
+      for (const content of [compact, `${JSON.stringify(source, null, 2)}\n`]) {
+        assert.deepEqual(service.parseWorkingTreeResourceSource({
+          path: 'resources/requests/fetch-products.json', content: Buffer.from(content),
+        }), source);
+      }
+    });
+
+    it('should reject malformed or noncanonical working-tree content', () => {
+      // Arrange
+      const service = new ProjectCanonicalArtifactService();
+      const source = JSON.parse(service.serializeResourceSource({ resourceType: 'request', resource: buildRequestResource() }));
+      const formatted = `${JSON.stringify(source, null, 2)}\n`;
+      const invalidContents = [
+        `${JSON.stringify(source, null, 4)}\n`,
+        `${JSON.stringify(Object.fromEntries(Object.entries(source).reverse()), null, 2)}\n`,
+        formatted.replace('"contractVersion": 1,', '"contractVersion": 1,\n  "contractVersion": 1,'),
+        formatted.replaceAll('\n', '\r\n'),
+        formatted.trimEnd(), `${formatted}\n`, '{invalid}\n',
+      ];
+
+      // Act and Assert
+      for (const content of invalidContents) {
+        assert.throws(() => service.parseWorkingTreeResourceSource({
+          path: 'resources/requests/fetch-products.json', content,
+        }), error => error.code?.startsWith('CANONICAL_RESOURCE_SOURCE_'));
+      }
+    });
+
+    it('should preserve identity and protected-value checks for formatted files', () => {
+      // Arrange
+      const service = new ProjectCanonicalArtifactService();
+      const source = JSON.parse(service.serializeResourceSource({ resourceType: 'request', resource: buildRequestResource() }));
+
+      // Act and Assert
+      assert.throws(() => service.parseWorkingTreeResourceSource({
+        path: 'resources/requests/another-request.json', content: `${JSON.stringify(source, null, 2)}\n`,
+      }), { code: PROJECT_CANONICAL_ARTIFACT_ERROR_CODES.handlePathMismatch });
+      const protectedSource = { contractVersion: 1, formatVersion: 1, resourceType: 'variable',
+        handle: 'secret', name: 'Secret', sensitive: true, value: 'raw-secret' };
+      assert.throws(() => service.serializeWorkingTreeResourceSource(protectedSource), {
+        code: PROJECT_CANONICAL_ARTIFACT_ERROR_CODES.protectedValue,
+      });
+    });
+
+    it('should continue rejecting formatted bytes at the server artifact boundary', () => {
+      // Arrange
+      const service = new ProjectCanonicalArtifactService();
+      const source = JSON.parse(service.serializeResourceSource({ resourceType: 'request', resource: buildRequestResource() }));
+
+      // Act and Assert
+      assert.throws(() => service.parseResourceSource({
+        path: 'resources/requests/fetch-products.json', content: `${JSON.stringify(source, null, 2)}\n`,
+      }), { code: PROJECT_CANONICAL_ARTIFACT_ERROR_CODES.nonCanonicalContent });
+    });
+  });
+
   describe('serializeCanonicalValue', () => {
     it('should serialize equivalent nested objects to byte-identical canonical JSON', () => {
       // Arrange

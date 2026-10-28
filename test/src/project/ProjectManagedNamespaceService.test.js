@@ -14,6 +14,48 @@ const requestContent = '{"contractVersion":1,"formatVersion":1,"handle":"example
 
 describe('ProjectManagedNamespaceService', () => {
   describe('discoverManagedNamespace', () => {
+    it('should preserve canonical file and snapshot hashes after formatting local files', async testContext => {
+      // Arrange
+      const projectDirectoryPath = await createProjectDirectory(testContext);
+      await writeManagedProject(projectDirectoryPath);
+      const service = new ProjectManagedNamespaceService();
+      const original = await service.discoverManagedNamespace({ projectDirectoryPath });
+      const formatted = `${JSON.stringify(JSON.parse(requestContent), null, 2)}\n`;
+      const resourcePath = path.join(projectDirectoryPath, 'resources/requests/example-request.json');
+      await fs.writeFile(resourcePath, formatted);
+
+      // Act
+      const discovered = await service.discoverManagedNamespace({
+        projectDirectoryPath, baselineSnapshotDigest: original.snapshotDigest,
+      });
+
+      // Assert
+      assert.equal(discovered.hasLocalEdits, false);
+      assert.equal(discovered.snapshotDigest, original.snapshotDigest);
+      assert.deepEqual(discovered.files, original.files);
+      assert.equal(await fs.readFile(resourcePath, 'utf8'), formatted);
+    });
+
+    it('should detect actual source changes in a formatted file', async testContext => {
+      // Arrange
+      const projectDirectoryPath = await createProjectDirectory(testContext);
+      await writeManagedProject(projectDirectoryPath);
+      const service = new ProjectManagedNamespaceService();
+      const original = await service.discoverManagedNamespace({ projectDirectoryPath });
+      const source = JSON.parse(requestContent);
+      source.name = 'Changed name';
+      await fs.writeFile(path.join(projectDirectoryPath, 'resources/requests/example-request.json'), `${JSON.stringify(source, null, 2)}\n`);
+
+      // Act
+      const discovered = await service.discoverManagedNamespace({
+        projectDirectoryPath, baselineSnapshotDigest: original.snapshotDigest,
+      });
+
+      // Assert
+      assert.equal(discovered.hasLocalEdits, true);
+      assert.notEqual(discovered.snapshotDigest, original.snapshotDigest);
+    });
+
     it('should discover only sorted direct managed files from a nested working directory', async testContext => {
       // Arrange
       const projectDirectoryPath = await createProjectDirectory(testContext);

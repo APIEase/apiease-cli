@@ -12,7 +12,10 @@ import {
 
 const metadataContent = Buffer.from('{"formatVersion":1}\n', 'utf8');
 const currentRequestContent = Buffer.from('{"current":true}\n', 'utf8');
-const replacementRequestContent = Buffer.from('{"replacement":true}\n', 'utf8');
+const replacementRequestContent = Buffer.from(new ProjectCanonicalArtifactService().serializeResourceSource({
+  resourceType: 'request',
+  resource: { handle: 'replacement-request', name: 'Replacement', type: 'http', parameters: [], triggers: [] },
+}), 'utf8');
 
 describe('ProjectManagedPublicationService', () => {
   describe('publishManagedSnapshot', () => {
@@ -46,7 +49,7 @@ describe('ProjectManagedPublicationService', () => {
       );
       assert.deepEqual(
         await fs.readFile(path.join(repositoryTopLevelPath, 'resources/requests/replacement-request.json')),
-        replacementRequestContent,
+        Buffer.from(`${JSON.stringify(JSON.parse(replacementRequestContent), null, 2)}\n`),
       );
       assert.equal(
         await fs.readFile(path.join(repositoryTopLevelPath, 'resources/requests/delete/pending.json'), 'utf8'),
@@ -103,6 +106,12 @@ describe('ProjectManagedPublicationService', () => {
         publishedDescriptions,
         describedSources.map(source => source.description),
       );
+      for (const file of sourceFiles) {
+        assert.equal(
+          await fs.readFile(path.join(repositoryTopLevelPath, file.path), 'utf8'),
+          `${JSON.stringify(JSON.parse(file.content), null, 2)}\n`,
+        );
+      }
     });
 
     it('should report a local-integrity failure without changing operational state', async testContext => {

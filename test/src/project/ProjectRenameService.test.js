@@ -14,6 +14,24 @@ const temporaryDirectoryPaths = [];
 
 describe('ProjectRenameService', () => {
   describe('renameResource', () => {
+    it('should preserve two-space formatting when renaming a pulled resource', async () => {
+      // Arrange
+      const fixture = await buildFixture();
+      await fs.writeFile(fixture.currentFilePath, `${JSON.stringify(JSON.parse(fixture.originalContent), null, 2)}\n`);
+      const publishedStates = [];
+      const service = buildRenameService(fixture, { publishedStates });
+
+      // Act
+      await service.renameResource({ projectDirectoryPath: fixture.repositoryTopLevelPath,
+        resourceType: 'request', currentHandle: 'inventory-sync', renamedHandle: 'stock-sync' });
+
+      // Assert
+      const content = await fs.readFile(fixture.renamedFilePath, 'utf8');
+      assert.equal(content, `${JSON.stringify(JSON.parse(content), null, 2)}\n`);
+      assert.equal(JSON.parse(content).handle, 'stock-sync');
+      assert.deepEqual(publishedStates, [buildRenamedLocalState(fixture.localState)]);
+    });
+
     it('should rewrite only the canonical handle and binding path', async () => {
       // Arrange
       const fixture = await buildFixture();

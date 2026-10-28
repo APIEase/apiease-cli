@@ -14,6 +14,34 @@ const resourceVersions = Object.freeze({
 
 describe('ProjectDeletionIntentService', () => {
   describe('discoverDeletionIntents', () => {
+    it('should discover and archive formatted delete files without changing their bytes', async context => {
+      // Arrange
+      const repositoryTopLevelPath = await createRepositoryFixture();
+      context.after(() => fs.rm(repositoryTopLevelPath, { recursive: true, force: true }));
+      const service = new ProjectDeletionIntentService();
+      const handle = 'obsolete-request';
+      await writeIntentFile({ repositoryTopLevelPath, namespace: 'delete', resourceType: 'request', handle });
+      const content = `${JSON.stringify(JSON.parse(buildCanonicalSource('request', handle)), null, 2)}\n`;
+      const deletePath = path.join(repositoryTopLevelPath, `resources/requests/delete/${handle}.json`);
+      await fs.writeFile(deletePath, content);
+
+      // Act
+      const result = await service.discoverDeletionIntents({
+        repositoryTopLevelPath, localState: buildLocalState([buildBinding('request', handle)]),
+      });
+      const receipt = await readWorkflowApplyReceipt('apply');
+      const deletion = result.deletionIntents[0];
+      receipt.resources = [{ operation: 'delete', resourceType: 'request',
+        resourceId: deletion.deletion.resourceId, handle }];
+      await service.archiveCommittedDeletionIntents({
+        repositoryTopLevelPath, deletionIntents: result.deletionIntents, applyReceipt: receipt,
+      });
+
+      // Assert
+      assert.equal(await fs.readFile(path.join(repositoryTopLevelPath, deletion.archivePath), 'utf8'), content);
+      await assert.rejects(fs.access(deletePath), { code: 'ENOENT' });
+    });
+
     it('should build deterministic version-bound deletions from canonical delete files', async () => {
       // Arrange
       const repositoryTopLevelPath = await createRepositoryFixture();

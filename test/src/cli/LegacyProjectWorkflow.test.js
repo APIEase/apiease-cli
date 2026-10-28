@@ -12,6 +12,7 @@ import { UpgradeProjectCommand } from '../../../src/cli/UpgradeProjectCommand.js
 import { ProjectSynchronizationService } from '../../../src/project/ProjectSynchronizationService.js';
 import { ProjectValidationService } from '../../../src/project/ProjectValidationService.js';
 import { ProjectLocalStateService } from '../../../src/project/ProjectLocalStateService.js';
+import { ProjectChangeSetBuilder } from '../../../src/project/ProjectChangeSetBuilder.js';
 
 const executeFile = promisify(execFile);
 const hash = value => createHash('sha256').update(value).digest('hex');
@@ -44,6 +45,9 @@ describe('Legacy project public command workflow', () => {
       const head = (await executeFile('git', ['rev-parse', 'HEAD'], { cwd: fixture.directory })).stdout;
       // Act
       assert.equal(await fixture.pull.run(['pull'], fixture.options), 0, fixture.stderr.join(''));
+      const resourceFile = fixture.response.result.files[1];
+      assert.equal(await fs.readFile(path.join(fixture.directory, resourceFile.path), 'utf8'),
+        `${JSON.stringify(JSON.parse(resourceFile.content), null, 2)}\n`);
       const afterPull = await snapshot(fixture.directory);
       assert.equal(await fixture.validate.run(['validate'], fixture.options), 0, fixture.stderr.join(''));
       assert.deepEqual(await snapshot(fixture.directory), afterPull);
@@ -66,6 +70,50 @@ describe('Legacy project public command workflow', () => {
       // Act and Assert
       assert.equal(await fixture.pull.run(['pull'], fixture.options), 0, fixture.stderr.join(''));
       assert.equal(await fixture.validate.run(['validate'], fixture.options), 0, fixture.stderr.join(''));
+    });
+
+    it('should upgrade a compact checkout on pull without changing its baseline', async context => {
+      // Arrange
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      const resourceFile = fixture.response.result.files[1];
+      const builder = new ProjectChangeSetBuilder();
+      const formattedCandidate = await builder.buildChangeSet({ projectDirectoryPath: fixture.directory });
+      await writeResource(fixture, resourceFile.content);
+      const before = await new ProjectLocalStateService().readLocalState(fixture.directory);
+      const compactCandidate = await builder.buildChangeSet({ projectDirectoryPath: fixture.directory });
+
+      // Act
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0, fixture.stderr.join(''));
+
+      // Assert
+      assert.equal(await fs.readFile(path.join(fixture.directory, resourceFile.path), 'utf8'),
+        `${JSON.stringify(JSON.parse(resourceFile.content), null, 2)}\n`);
+      const after = await new ProjectLocalStateService().readLocalState(fixture.directory);
+      assert.deepEqual(after.localState, before.localState);
+      assert.deepEqual(formattedCandidate.changeSet, compactCandidate.changeSet);
+      assert.equal(formattedCandidate.changeSetSnapshotDigest, compactCandidate.changeSetSnapshotDigest);
+    });
+
+    it('should protect edits in formatted files and restore formatted server source only with force', async context => {
+      // Arrange
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      const resourceFile = fixture.response.result.files[1];
+      const source = JSON.parse(resourceFile.content);
+      source.name = 'Local edit';
+      const edited = `${JSON.stringify(source, null, 2)}\n`;
+      await writeResource(fixture, edited);
+      const before = await snapshot(fixture.directory);
+
+      // Act and Assert
+      assert.equal(await fixture.validate.run(['validate'], fixture.options), 0, fixture.stderr.join(''));
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 6);
+      assert.match(fixture.stderr.join(''), /PROJECT_LOCAL_MANAGED_EDITS/);
+      assert.deepEqual(await snapshot(fixture.directory), before);
+      assert.equal(await fixture.pull.run(['pull', '--force'], fixture.options), 0, fixture.stderr.join(''));
+      assert.equal(await fs.readFile(path.join(fixture.directory, resourceFile.path), 'utf8'),
+        `${JSON.stringify(JSON.parse(resourceFile.content), null, 2)}\n`);
     });
 
     for (const [label, content] of [['edited', 'different'], ['noncanonical', '{"value":"local"}\n']]) {

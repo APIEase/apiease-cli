@@ -62,6 +62,25 @@ class ProjectCanonicalArtifactService {
     });
   }
 
+  serializeWorkingTreeResourceSource(source) {
+    const canonicalContent = this.serializeParsedResourceSource(source);
+
+    return `${JSON.stringify(JSON.parse(canonicalContent), null, 2)}\n`;
+  }
+
+  parseWorkingTreeResourceSource({ path, content } = {}) {
+    const decodedContent = decodeUtf8Content(content);
+    requireCanonicalNewline(decodedContent);
+    const source = parseJsonSource(decodedContent);
+    const canonicalContent = this.serializeParsedResourceSource(source);
+    if (decodedContent !== canonicalContent
+      && decodedContent !== this.serializeWorkingTreeResourceSource(source)) {
+      throwArtifactError('nonCanonicalContent');
+    }
+
+    return this.parseResourceSource({ path, content: canonicalContent });
+  }
+
   parseResourceSource({ path, content } = {}) {
     const decodedContent = decodeUtf8Content(content);
     requireCanonicalNewline(decodedContent);

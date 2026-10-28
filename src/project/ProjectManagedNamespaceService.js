@@ -134,19 +134,20 @@ class ProjectManagedNamespaceService {
       throw buildServiceError('PROJECT_MANAGED_FILE_NOT_REGULAR');
     }
     const contentBuffer = await fs.readFile(absoluteFilePath);
-    const digest = this.projectCanonicalArtifactService.computeFileDigest(contentBuffer);
+    let content = new TextDecoder('utf-8', { fatal: true }).decode(contentBuffer);
     if (validateCanonicalContent) {
-      this.projectCanonicalArtifactService.parseResourceSource({
+      const source = this.projectCanonicalArtifactService.parseWorkingTreeResourceSource({
         path: managedPath,
         content: contentBuffer,
       });
+      content = this.projectCanonicalArtifactService.serializeParsedResourceSource(source);
     }
 
     return {
       path: managedPath,
       encoding: 'utf-8',
-      content: new TextDecoder('utf-8', { fatal: true }).decode(contentBuffer),
-      digest,
+      content,
+      digest: this.projectCanonicalArtifactService.computeFileDigest(content),
     };
   }
 

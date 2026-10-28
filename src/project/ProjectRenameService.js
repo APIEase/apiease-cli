@@ -34,7 +34,7 @@ class ProjectRenameService {
     this.requireExactBinding(stateResult.localState, resourceType, paths);
     const filePaths = this.resolveFilePaths(stateResult.repositoryTopLevelPath, paths);
     const originalContent = await this.readSourceContent(filePaths.currentFilePath);
-    const source = this.projectCanonicalArtifactService.parseResourceSource({
+    const source = this.projectCanonicalArtifactService.parseWorkingTreeResourceSource({
       path: paths.currentPath,
       content: originalContent,
     });
@@ -124,11 +124,11 @@ class ProjectRenameService {
   }
 
   serializeRenamedSource(source, renamedHandle, renamedPath) {
-    const renamedContent = this.projectCanonicalArtifactService.serializeParsedResourceSource({
+    const renamedContent = this.projectCanonicalArtifactService.serializeWorkingTreeResourceSource({
       ...source,
       handle: renamedHandle,
     });
-    this.projectCanonicalArtifactService.parseResourceSource({
+    this.projectCanonicalArtifactService.parseWorkingTreeResourceSource({
       path: renamedPath,
       content: renamedContent,
     });

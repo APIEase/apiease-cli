@@ -111,8 +111,12 @@ class ProjectManagedPublicationService {
 
   async stageFile(stagingDirectoryPath, file) {
     const stagedFilePath = this.resolveManagedPath(stagingDirectoryPath, file.path);
+    const content = file.path === PROJECT_METADATA_PATH ? file.content
+      : this.projectCanonicalArtifactService.serializeWorkingTreeResourceSource(
+        this.projectCanonicalArtifactService.parseResourceSource(file),
+      );
     await this.fileSystem.mkdir(path.dirname(stagedFilePath), { recursive: true });
-    await this.fileSystem.writeFile(stagedFilePath, file.content, { flag: 'wx' });
+    await this.fileSystem.writeFile(stagedFilePath, content, { flag: 'wx' });
   }
 
   async findAbsentManagedPaths(repositoryTopLevelPath, files) {

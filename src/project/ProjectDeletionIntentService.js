@@ -120,7 +120,7 @@ class ProjectDeletionIntentService {
       throwServiceError('PROJECT_DELETION_INTENT_PATH_INVALID');
     }
     const content = await fs.readFile(absolutePath);
-    this.projectCanonicalArtifactService.parseResourceSource({ path: sourcePath, content });
+    this.projectCanonicalArtifactService.parseWorkingTreeResourceSource({ path: sourcePath, content });
 
     return {
       digest: this.projectCanonicalArtifactService.computeFileDigest(content),
@@ -238,7 +238,7 @@ class ProjectDeletionIntentService {
   async validateTransitionSource({ alreadyArchived, deletionIntent, existingFilePath }) {
     const sourcePath = deletionIntent.sourcePath ?? buildSourcePath(deletionIntent.deletePath);
     const content = await fs.readFile(existingFilePath);
-    this.projectCanonicalArtifactService.parseResourceSource({ path: sourcePath, content });
+    this.projectCanonicalArtifactService.parseWorkingTreeResourceSource({ path: sourcePath, content });
     const digest = this.projectCanonicalArtifactService.computeFileDigest(content);
     if (digest !== deletionIntent.sourceDigest) {
       throwServiceError(alreadyArchived
