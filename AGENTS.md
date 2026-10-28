@@ -91,12 +91,13 @@ describe('MyClass', () => {
 ## Documentation Guidelines
 - `README.md` is the primary user-facing documentation for this repository. Update it when command behavior, flags, environment requirements, template behavior, or upgrade semantics change.
 - Keep CLI examples aligned with the actual public command name `apiease` and the current local-development workflow.
-- `docs/knowledgebase/apiEaseDocsConsolidated.md` is a generated import from the separate `../apiease-docs` project. Do not hand-edit it for documentation corrections unless the user explicitly asks to import or refresh the generated knowledge base in this repository.
+- `docs/knowledgebase/apiEaseDocsConsolidated.md` is a generated import from the separate `../apiease-docs` project. Agents must never directly edit or patch any `apiEaseDocsConsolidated.md` file. Refresh requests must use the supported build and pull scripts.
 - The normal APIEase documentation flow is:
   1. Make source documentation changes in `../apiease-docs`.
-  2. Let the user run the documentation consolidation manually in `../apiease-docs`.
-  3. Let the user run the import from this repository to refresh `docs/knowledgebase/apiEaseDocsConsolidated.md`.
-- If a task in this repository needs page-level product documentation changes, update the appropriate source Markdown in `../apiease-docs`; leave this repository's consolidated knowledge-base file untouched unless the user specifically requests the import step.
+  2. Run `npm run knowledge:build` and `npm run knowledge:check` from `../apiease-docs/docs`.
+  3. Run `npm run knowledge:pull-local` from each available consumer repository root: `../apiease`, `../apiease-template`, and this repository.
+  4. Verify each import with `npm run knowledge:pull-local -- --check`.
+- Scripted generation and imports are the preferred follow-up to public documentation changes and do not require a separate user request. If a repository is unavailable or a command fails, report the remaining refresh step; never compensate by directly editing a consolidated file.
 
 ## Commit & Pull Request Guidelines
 - Write imperative commit subjects under about 72 characters (for example `Add upgrade conflict reporting`).
@@ -112,7 +113,7 @@ describe('MyClass', () => {
 
 ## APIEase - Parent project reference
 - `docs/knowledgebase/apiEaseDocsConsolidated.md` is the primary local reference for overall APIEase product and platform knowledge in this repository.
-- `docs/knowledgebase/apiEaseDocsConsolidated.md` is generated outside this repository by consolidating documentation in `../apiease-docs`; use it as read-only reference material during normal `apiease-cli` work.
+- `docs/knowledgebase/apiEaseDocsConsolidated.md` is generated outside this repository by consolidating documentation in `../apiease-docs`; consult it as reference material and refresh it only through the scripted documentation workflow above.
 - AI agents should consult `docs/knowledgebase/apiEaseDocsConsolidated.md` first when they need broad APIEase context, feature background, terminology, or high-level product behavior.
 - The APIEase main app project is located at ../apiease.
 - - `../apiease` can be used as a product/API reference when verifying request payload expectations or broader APIEase concepts, but do not import its app-specific structure rules into this CLI repository.

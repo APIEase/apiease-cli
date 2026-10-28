@@ -71,7 +71,7 @@ Functions are reusable Liquid helpers that run inside a parent Liquid Request. U
 
 ## What APIEase does not supply
 
-APIEase does not provide another company's private API documentation or credentials, bypass provider permissions, or decide how records from different systems should be matched. Before building an integration, obtain the provider's current API contract and define the workflow's business rules. See [Connect to an external API](https://docs.apiease.com/docs/requests/connect-external-api) for the required information.
+APIEase does not provide another company's private API documentation or credentials, bypass provider permissions, or decide how records from different systems should be matched. Start with a useful request using the operation, endpoint, and authentication details you have, with reasonable assumptions made visible for review. Gather further provider details and business rules when the requested behavior requires them, and verify the request before relying on it in an integration. See [Connect to an external API](https://docs.apiease.com/docs/requests/connect-external-api) for the setup guidance and provider information checklist.
 
 ## [Secure Parameter Storage](https://docs.apiease.com/docs/overview/why-you-need-it)
 
@@ -90,7 +90,7 @@ APIEase runs the requests and logic you define. Each request ([HTTP](https://doc
 
 This page describes how requests are configured, how they are triggered, and how these elements combine to create custom functionality.
 
-APIEase also includes reusable [Functions](https://docs.apiease.com/docs/functions/functions-overview), persisted [Variables](https://docs.apiease.com/docs/variables/variables-overview), and storefront widgets. Widgets render Liquid and JavaScript through the Widget App Block or Widget App Embed and are managed in the same admin.
+APIEase also includes reusable [Functions](https://docs.apiease.com/docs/functions/functions-overview), persisted [Variables](https://docs.apiease.com/docs/variables/variables-overview), and [Widgets](https://docs.apiease.com/docs/widgets/widgets-overview). Storefront widgets render in the theme, while Admin widgets provide tools inside Shopify admin. Both are managed in APIEase.
 
 ---
 
@@ -114,11 +114,11 @@ If you need to manage persisted values outside of a request, use [Variables Over
 
 ## Configuring Widgets
 
-Create widgets in the APIEase admin by defining a name, handle, and Liquid template. You can add optional inline or external JavaScript that loads when the widget renders. See [Widgets page](https://docs.apiease.com/docs/widgets/widgets-page) and [Widget edit page](https://docs.apiease.com/docs/widgets/widget-edit-page) for the full workflow.
+Create widgets from the [Widgets Page](https://docs.apiease.com/docs/widgets/widgets-page), then set the shared fields and widget type in the [Widgets Edit Page](https://docs.apiease.com/docs/widgets/widget-edit-page). Follow [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets) for Liquid and JavaScript, or [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring) for Variables and Shopify component JSX.
 
 ## Displaying Widgets
 
-Use the **APIEase Widget App Block** for widgets on a specific page or template, or the **APIEase Widget App Embed** for widgets that should run across the storefront. See [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
+For storefront placement, use the **APIEase Widget App Block** on a specific page or template, or the **APIEase Widget App Embed** across the storefront. See [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets). For Shopify admin blocks, detail-page actions, and bulk-selection actions, see [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets).
 
 ---
 
@@ -1014,6 +1014,44 @@ If you are working with request resources, keep these conventions in mind:
 - For `liquid` requests, include saved Liquid `parameters` only for saved values, sensitive values, or `{parameterName}` substitution.
 - Add a `storefrontAppProxy` trigger only to requests that should be called directly through Shopify's app proxy. Do not add it to Liquid helper requests that are only called by other APIEase requests.
 
+## Sensitive values
+
+To create a sensitive request parameter or variable, set `sensitive` to `true`
+and supply its `value` as a string. No separate secret instruction is required.
+For example, a request parameter can be:
+
+```json
+{
+  "type": "header",
+  "name": "Authorization",
+  "sensitive": true,
+  "value": "Bearer replace-with-your-provider-token"
+}
+```
+
+The CLI's `create` and `update` commands can submit these string values through
+the public API. The public API uses these value rules:
+
+- A supplied string replaces the saved value. An empty string explicitly clears
+  the value while keeping the field sensitive.
+- On updates, omitting `value` preserves the existing sensitive value. Omitting
+  `sensitive` retains its current setting.
+- A newly sensitive field needs a value. `null` is invalid.
+- Setting `sensitive` to `false` requires a new string value; it does not reveal
+  the existing secret.
+- Reads and write responses omit sensitive values and return
+  `protectedValueStatus` and `protectedValueSelector` metadata. Submitting the
+  redacted resource as an update preserves its secrets.
+
+For requests, omitting the entire `parameters` field preserves the current list.
+When supplying a parameter list, include every parameter you want to retain;
+entries absent from that list are removed. Existing parameters are matched by
+name, or by type for unnamed parameters.
+
+Supply real credentials only through your authenticated API workflow. Keep them
+out of committed resource files. Canonical project files used by `apiease apply`
+continue to use protected-value placeholders rather than raw credentials.
+
 ## Resource descriptions
 
 Requests, widgets, variables, and functions support a `description` string of up
@@ -1905,9 +1943,17 @@ APIEase can call an external or third-party HTTP API when the provider exposes t
 
 APIEase executes the requests you configure. It cannot discover an undocumented API, obtain credentials from a provider, bypass provider permissions, or guarantee that a particular provider permits the workflow you want.
 
-## Gather the provider information first
+## Start with a useful request
 
-Get the following from the API provider's current documentation or support team:
+Define the operation you want to perform and use the endpoint and authentication details you already have. You can create a basic request before you have the provider's complete documentation. For example, an initial read-only retrieval request does not need response-field mappings or pagination settings unless that first step depends on them.
+
+When you ask Apex to create a request, it can use reasonable, reversible assumptions from the conversation and identify them in its proposal. A supplied endpoint with a clear read-only retrieval goal may support an initial GET request when no known provider requirement contradicts it. Review any assumed method or configuration before running the request. Creating or approving a request does not verify that the provider accepts it or that the integration works.
+
+If a missing detail materially changes the intended operation or prevents a valid request, resolve that specific detail. You do not need to complete every item in the checklist below to create a useful first request. Requests to retrieve every page, transform fields, or change external records still need the details that make those operations correct.
+
+## Gather provider details as they become necessary
+
+Use the API provider's current documentation or support team to establish the details needed for the operation you are implementing:
 
 - the base URL and exact endpoint for each operation
 - the HTTP method, such as `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`
@@ -1931,7 +1977,7 @@ Most provider integrations use one saved [HTTP request](https://docs.apiease.com
 For a basic provider call:
 
 1. [Create a request](https://docs.apiease.com/docs/requests/how-to-add-requests) and choose **HTTP** as the request type.
-2. Enter the documented method and address, such as `https://api.example.com/v1/products`.
+2. Enter the supplied address, such as `https://api.example.com/v1/products`, and the documented method or a clearly identified method assumption supported by the intended operation.
 3. Add only the headers and parameters required by the provider. See [Request parameters](https://docs.apiease.com/docs/requests/request-parameters/request-parameters-overview).
 4. Add the appropriate [trigger](https://docs.apiease.com/docs/requests/triggers/triggers-overview), or leave the request available for another APIEase request to call.
 5. Save and run the request with non-production data before enabling a workflow that writes real data.
@@ -1955,7 +2001,7 @@ For data movement patterns and planning questions, see [Synchronize data with an
 
 APIEase provides saved requests, execution options, parameter handling, and composition tools. The external provider controls whether its API is available, which credentials and permissions it grants, what its data means, and how callers must handle limits or errors. Shopify likewise controls its Admin API contracts and permissions.
 
-If any required provider detail is missing, pause configuration and request that information from the provider. Guessing an endpoint, credential type, identifier, or write payload can produce failed calls or unintended data changes.
+If a missing provider detail prevents the intended operation from being configured correctly, resolve that specific detail with the provider. Otherwise, create the useful request with its assumptions visible and verify those assumptions before execution. Do not invent an endpoint, credential type, identifier, or write payload; those choices can produce failed calls or unintended data changes.
 
 For concise answers about capabilities, provider requirements, resource management, and synchronization, see the [Getting started and integrations FAQ](https://docs.apiease.com/docs/general/faq/getting-started-and-integrations).
 
@@ -2250,7 +2296,7 @@ To create a Liquid request, choose **Liquid** as the request type and enter the 
 
 Saved Liquid parameters are configured on the request. Use them for stored defaults, server-side configured values, sensitive values, or values you want APIEase to substitute with `{parameterName}` before execution. APIEase replaces `{parameterName}` with the saved value when the request runs.
 
-Saved Liquid parameters are different from runtime embedded Liquid parameters. Runtime embedded Liquid parameters are supplied by a caller with `liquidParamsEmbedded` and are read inside Liquid through `apiEaseParameters.liquidParams.<parameterName>`.
+Runtime embedded Liquid parameters are supplied by a caller with `liquidParamsEmbedded` for one execution. Saved and runtime Liquid parameters can both fill `{parameterName}` placeholders in the template.
 
 Example:
 
@@ -2273,9 +2319,21 @@ If your request includes confidential values such as API keys or credentials, ch
 
 **Runtime embedded Liquid parameters**
 
-Use `liquidParamsEmbedded` for per-call values supplied at runtime by storefront JavaScript, widget JavaScript, or another request. For storefront calls from theme or widget JavaScript, `liquidParamsEmbedded` is an APIEase runtime query parameter. Its value must be a JSON object string. Inside the Liquid request, APIEase exposes those values at `apiEaseParameters.liquidParams`.
+Use `liquidParamsEmbedded` for values supplied per call by storefront JavaScript, Admin widgets, or another request. You do not need to add matching parameters to the saved request first. The Admin widget's optional `inputs` form state is separate from these request parameters.
 
-Calling a request from theme or widget JavaScript:
+In storefront widget JavaScript, pass a group object directly to `runRequest`:
+
+```js
+apiease.runRequest('personalized-message', {
+  liquidParamsEmbedded: {visitorName: 'Alex', sourcePage: 'homepage'},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+APIEase loads the helper for widget App Block and App Embed placements. Add a **Storefront App Proxy** trigger to the directly called request. Admin widget buttons accept the same grouped parameters without a storefront trigger; see [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets).
+
+Values inside the group can include nested objects, arrays, strings, numbers, booleans, and null. For the classic fetch call from theme or widget JavaScript, JSON-stringify the group in the query string:
 
 ```javascript
 const liquidParams = {
@@ -2293,28 +2351,23 @@ fetch("/apps/apiease/integration/caller/call?" + queryParams.toString(), {
 });
 ```
 
-Liquid request:
+For a simple text response, save this Liquid template:
 
 ```liquid
-{% assign visitor_name = apiEaseParameters.liquidParams.visitorName | default: "there" | strip %}
-{% assign source_page = apiEaseParameters.liquidParams.sourcePage | default: "unknown" | strip %}
-
-{
-  "message": "Hello, {{ visitor_name }}.",
-  "sourcePage": {{ source_page | json }}
-}
+Hello, {visitorName}. You are visiting the {sourcePage}.
 ```
 
-In this example, the APIEase runtime fields are `requestId`, `liquidParamsEmbedded`, and `apiEaseParameters.liquidParams`. The request handle, parameter keys, and values are example-specific:
+APIEase replaces the parameter placeholders before running the template. This example returns `Hello, Alex. You are visiting the homepage.`; `runRequest` exposes the text in `response.data`. Placeholders perform text substitution and do not automatically JSON-escape strings.
 
-- `requestId` is an APIEase runtime field. It selects which request runs, and its value should be the request handle.
+Both calling methods supply the same values to the Liquid request. The request handle, parameter keys, and values are example-specific:
+
+- `requestId` selects the request in the classic URL. With `runRequest`, pass the handle as the first argument instead.
 - `liquidParamsEmbedded` is an APIEase runtime field. It passes a JSON object of values into a Liquid request.
-- `apiEaseParameters.liquidParams` is the Liquid runtime object where those embedded Liquid parameters are exposed.
 - `personalized-message` is only the example request handle.
 - `visitorName` and `sourcePage` are only example-specific parameter names. Users can choose their own keys.
 - `"Alex"` and `"homepage"` are only example values.
 
-If the caller sends `{ "visitorName": "Alex" }` inside `liquidParamsEmbedded`, the Liquid request reads that value from `apiEaseParameters.liquidParams.visitorName`.
+If the caller sends `{ "visitorName": "Alex" }` inside `liquidParamsEmbedded`, the `{visitorName}` placeholder becomes `Alex` for that execution.
 
 A Liquid request can also pass embedded Liquid parameters to another Liquid request with the `call` tag. In that case, provide `liquidParamsEmbedded` as an object in the call tag payload:
 
@@ -2338,7 +2391,7 @@ When you invoke a request from a Liquid template using the call tag, you can inc
 - `pathParamsEmbedded`: Object of path key/value pairs to substitute into the saved request address path.
 - `bodyEmbedded`: Object or raw string to use as the saved request body.
 - `flowParamsEmbedded`: Object of key/value pairs passed into a Flow request.
-- `liquidParamsEmbedded`: Object of key/value pairs made available to another Liquid request at `apiEaseParameters.liquidParams`.
+- `liquidParamsEmbedded`: Object of Liquid parameter values supplied to the called request.
 - `systemParamsEmbedded`: Object of key/value pairs used by APIEase for special features such as Customer Authentication.
 
 At runtime, embedded parameters take precedence over in app parameters for the matching scope.
@@ -2700,7 +2753,9 @@ Choose the parameter location from the receiving API's contract:
 For Liquid requests, distinguish saved Liquid parameters from runtime embedded Liquid parameters:
 
 - **Saved Liquid parameters** are configured on the request and can be substituted with `{parameterName}` before execution. Use saved Liquid parameters for stored defaults, sensitive values, or other server-side configured values.
-- **Runtime embedded Liquid parameters** are supplied by a caller with `liquidParamsEmbedded` and are read in Liquid through `apiEaseParameters.liquidParams.<parameterName>`. Use `liquidParamsEmbedded` for per-call values supplied at runtime.
+- **Runtime embedded Liquid parameters** are supplied by a caller with `liquidParamsEmbedded`. Use them for values that change per call; they can fill the request's `{parameterName}` placeholders without adding a matching saved parameter first.
+
+Storefront and Admin widgets pass these groups directly to `apiease.runRequest`, for example `apiease.runRequest('lookup', {liquidParamsEmbedded: {reference: 'example'}})`. Values inside a group can include nested objects and arrays as well as strings, numbers, booleans, and null. The Admin widget's `inputs` form state is optional and separate from request parameters. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for the calling syntax on each surface.
 
 See [In-app parameters vs dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic) for the saved-versus-runtime decision and override behavior. For quick request-building answers, see the [Building requests FAQ](https://docs.apiease.com/docs/general/faq/building-requests).
 
@@ -2961,16 +3016,75 @@ Dynamic embedded parameters overview
 CONTENT
 # Dynamic embedded parameters overview
 
-**Dynamic Embedded Parameters From Storefront Overview**  
-In some cases, it's not enough to define your request parameters statically in the APIEase admin. You may need to send information from your storefront that is only available at runtime, based on the customer's session, selections, or activity.
+Dynamic embedded parameters supply values for one request execution, such as a selected product, form entry, or cart contents. Storefront and Admin widgets use the same parameter groups with `apiease.runRequest`. Classic storefront calls and Liquid `call` tags also use these group names.
 
-This is where dynamic embedded parameters come in.
+## Call from a widget
 
-With APIEase, you can pass query parameters, headers, body content, path values, Flow values, or Liquid request values dynamically from your storefront using embedded placeholders. These dynamic values are injected into the request at the moment it is triggered from the storefront.
+Pass the saved request handle first, then an object containing the groups the request needs:
 
-**Why Use Dynamic Embedded Parameters?**
+```js
+apiease.runRequest('discount-lookup', {
+  liquidParamsEmbedded: {
+    code: 'SAVE10',
+    quantity: 2,
+    preview: true,
+    items: [{sku: 'example-sku', quantity: 2}],
+    context: {source: 'product-page', note: null},
+  },
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+This is a storefront JavaScript example. APIEase loads the helper automatically for widget App Block and App Embed placements. Add a **Storefront App Proxy** trigger to the directly called request. In an Admin widget, use the same grouped argument in a button's `onClick` handler; see [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for both calling styles and response handling.
+
+## Supported groups
+
+| Group | Values supplied to the saved request |
+| --- | --- |
+| [`headersEmbedded`](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/headers) | Header values |
+| [`queryParamsEmbedded`](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/query-parameters) | Query string values |
+| [`pathParamsEmbedded`](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/path-parameters) | Values for named path placeholders |
+| [`bodyEmbedded`](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/body) | Request body fields |
+| [`flowParamsEmbedded`](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/flow-parameters) | Flow parameters |
+| [`liquidParamsEmbedded`](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) | Liquid request parameters |
+| [`systemParamsEmbedded`](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) | Supported runtime System settings |
+
+With `runRequest`, each group must be an object of named parameters, or a JSON string encoding that object. Its values can contain nested objects, arrays, strings, numbers, booleans, and null. The group itself cannot be an array, null, or a scalar; this also applies to `bodyEmbedded`. Prefer passing objects directly so the helper handles serialization.
+
+Use only supported group names at the top level. Put your own parameter names inside a group, for example `{liquidParamsEmbedded: {code: 'SAVE10'}}`. The flat `{code: 'SAVE10'}` form and an outer `inputs` or `parameters` wrapper are not supported. Names such as `response` and `session` are ordinary data when used inside a group.
+
+An empty `{}` supplies no embedded groups. Storefront JavaScript also lets you omit the second argument; Admin button handlers require it.
+
+## Read values and combine them with saved parameters
+
+The example supplies `code`, `quantity`, `preview`, `items`, and `context` as Liquid parameters for this execution. Parameters do not need to be declared on the saved request first. See [Dynamic embedded Liquid parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) for using parameter placeholders such as `{code}` in the request's template.
+
+Embedded values merge into the matching request parameter location. When a saved and embedded parameter have the same name in the same location, the embedded value normally takes precedence for that execution. Existing exceptions for saved-only [System settings](https://docs.apiease.com/docs/general/apiease-details/system/system-parameters/overview) still apply. See [In-app parameters vs dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/in-app-vs-dynamic).
+
+For existing widget code that uses a flat request argument, follow the migration example in [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets). The Admin widget's `inputs` form state is a separate UI feature: it remembers editable field values and refreshes the display. A request call sends only the values explicitly included in its embedded parameter groups.
+
+## Classic storefront calls
+
+When calling `/apps/apiease/integration/caller/call` directly, set `requestId` to the saved request handle and JSON-stringify each group in `URLSearchParams`:
+
+```js
+const queryParams = new URLSearchParams({
+  requestId: 'discount-lookup',
+  liquidParamsEmbedded: JSON.stringify({code: 'SAVE10', quantity: 2}),
+});
+
+fetch('/apps/apiease/integration/caller/call?' + queryParams)
+  .then(function (response) { return response.json(); })
+  .then(function (jsonResponse) { console.log(jsonResponse); });
+```
+
+The classic call remains supported and uses the same embedded parameter locations. With `runRequest`, pass the handle as the first argument and pass group objects directly. See [Storefront calls](https://docs.apiease.com/docs/requests/triggers/storefont-calls) for trigger setup and customer access controls.
+
+## Why use dynamic embedded parameters?
 
 Dynamic embedded parameters allow you to tailor each API request to the individual visitor, cart, or page context. Common use cases:
+
 - Personalization: send a customer's name, email, or cart ID to an external service
 - User input: capture form field values or product selections made on the page
 - Session-based logic: include discount codes, location data, or referral info based on the current session
@@ -2979,7 +3093,7 @@ Dynamic embedded parameters allow you to tailor each API request to the individu
 
 Without dynamic parameters, all values must be fixed in advance, which limits your ability to respond to customer behavior or use real-time data.
 
-**Important Security Reminder**
+## Keep credentials server-side
 
 Dynamic embedded parameters are useful for sending runtime information, but they should **never** be used to pass confidential credentials such as:
 
@@ -2996,20 +3110,7 @@ You can read more about [chained requests here](https://docs.apiease.com/docs/re
 
 Always store confidential credentials in the APIEase admin. Use dynamic parameters only for data that is safe to expose and specific to the current customer or page context.
 
-**Flexible Placement**
-
-You can embed dynamic values into:
-
-- Query parameters
-- Headers
-- Request body
-- Path segments
-- Flow parameters
-- Liquid request parameters
-
-Each of these can be populated using JavaScript embedded in your storefront snippet. The data you pass is merged into the request structure when it is triggered, ensuring both flexibility and security.
-
-For Liquid requests, use `liquidParamsEmbedded` to pass a JSON object of per-call values. Inside the Liquid request, read those values from `apiEaseParameters.liquidParams.<parameterName>`. See [Dynamic embedded Liquid parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) for a complete example.
+For Liquid requests, see [Dynamic embedded Liquid parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) for a complete calling example and parameter placeholders.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/path-parameters
@@ -3022,9 +3123,25 @@ CONTENT
 
 Unlike query, header and body embedded parameters that are always added as parameters to your request, path parameters are used exclusively for replacing path variables.
 
-Dynamic embedded parameters are added as query parameters to calls made to APIEase from custom liquid in your storefront.
+## Call with runRequest
 
-**Example Javascript Snippet:**
+In a storefront widget, pass a `pathParamsEmbedded` object to the automatically loaded helper:
+
+```js
+apiease.runRequest('product-details-proxy', {
+  pathParamsEmbedded: {productId: '1234567890'},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+For this example, the saved request address must contain a matching `{productId}` placeholder.
+
+The directly called request needs a **Storefront App Proxy** trigger. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup and response handling, and [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the shared group format used by Storefront and Admin widgets.
+
+## Classic fetch call
+
+For a direct theme or widget fetch call, JSON-stringify the group and include it in `URLSearchParams`:
 
 ```javascript
 const pathParamsEmbeddedVar = JSON.stringify({
@@ -3056,9 +3173,23 @@ CONTENT
 
 You can pass dynamic values from the storefront into the body of a request using embedded parameters. This is useful when you want to include customer-specific or page-specific data inside a JSON body sent to an external API.
 
-Dynamic embedded parameters are added as query parameters to calls made to APIEase from custom liquid in your storefront.
+## Call with runRequest
 
-**Example Javascript Snippet:**
+In a storefront widget, pass a `bodyEmbedded` object to the automatically loaded helper:
+
+```js
+apiease.runRequest('newsletter-signup', {
+  bodyEmbedded: {email: 'visitor@example.com', preferences: {newsletter: true}},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+The directly called request needs a **Storefront App Proxy** trigger. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup and response handling, and [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the shared group format used by Storefront and Admin widgets.
+
+## Classic fetch call
+
+For a direct theme or widget fetch call, JSON-stringify the group and include it in `URLSearchParams`:
 
 ```javascript
 const bodyEmbeddedVar = JSON.stringify({
@@ -3092,9 +3223,23 @@ CONTENT
 
 You can pass dynamic values from the storefront into the headers of an APIEase request. This is useful when the external API you are calling expects information such as customer details, session context, or custom identifiers to be included in the headers.
 
-Dynamic embedded parameters are added as query parameters to calls made to APIEase from custom liquid in your storefront.
+## Call with runRequest
 
-**Example Javascript Snippet:**
+In a storefront widget, pass a `headersEmbedded` object to the automatically loaded helper:
+
+```js
+apiease.runRequest('customer-profile', {
+  headersEmbedded: {'X-Storefront-Source': 'product-page'},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+The directly called request needs a **Storefront App Proxy** trigger. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup and response handling, and [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the shared group format used by Storefront and Admin widgets.
+
+## Classic fetch call
+
+For a direct theme or widget fetch call, JSON-stringify the group and include it in `URLSearchParams`:
 
 ```javascript
 const headerParamsEmbeddedVar = JSON.stringify({
@@ -3128,9 +3273,23 @@ CONTENT
 
 Query parameters can be passed dynamically from the storefront using embedded values. This allows you to include real-time data in your request URLs, such as customer email addresses, cart information, or other storefront-specific details. Dynamic embedded query parameters are added directly to your request at execution time.
 
-Dynamic embedded parameters are added as query parameters to calls made to APIEase from custom liquid in your storefront.
+## Call with runRequest
 
-**Example Javascript Snippet:**
+In a storefront widget, pass a `queryParamsEmbedded` object to the automatically loaded helper:
+
+```js
+apiease.runRequest('product-search', {
+  queryParamsEmbedded: {query: 'shirt', limit: 10},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+The directly called request needs a **Storefront App Proxy** trigger. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup and response handling, and [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the shared group format used by Storefront and Admin widgets.
+
+## Classic fetch call
+
+For a direct theme or widget fetch call, JSON-stringify the group and include it in `URLSearchParams`:
 
 ```javascript
 const queryParamsEmbeddedVar = JSON.stringify({
@@ -3164,9 +3323,23 @@ CONTENT
 
 You can pass dynamic values from your storefront into the input of a Shopify Flow request. This lets your Flow automation receive real-time data based on customer actions, session context, or storefront activity.
 
-Dynamic embedded parameters are added as query parameters to calls made to APIEase from custom Liquid in your storefront.
+## Call with runRequest
 
-**Example JavaScript snippet**
+In a storefront widget, pass a `flowParamsEmbedded` object to the automatically loaded helper:
+
+```js
+apiease.runRequest('start-order-flow', {
+  flowParamsEmbedded: {orderId: 'gid://shopify/Order/1234567890'},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+The directly called request needs a **Storefront App Proxy** trigger. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup and response handling, and [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the shared group format used by Storefront and Admin widgets.
+
+## Classic fetch call
+
+For a direct theme or widget fetch call, JSON-stringify the group and include it in `URLSearchParams`:
 
 ```html
 <script>
@@ -3200,13 +3373,32 @@ Dynamic embedded Liquid parameters
 CONTENT
 # Dynamic embedded Liquid parameters
 
-Use `liquidParamsEmbedded` when calling a Liquid request from theme or widget JavaScript to pass per-call values.
+Use `liquidParamsEmbedded` when calling a Liquid request to pass values for one execution. You do not need to add matching parameters to the saved request first.
 
-`requestId` and `liquidParamsEmbedded` are APIEase runtime query parameters. Set `requestId` to the request handle that should run. Set `liquidParamsEmbedded` to a JSON-stringified object. Inside the Liquid request, APIEase exposes that object at `apiEaseParameters.liquidParams`.
+Choose your own parameter names. For example, send `{visitorName: 'Alex'}` and use the `{visitorName}` parameter placeholder in the request's Liquid template.
 
-The keys inside `liquidParamsEmbedded` are user-defined. For example, if the caller sends `{ "visitorName": "Alex" }`, the Liquid request reads `apiEaseParameters.liquidParams.visitorName`.
+## Call with runRequest
 
-Calling a request from theme or widget JavaScript:
+In a storefront widget, pass the saved request handle and a `liquidParamsEmbedded` object:
+
+```js
+apiease.runRequest('personalized-message', {
+  liquidParamsEmbedded: {
+    visitorName: 'Alex',
+    sourcePage: 'homepage',
+  },
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+APIEase loads the helper for widget App Block and App Embed placements. The directly called storefront request needs a **Storefront App Proxy** trigger. In an Admin widget, pass the same group in a button's `onClick` handler; no storefront trigger is needed. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup and response handling.
+
+Values inside the group can be nested objects, arrays, strings, numbers, booleans, or null. Pass the object directly; JSON-stringifying it is optional with `runRequest`. See [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the full group format.
+
+## Classic fetch call
+
+For a direct theme or widget fetch call, set `requestId` to the saved request handle and JSON-stringify `liquidParamsEmbedded` in the URL:
 
 ```javascript
 const liquidParams = {
@@ -3224,23 +3416,20 @@ fetch("/apps/apiease/integration/caller/call?" + queryParams.toString(), {
 });
 ```
 
-Liquid request:
+## Read values in the Liquid request
+
+Both calling methods can supply values for the same parameter placeholders. For a simple text response, save this Liquid template:
 
 ```liquid
-{% assign visitor_name = apiEaseParameters.liquidParams.visitorName | default: "there" | strip %}
-{% assign source_page = apiEaseParameters.liquidParams.sourcePage | default: "unknown" | strip %}
-
-{
-  "message": "Hello, {{ visitor_name }}.",
-  "sourcePage": {{ source_page | json }}
-}
+Hello, {visitorName}. You are visiting the {sourcePage}.
 ```
+
+APIEase substitutes the supplied parameter values before running the template. This example returns `Hello, Alex. You are visiting the homepage.`. With `runRequest`, the text is in `response.data`. Parameter placeholders perform text substitution; they do not automatically JSON-escape string values.
 
 In this example:
 
-- `requestId` is an APIEase runtime field. It selects which request runs, and its value should be the request handle.
+- `requestId` selects the request in the classic URL. With `runRequest`, pass the handle as the first argument instead.
 - `liquidParamsEmbedded` is an APIEase runtime field. It passes a JSON object of values into a Liquid request.
-- `apiEaseParameters.liquidParams` is the Liquid runtime object where those embedded Liquid parameters are exposed.
 - `personalized-message` is only the example request handle.
 - `visitorName` and `sourcePage` are only example-specific parameter names. Users can choose their own keys.
 - `"Alex"` and `"homepage"` are only example values.
@@ -3249,7 +3438,7 @@ In this example:
 
 Saved Liquid parameters are configured on the request and can be substituted with `{parameterName}` before execution. Use saved Liquid parameters for stored defaults, sensitive values, or other server-side configured values.
 
-Runtime embedded Liquid parameters are supplied by a caller with `liquidParamsEmbedded` and are read in Liquid through `apiEaseParameters.liquidParams.<parameterName>`. Use `liquidParamsEmbedded` for per-call values supplied at runtime.
+Runtime embedded Liquid parameters are supplied by a caller with `liquidParamsEmbedded`. They can fill the same `{parameterName}` placeholders, including names that are not saved on the request. Embedded values normally override saved values with the same name for that execution.
 
 SOURCE
 https://docs.apiease.com/docs/requests/request-parameters/form-urlencoded-bodies
@@ -3649,7 +3838,7 @@ CONTENT
 
 Run any APIEase request directly from your Shopify storefront using Shopify's app proxy. This lets you start workflows from theme code without exposing credentials or private logic in the browser.
 
-For a reusable storefront component, put the JavaScript request call in an [APIEase widget](https://docs.apiease.com/docs/requests/triggers/widget-calls). The widget uses the same storefront route and Storefront App Proxy trigger described below.
+For a reusable storefront component, put the JavaScript request call in an [APIEase widget](https://docs.apiease.com/docs/requests/triggers/widget-calls) and use `apiease.runRequest`. It uses Shopify's app proxy and the same Storefront App Proxy trigger requirement as the classic fetch call.
 
 ## Storefront access boundary
 
@@ -3658,7 +3847,7 @@ APIEase verifies that the call was routed through Shopify's app proxy and that t
 The same-origin app-proxy path lets theme code avoid a direct browser call to APIEase. This is the documented APIEase storefront route, but it is not a guarantee that arbitrary browser requests to external services will avoid CORS restrictions. Browser-origin and CORS behavior still depends on the route being called and the response headers returned by that service.
 
 ## How it works
-- Your theme calls the APIEase app proxy path (for example `/apps/apiease/integration/caller/call`) and includes the request handle as the `requestId` value for the request to run.
+- Your widget calls `apiease.runRequest` with the saved request handle, or your theme calls `/apps/apiease/integration/caller/call` directly with the handle as `requestId`.
 - Shopify forwards the call through the app proxy. If the customer is logged in, Shopify passes the customer id to APIEase.
 - APIEase executes the request on the server, injects any sensitive parameters you saved in the admin, and returns the request's final response to the storefront.
 
@@ -3669,7 +3858,32 @@ The same-origin app-proxy path lets theme code avoid a direct browser call to AP
 4. If this exact request should be called directly from your storefront through Shopify's app proxy, add the `Storefront App Proxy` trigger.
 5. Click **Save** at the top of the screen.
 
-## Call from your theme
+## Call from a storefront widget with runRequest
+
+APIEase loads `apiease.runRequest` before the widget's inline and external JavaScript in App Block and App Embed placements:
+
+```js
+apiease.runRequest('status-message', {
+  liquidParamsEmbedded: {sourcePage: 'homepage'},
+})
+  .then(function (response) {
+    if (response.status >= 200 && response.status < 300) {
+      console.log(response.data);
+    } else {
+      console.error(response.errorMessage || 'Request returned ' + response.status);
+    }
+  })
+  .catch(function (error) {
+    console.error(error.message);
+  });
+```
+
+Omit the second argument or pass `{}` when no runtime parameters are needed. Each call returns a Promise with `status`, `data`, and `errorMessage`; request failures can resolve with a failing status, so check `status`. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for complete setup and error handling.
+
+Use the classic fetch method below in theme code that does not load an APIEase widget. Both methods use the same [embedded parameter groups](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview); `runRequest` accepts group objects directly.
+
+## Classic fetch call from your theme
+
 Use the copied snippet as-is to verify the integration, then extend it with any [dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) you need for runtime data.
 
 ```html
@@ -3686,8 +3900,8 @@ Use the copied snippet as-is to verify the integration, then extend it with any 
 ```
 
 - `requestId` is an APIEase runtime query parameter that tells APIEase which request to run. Use the request handle as this value for new storefront code.
-- Add `pathParamsEmbedded`, `queryParamsEmbedded`, `headersEmbedded`, `bodyEmbedded`, `flowParamsEmbedded`, or `liquidParamsEmbedded` as needed to pass dynamic embedded parameters from the storefront.
-- For Liquid requests, `liquidParamsEmbedded` passes a JSON object of runtime values. Inside the Liquid request, read those values from `apiEaseParameters.liquidParams.<parameterName>`.
+- Add `pathParamsEmbedded`, `queryParamsEmbedded`, `headersEmbedded`, `bodyEmbedded`, `flowParamsEmbedded`, `liquidParamsEmbedded`, or supported `systemParamsEmbedded` values as needed. For this URL-based call, JSON-stringify each group before adding it to `URLSearchParams`.
+- For Liquid requests, `liquidParamsEmbedded` supplies parameter values for that execution. You do not need to declare those names on the saved request first. See [Dynamic embedded Liquid parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) for parameter placeholders and examples.
 - Keep confidential values stored in the APIEase request configuration; do not place secrets in storefront code.
 
 Do not add a Storefront App Proxy trigger to helper requests that are only invoked by another APIEase request or by a Liquid `call` tag.
@@ -3698,7 +3912,7 @@ If the customer is logged in when the app proxy runs, Shopify includes their cus
 - Require a logged-in customer: add a system parameter named `validateCustomer` with value `true`.
 - Restrict to selected customers: add one system parameter named `customerId` for each allowed Shopify customer ID.
 
-For detailed setup and screenshots, see [Customer authenticated requests](https://docs.apiease.com/docs/requests/customer-authenticated-requests). If validation fails, APIEase blocks the call and no response is returned to the storefront.
+For detailed setup and screenshots, see [Customer authenticated requests](https://docs.apiease.com/docs/requests/customer-authenticated-requests). If customer validation fails, APIEase blocks execution. With `runRequest`, inspect the returned `status` and `errorMessage` to handle the denial.
 
 SOURCE
 https://docs.apiease.com/docs/requests/triggers/widget-calls
@@ -3709,26 +3923,16 @@ Widget Request Calls
 CONTENT
 # Widget Request Calls
 
-Widgets are reusable storefront components managed inside APIEase. They can render UI and call requests. If you have not used widgets before, start with [Widgets overview](https://docs.apiease.com/docs/widgets/widgets-overview).
+Both [Storefront and Admin widgets](https://docs.apiease.com/docs/widgets/widgets-overview) can call saved APIEase requests. The widget type determines the entry point and trigger requirements.
 
-To call a request from a widget, use JavaScript to send a [storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) through Shopify's app proxy. Add the **Storefront App Proxy** trigger to the directly called request and save it.
+| Widget type | Request execution path | Trigger requirement |
+| --- | --- | --- |
+| **Storefront** | Widget JavaScript calls `apiease.runRequest` through Shopify's app proxy; classic fetch calls remain supported. | Add **Storefront App Proxy** to the directly called request. |
+| **Admin** | A widget button calls `apiease.runRequest` in the authenticated Shopify admin interface. | A Storefront App Proxy trigger is not required. |
 
-## How it works
-- The widget's JavaScript runs in the browser.
-- The JavaScript calls the request through Shopify's app proxy.
-- The request executes on the server and returns a response.
+Both widget types pass runtime values in the same embedded parameter groups, such as `{liquidParamsEmbedded: {reference: 'example'}}`. The Admin widget's `inputs` object only remembers editable form values; it is not part of the request calling format. Follow [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for the complete examples, parameter formats, response handling, and bulk selections.
 
-To configure the widget-side request call, see [Using Requests in Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets).
-
-A widget is the reusable Liquid, CSS, and JavaScript component. The request remains a separate server-side resource. Choose a [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block) to place the widget on a specific page or section, or a [Widget App Embed](https://docs.apiease.com/docs/widgets/widget-app-embed) for a widget that should load across the storefront.
-
-## Passing values to Liquid requests
-Widget JavaScript uses the same APIEase integration endpoint as storefront calls. For Liquid requests, set `requestId` to the request handle and pass per-call values with `liquidParamsEmbedded`.
-
-`liquidParamsEmbedded` should contain a JSON object string. Inside the Liquid request, read those values from `apiEaseParameters.liquidParams.<parameterName>`.
-
-## Security warning
-Widgets run in the browser and are inspectable. Sensitive credentials must not be placed in widgets. Configure credentials inside the APIEase request where they are stored securely. Treat all widget inputs as untrusted.
+For the storefront route and customer access controls, see [Storefront calls](https://docs.apiease.com/docs/requests/triggers/storefont-calls). For widget placement, use [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets) or [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets).
 
 SOURCE
 https://docs.apiease.com/docs/requests/triggers/calling-requests-remotely
@@ -5020,38 +5224,214 @@ SOURCE
 https://docs.apiease.com/docs/widgets/widgets-overview
 
 TITLE
-Widgets overview
+Widgets Overview
 
 CONTENT
-# Widgets overview
+# Widgets Overview
 
-APIEase widgets are reusable storefront UI components that you build and manage in APIEase, then render in your Shopify theme through the APIEase Widget App Block or Widget App Embed. A widget can output Liquid (markup) and optionally run JavaScript, which makes it a good fit for UI that needs to stay flexible but still integrate with your backend logic.
+APIEase widgets are reusable UI components that you build and manage in **Resources > Widgets**. They connect interfaces to saved APIEase requests while keeping credentials and integration logic in the request.
 
-Add a description to explain what the widget renders, where it is intended to be
-used, and which requests or variables it relies on. The description travels with
-the widget through the public API, CLI, and project review, but it is not rendered
-on the storefront.
+## Choose a widget type
 
-## Why widgets are useful
+| Widget type | Content | Where it appears |
+| --- | --- | --- |
+| **Storefront** | Liquid markup and optional JavaScript | Your Shopify theme, through a Widget App Block or Widget App Embed |
+| **Admin** | Variables and Render (JSX) using supported Shopify components | Shopify admin detail-page blocks, detail-page action dialogs, or bulk-selection action dialogs |
 
-- **UI + secure API requests, together:** Widgets help you connect storefront UI components to secure API requests powered by APIEase, without moving secrets or request logic into the theme.
-- **Rich UI with Liquid + JavaScript:** Liquid plus inline JavaScript and external JavaScript libraries lets you build interactive, dynamic widgets while still relying on APIEase for secure request execution.
-- **Easy placement anywhere:** Widget App Extensions make it straightforward to add widgets to a specific page or template, or run selected widgets across the storefront.
+Use [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets) for customer-facing content and site-wide storefront behavior. Use [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets) for information and tools alongside the records you manage in Shopify admin.
 
-## Learn more
+## Shared concepts
 
-Learn more about the [Widgets page](https://docs.apiease.com/docs/widgets/widgets-page) to manage and organize your widgets, the [Widget edit page](https://docs.apiease.com/docs/widgets/widget-edit-page) to configure a widget's Liquid, JavaScript, and handle, and [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions) to choose between placement-specific and global widget rendering.
+Every widget has a name, handle, description, and widget type. The name identifies it to people; the handle is its stable integration identifier. The description explains its purpose and dependencies without appearing as rendered content.
+
+A widget provides the interface. A saved request performs the server-side work. Both widget types can call requests, with different calling methods and input formats. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets).
+
+## Find the right guide
+
+| Task | Guide |
+| --- | --- |
+| List, create, duplicate, or delete widgets | [Widgets Page](https://docs.apiease.com/docs/widgets/widgets-page) |
+| Set shared fields, switch types, save, or discard | [Widgets Edit Page](https://docs.apiease.com/docs/widgets/widget-edit-page) |
+| Author Liquid and JavaScript | [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets) |
+| Author Variables and Shopify component JSX | [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring) |
+| Call requests, pass parameters, and display responses | [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) |
+| Add storefront widgets through an App Block or App Embed | [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets) |
+| Place admin blocks and actions or manage assignments | [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets) |
+
+SOURCE
+https://docs.apiease.com/docs/widgets/storefront-widgets
+
+TITLE
+Storefront Widgets
+
+CONTENT
+# Storefront Widgets
+
+Storefront widgets are reusable components for your Shopify theme. Use them for page content, interactive tools backed by APIEase requests, or site-wide features such as floating widgets, popups, and banners.
+
+Choose **Storefront** as the **Widget type** in the [Widgets Edit Page](https://docs.apiease.com/docs/widgets/widget-edit-page). For tools used by staff inside Shopify admin, see [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets).
+
+## How storefront widgets render
+
+A widget's **Liquid** template provides its markup. Its optional **JavaScript** runs after the widget's HTML is inserted into the page. You can also configure external JavaScript URLs for libraries the widget needs.
+
+The widget is saved in APIEase and referenced by its handle in the theme. Theme placement and widget content are configured separately: edit the content in APIEase, and choose its location in Shopify's theme editor.
+
+See [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets) for the authoring fields and a simple example.
+
+## Connect to requests
+
+Widget JavaScript can call saved APIEase requests through Shopify's app proxy. The request executes on the server and returns data that the widget can use in its interface.
+
+Keep credentials and integration logic in the saved request. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for the Storefront App Proxy trigger, JavaScript call, embedded parameters, and responses.
+
+## Choose App Block or App Embed
+
+| Extension | Placement | Typical use |
+| --- | --- | --- |
+| **Widget App Block** | A specific theme section, page, or template | Ordinary page content or a tool that belongs in a particular part of a page |
+| **Widget App Embed** | Every storefront page while enabled | Background behavior, tracking, floating widgets, popups, or banners designed for site-wide use |
+
+The App Embed is optional. Globally registered widgets can render Liquid and run JavaScript on every storefront page. Use an App Block for ordinary section content; add it to **Global widget handles** only when that global placement is intentional.
+
+## Before you start
+
+- Create and save a widget with **Widget type** set to **Storefront**. See [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets).
+- Copy its handle from the widget editor.
+- Choose the theme and, for an App Block, the page or template where it should appear.
+
+## Widget App Block
+
+### Add the widget to your theme
+
+1. Open Shopify admin and go to **Online Store > Themes**.
+2. Select **Customize** on the theme you want to update.
+3. Navigate to the page or template where the widget should appear.
+4. Add the **APIEase Widget App Block** to the section.
+5. Paste the saved widget's handle into **Widget handle**.
+6. Save the theme changes.
+
+### Update or move a block {#update-or-move-a-widget}
+
+Edit and save the widget's content in APIEase, then reload the storefront page to see the result. If you change the widget handle, update the block's **Widget handle** setting to match.
+
+To move the widget, remove the block from its current section and add it to the new location with the same handle.
+
+## Widget App Embed
+
+### Register global widgets
+
+1. Open Shopify admin and go to **Online Store > Themes**.
+2. Select **Customize** on the theme you want to update.
+3. Open **App embeds**.
+4. Enable **APIEase Widget App Embed**.
+5. Add one or more saved widget handles to **Global widget handles**.
+6. Save the theme changes.
+
+Separate multiple handles with new lines or commas. Each registered widget loads on every storefront page while the embed is enabled.
+
+### Update or remove global widgets
+
+If a widget handle changes, update **Global widget handles** to match. Remove a handle to stop loading that widget globally, or disable the App Embed to stop loading all registered global widgets. Save the theme changes.
+
+If visual content belongs on a specific page or in a section, remove it from the global list and place it with an App Block.
+
+## Troubleshooting
+
+| What you see | What to check |
+| --- | --- |
+| "Widget handle not configured" in an App Block | Enter the handle in **Widget handle** and save the theme. |
+| A widget does not render | Check the handle matches exactly, the widget is saved in APIEase, and its type is **Storefront**. |
+| A global widget does not run | Check that the App Embed is enabled, the handle is in **Global widget handles**, and theme changes are saved. |
+| A visual widget appears on unintended pages | Remove it from **Global widget handles** and use an App Block in the intended section or template. |
+| Markup renders but JavaScript does not run | Review the widget's JavaScript fields and **Disable JavaScript** setting in [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets). |
+
+SOURCE
+https://docs.apiease.com/docs/widgets/admin-widgets
+
+TITLE
+Admin Widgets
+
+CONTENT
+# Admin Widgets
+
+Admin widgets put information, editable inputs, and buttons that run APIEase requests inside Shopify admin. Use them for tasks such as looking up an order in another system, checking product information, or passing selected records to a saved request.
+
+Create and manage them in **Resources > Widgets**. Choose **Admin** as the **Widget type**, author the content with Shopify components, and choose where it appears. For widgets in a customer-facing theme, use [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets).
+
+## Choose a surface and location
+
+**Surface** determines how you open the widget. **Location** selects the Shopify resource page where it appears.
+
+| Surface | How to open it | Supported locations |
+| --- | --- | --- |
+| **Block** | Add and pin **APIEase Admin Widget** under **App blocks** on a detail page. | Order, Product, Product variant, Customer, Collection, Draft order, Abandoned checkout, Gift card, Catalog, Company, Company location details |
+| **Detail-page action** | Open **APIEase Admin Widget** from **More actions** on a detail page. | Order, Product, Product variant, Customer, Collection, Draft order, Abandoned checkout, Gift card, Catalog, Company, Discount details |
+| **Bulk-selection action** | Select records on a list page, then open **APIEase Admin Widget** from the selection's **More actions** menu. | Orders, Products, Customers, Draft orders, Discounts |
+
+Available resource pages depend on the shop's Shopify features. A bulk-selection action requires a selection; it does not run against the entire list automatically. Opening a widget or action does not run a request. A request runs when you click its button.
+
+## Place a saved admin widget
+
+First, create and save content using [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring). Choose a **Surface** and **Location** in its editor, or leave it available through the manual picker as described below.
+
+### Add a detail-page block
+
+1. Open a resource at the saved location in Shopify admin, such as an order for **Block > Order details**.
+2. Under **App blocks**, add **APIEase Admin Widget**.
+3. Pin it using Shopify's controls.
+
+The assigned widget appears directly. If the location has no assignment, select an eligible widget from the **Widget** dropdown.
+
+### Open an action
+
+For a **Detail-page action**, open **APIEase Admin Widget** from **More actions** on the selected resource's detail page.
+
+For a **Bulk-selection action**, select records on the chosen list page and open **APIEase Admin Widget** from the selection's **More actions** menu.
+
+Use **Close** to dismiss the dialog. After editing and saving content or an assignment, reload the Shopify page or reopen the action to load the changes.
+
+## Automatic display and the manual picker
+
+When you save a specific surface and location, that widget displays automatically there. The **Widget** dropdown is hidden at an assigned location.
+
+Each shop can assign one Admin widget to each surface and location. Each widget can have one assignment. For example, **Block > Order details** and **Detail-page action > Order details** can display different widgets. An assignment applies across that resource type in the shop; the widget receives the current record or selection each time it opens.
+
+Choose the **Manual picker** option under **Surface** to leave the widget unassigned and make it available across all supported surfaces. At a location without an assignment:
+
+- The **Widget** dropdown lists unassigned Admin widgets and initially selects the first one.
+- Widgets assigned to other locations do not appear in the dropdown.
+- If there are no eligible widgets, the extension explains how to configure one.
+
+To free a location, change its widget to the manual picker, assign it elsewhere, delete it, or save it as **Storefront**. A conflicting assignment cannot be saved over another widget. Duplicated widgets retain their location selection, so choose an available location or the manual picker before saving the duplicate. Imports follow the same assignment rules.
+
+Changing an assignment takes effect when the extension next opens; you do not need to add or pin an existing block again. You still need to add and pin the block through Shopify when using a block location for the first time.
+
+## Troubleshooting
+
+| What you see | What to check |
+| --- | --- |
+| The block is not visible. | Confirm you are on a supported detail page, then add and pin **APIEase Admin Widget** through Shopify's **App blocks** controls. Saving a widget alone does not add the block. |
+| A bulk action is not available. | Select records on a supported list page and use the selection's **More actions** menu. |
+| A widget is missing from the picker. | Confirm it is saved as **Admin** with the manual picker selected. Widgets assigned elsewhere are excluded. |
+| A location is already in use. | Edit the widget using that location to release it, or choose another surface/location or the manual picker. |
+| You see old content or a button is no longer available. | Save in APIEase, then reload the Shopify page or reopen the action. |
+| Content cannot be saved or rendered. | Check the error and the supported expressions and components in [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring). Keep one `s-admin-block` root. |
+
+For request errors, responses, and input limits, see [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets).
+
+Keep blocks compact. Shopify collapses content taller than 300 pixels behind **Show more**. See Shopify's [Admin block limitations](https://shopify.dev/docs/api/admin-extensions/2026-07/web-components/settings-and-templates/admin-block#limitations).
 
 SOURCE
 https://docs.apiease.com/docs/widgets/widgets-page
 
 TITLE
-Widgets page
+Widgets Page
 
 CONTENT
-# Widgets page
+# Widgets Page
 
-The Widgets page is where you manage reusable storefront widgets. Each widget has a handle, Liquid template, and optional JavaScript that can be rendered in a theme app block.
+Open **Resources > Widgets** to manage reusable Storefront and Admin widgets. Each widget has a name and handle. Its **Widget type** in the editor determines whether it renders in a Shopify theme or inside Shopify admin.
 
 ## What you can do
 
@@ -5059,209 +5439,326 @@ The Widgets page is where you manage reusable storefront widgets. Each widget ha
 - See JavaScript status (None, Inline, External (#), or Disabled)
 - Add a new widget
 - Edit widgets
-- Duplicate or delete widgets and save or discard staged changes
+- Duplicate widgets into a new editable draft
+- Delete widgets after confirmation
 
 ## Widget list table
 
-The table shows each widget with the name, handle, JavaScript status, and actions for edit, duplicate, and delete. Use it to confirm which widgets have JavaScript enabled before you place them in a theme.
+The table shows each widget with the name, handle, JavaScript status, and actions for edit, duplicate, and delete. JavaScript status describes the storefront JavaScript fields; it does not indicate whether an Admin widget has interactive content. Open the editor to check the widget type and Admin location.
 
-When you duplicate or delete a widget, the change is staged in the table:
+## Duplicate a widget
 
-- Staged duplicates appear as new rows labeled **Staged duplicate**.
-- Deletes dim the row and show **Will be deleted**.
-- Actions for staged rows are disabled until you save or discard.
+Select **Duplicate** to open a new draft in the widget editor. Review the copied content, name, and handle, then save the new widget.
 
-## Staged changes and save bar
+When duplicating an assigned Admin widget, its location selection is retained. Choose an available surface and location, or the manual picker, before saving the duplicate.
 
-Duplicate and delete actions do not apply immediately. They are staged and collected until you choose what to do:
+## Delete a widget
 
-- **Save** applies all staged duplicates and deletions.
-- **Discard** cancels staged changes and returns to the last saved list.
+Select **Delete** and confirm the widget in the dialog. Confirmation submits the deletion; there is no separate list-save step. Deleting an assigned Admin widget releases its location. Update any theme settings or integrations that reference a deleted widget.
+
+If the widget changed since the list loaded, reload the list and review it before trying again.
 
 ## Create a widget
 
-Select **Add Widget** (the plus button) to open the widget editor. This is where you define the Liquid template, optional JavaScript, and handle you will reference in your theme.
+Select **Add Widget** (the plus button) to open the [Widgets Edit Page](https://docs.apiease.com/docs/widgets/widget-edit-page). Choose **Storefront** for Liquid and JavaScript in a theme, or **Admin** for Shopify admin components and request buttons. Continue with [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets) or [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring) for the content fields.
 
 SOURCE
 https://docs.apiease.com/docs/widgets/widget-edit-page
 
 TITLE
-Widget edit page
+Widgets Edit Page
 
 CONTENT
-# Widget edit page
+# Widgets Edit Page
 
-The widget editor is where you define how a widget renders and behaves. Use it to set the widget name, handle, Liquid template, and optional JavaScript.
+Open a widget from the [Widgets Page](https://docs.apiease.com/docs/widgets/widgets-page), or select **Add Widget** to create one. The editor has shared identity fields and content fields determined by **Widget type**.
 
-## Widget fields
+## Shared fields
 
-### Widget name
+### Name
 
-The display name used in the Widgets list. When you create a new widget, the handle is auto generated from the name until you manually edit the handle.
+The display name used in the Widgets list and Admin widget picker. Choose a name that describes what the widget does.
 
-### Widget handle
+### Handle
 
-The identifier used by the storefront block to load the widget. Keep this stable if the widget is already used in a theme, and update the theme block if you change it.
+The stable identifier used to reference the widget in integrations. Storefront blocks and embeds also use it to load the widget. When creating a widget, leave **Handle** blank to generate it from the name; a number is added if needed.
 
-### Liquid template
+If you change an existing handle, update theme settings and integrations that reference the old value. See [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
 
-The Liquid markup that renders inside the widget container. Use it to output HTML and Liquid variables needed by the storefront.
+### Description
 
-### External JavaScript URLs
+Explain the widget's purpose, intended location, and request dependencies. The description travels with the widget through the public API, CLI, and project review, but does not appear as rendered widget content.
 
-One URL per line. APIEase loads these scripts when the widget renders.
+### Widget type
 
-### JavaScript
+Choose **Storefront** for a Shopify theme or **Admin** for Shopify admin. The editor shows the content fields for that type:
 
-Inline JavaScript that runs after the widget HTML is inserted on the page. Use it for widget specific behavior.
+- [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets) covers Liquid, inline JavaScript, external scripts, and disabling JavaScript.
+- [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring) covers surface and location controls, Variables, Render JSX, and supported Shopify components.
 
-### Disable JavaScript
+Switching types preserves the other type's authored fields. Saving as **Storefront** releases an Admin location assignment; saving as **Admin** checks that the selected location is available.
 
-When checked, the widget renders its Liquid template but does not load any JavaScript from the inline or external fields.
+## Save and discard
 
-## Save and delete
+The save bar appears when you make changes. **Save** validates and applies the edits. Resolve any field errors before saving again. **Discard** returns an existing widget to its last saved version.
 
-- The save bar appears when you make changes.
-- **Save** applies your edits.
-- **Discard** reverts to the last saved version.
-- Delete widgets from the Widgets page (deletions are staged and saved there).
+After saving, reload the storefront page or Shopify admin page, or reopen the admin action, to see the updated widget.
+
+To duplicate or delete a widget, return to the [Widgets Page](https://docs.apiease.com/docs/widgets/widgets-page).
 
 ## AI widget builder
 
-Use the assistant panel to generate or refine a widget draft. When you accept a draft, the editor updates the Liquid and JavaScript fields so you can review and save.
+Use the assistant panel to generate or refine a widget draft. Review the widget type, content, request handles, and any Admin location assignment before saving.
 
 SOURCE
-https://docs.apiease.com/docs/widgets/widget-app-extensions
+https://docs.apiease.com/docs/widgets/edit-storefront-widgets
 
 TITLE
-Widget App Extensions
+Edit Storefront Widgets
 
 CONTENT
-# Widget App Extensions
+# Edit Storefront Widgets
 
-Widgets can render in your Shopify storefront through the APIEase Widget App Block or the APIEase Widget App Embed.
+Set **Widget type** to **Storefront** in the widget editor. See [Widgets Edit Page](https://docs.apiease.com/docs/widgets/widget-edit-page) for shared fields and save/discard controls, or [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets) for how storefront rendering works.
 
-Use the App Block when a widget belongs in a specific theme section, page, or template. Use the App Embed when a widget should load across the storefront.
+## Liquid
 
-## Before you start
+The **Liquid** field contains the markup rendered inside the widget container. Use it for HTML and Liquid expressions needed by the storefront. This field is required; even a JavaScript-focused widget needs markup such as `<div></div>`.
 
-- Create and save a widget in APIEase.
-- Copy the widget handle from the widget editor.
+For a simple content widget, enter:
 
-## Choosing between App Block and App Embed
+```liquid
+<div class="apiease-welcome">
+  <h2>Welcome to our store</h2>
+  <p>Explore our latest products.</p>
+</div>
+```
 
-Use the **Widget App Block** for the normal placement-specific path. Choose it when a widget belongs in one theme section, page, or template.
+Save the widget, copy its handle, and follow [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets) to place it in the theme. No JavaScript is needed for this example.
 
-Use the **Widget App Embed** only for site-wide widgets that should load on every storefront page. Good fits include non-visual background widgets, tracking, floating widgets, popups, and banners that position themselves.
+## JavaScript
 
-If a widget is ordinary page content, use the Widget App Block. Do not add ordinary section or content widgets to **Global widget handles** unless you intentionally want them to load across the entire storefront.
+Inline JavaScript runs after the widget's HTML is inserted on the page. Use it for widget interactions and response handling. Keep the code appropriate for the placement: an App Embed loads the registered widget across the storefront.
 
-## Next steps
+Call saved requests with `apiease.runRequest('request-handle', {liquidParamsEmbedded: {reference: 'example'}})`. APIEase loads this helper before your widget's inline and external scripts in both App Block and App Embed placements. It returns a Promise containing the request's status, data, and error message. Pass values from your own JavaScript variables or form elements; the Admin widget's `inputs` form state is not required or supplied on the storefront.
 
-- Add a widget to a specific page or template with the [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block).
-- Run selected widgets globally with the [Widget App Embed](https://docs.apiease.com/docs/widgets/widget-app-embed).
+See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for setup, embedded parameters, response handling, and the classic fetch alternative. The directly called request needs a **Storefront App Proxy** trigger.
+
+## External JavaScript URLs
+
+Enter one URL per line for external scripts the widget needs. APIEase loads these scripts when the widget renders. Review which libraries are needed for each widget, especially when it will load globally.
+
+## Disable JavaScript
+
+When selected, the widget still renders its Liquid template but does not load either its inline JavaScript or its external JavaScript URLs.
+
+The Widgets list reports the storefront JavaScript status as **None**, **Inline**, **External (#)**, or **Disabled**. Use the editor to review the corresponding fields.
+
+## Review the result
+
+Save changes and reload a storefront page where the widget is placed. Confirm the markup appears, interactions work, and the widget belongs on that page. If it appears on unintended pages, review its App Embed registration in [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets).
+
+Keep API keys, access tokens, and passwords in saved APIEase requests. Widget content and JavaScript are delivered to the browser and can be inspected.
 
 SOURCE
-https://docs.apiease.com/docs/widgets/widget-app-block
+https://docs.apiease.com/docs/widgets/admin-widget-authoring
 
 TITLE
-Widget App Block
+Edit Admin Widgets
 
 CONTENT
-# Widget App Block
+# Edit Admin Widgets
 
-The APIEase Widget App Block renders a widget in a specific Shopify theme section, page, or template. This is the normal path for page content widgets and other widgets that need a specific placement in the storefront.
+Set **Widget type** to **Admin** in the widget editor. See [Widgets Edit Page](https://docs.apiease.com/docs/widgets/widget-edit-page) for name, handle, description, and save/discard controls. [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets) explains supported locations and how to open the saved widget in Shopify.
 
-## Before you start
+## Surface and location
 
-- Create and save a widget in APIEase.
-- Copy the widget handle from the widget editor.
+Choose **Block**, **Detail-page action**, or **Bulk-selection action**, then a **Location**. Choose the **Manual picker** option to make the widget available at unassigned locations. The full location list and assignment rules are in [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets).
 
-## Add the widget to your theme
+## Add content and try the cat example
 
-1. Open Shopify admin and go to **Online Store** -> **Themes**.
-2. Select **Customize** on the theme you want to update.
-3. Navigate to the page or template where the widget should appear.
-4. Add the **APIEase Widget App Block** block to the section.
-5. Paste the widget handle into the **Widget handle** setting.
-6. Save the theme changes.
+1. Click **Add content** to create editable **Variables** and **Render (JSX)** fields.
+2. Click **Replace with cat example** for a working starting point. This replaces both content fields in the draft and uses the built-in Cat API sample; no request setup or handle replacement is needed.
+3. Choose a surface and location, then **Save**.
+4. Follow [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets) to add the block or open the action.
+5. Click **Load cat** to display the returned image, then **Load another cat** to make another request. The button shows loading progress; failures or responses without an image show a message.
 
-## Update or move a widget
+Use **Replace with cat example** only when you want to replace the current draft. Save to apply the replacement, or discard the draft to retain the previous saved content.
 
-- If you change the widget handle, update the block setting to match.
-- To move the widget, remove the block from the current section and add it to the new location.
+## Variables and Render
 
-## Troubleshooting
+**Variables** accepts named `const` declarations. Values are recalculated from the current form state and request result when the widget renders.
 
-- If the block shows "Widget handle not configured", confirm the handle value is set and saved.
-- If the widget does not render, confirm the handle matches exactly and the widget is saved in APIEase.
+**Render (JSX)** accepts one `s-admin-block` root containing supported Shopify components. Keep that root even for action widgets: APIEase displays its heading and children in an action dialog and supplies **Close** automatically.
 
-## Related pages
+The editor supports a limited set of JavaScript expressions. It does not support imports, React hooks, loops, assignments, custom functions, arbitrary function calls, direct `fetch`, browser DOM access, HTML elements, or CSS. Put integration work in saved APIEase requests and call them from buttons.
 
-- Compare the App Block with the App Embed in [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
-- Use the [Widget App Embed](https://docs.apiease.com/docs/widgets/widget-app-embed) for widgets that should run across the storefront.
+Supported expressions include literals, arrays, named objects, property reads, optional chaining, template strings, arithmetic, comparisons, logical operators, ternaries, and `JSON.stringify(value, null, 2)`. Ternaries can choose which JSX to display. Computed property reads need a literal key or index, such as `response[0]`.
 
-SOURCE
-https://docs.apiease.com/docs/widgets/widget-app-embed
+Variable and input names must start with a letter and contain only letters, digits, or underscores, up to 64 characters. The complete UI definition is limited to 65,536 characters; very large or deeply nested expressions can also fail validation.
 
-TITLE
-Widget App Embed
+## Values and helpers
 
-CONTENT
-# Widget App Embed
+| Value or helper | Use |
+| --- | --- |
+| `shopify.data.selected` | Current Shopify selection. Read a selected resource ID with `shopify.data.selected?.[0]?.id`. |
+| `shopify.extension.target` | Exact current Shopify location, such as `admin.order-details.block.render`. Use it when content needs to distinguish locations. |
+| `apiease.selectedResourceIds` | Array of all selected resource IDs in Shopify order, or an empty array when nothing is selected. |
+| `inputs` | Current Admin widget form values. Read a field with `inputs.reference` and supply an initial value with `inputs.reference ?? ""`. |
+| `apiease.setInput("reference", value)` | Remember a form value and update the widget display from an `onInput` or `onChange` handler. |
+| `apiease.runRequest("request-handle", {liquidParamsEmbedded: {reference}})` | Run a saved request from an `onClick` handler, passing embedded parameter groups. The handle must be a literal string. |
+| `apiease.response` | Most recent request response, including APIEase's status/data wrapper. Use optional chaining before the first result arrives. |
+| `apiease.loading` | Whether a request is running. Bind it to a button's `loading` property. |
+| `apiease.error` | Current widget execution error message. APIEase also displays execution errors in a banner. |
 
-The APIEase Widget App Embed is optional. Enable it only for widgets that should run on every storefront page.
+The available Shopify context is the selection and target. It does not include complete order or product data or the full Shopify extension API. Pass an ID to a saved request when you need to retrieve additional information.
 
-When the App Embed is enabled, APIEase loads the registered widgets on every storefront page. Their Liquid can render globally, and their JavaScript can run globally.
+## Form state with inputs
 
-Globally registered widgets should be designed for site-wide use. They can be non-visual background widgets or self-positioned visual widgets, such as floating widgets, popups, or banners.
+Form state is the information a widget remembers while someone edits its fields. The `inputs` object holds those values for the currently open Admin widget. It lets a field, a preview, and a button's enabled state all use the same current value.
 
-Do not register ordinary section or content widgets globally unless you intentionally want them to load on every storefront page.
+Calling `apiease.setInput("reference", value)` updates `inputs.reference` and refreshes the widget display. This preserves the entered value when the widget updates to show loading progress or a result. Reopening the widget or choosing another widget resets its form values.
 
-## Before you start
+`inputs` is not a query parameter or a request parameter group. Updating it does not run a request, send the form values, or change a saved request. A widget that uses only fixed values or the Shopify selection does not need to use `inputs`.
 
-- Create and save a widget in APIEase.
-- Copy the widget handle from the widget editor.
+### Example: display and edit a reference
 
-## Register global widgets
+This example displays the current resource ID and an editable local reference. It does not run a request.
 
-1. Open Shopify admin and go to **Online Store** -> **Themes**.
-2. Select **Customize** on the theme you want to update.
-3. Open **App embeds**.
-4. Enable the **APIEase Widget App Embed**.
-5. Add one or more widget handles to **Global widget handles**.
-6. Save the theme changes.
+**Variables**:
 
-Use the **Global widget handles** setting to register one or more widget handles. Separate multiple handles with new lines or commas.
+```js
+const resourceId = shopify.data.selected?.[0]?.id ?? "";
+const reference = inputs.reference ?? resourceId;
+```
 
-## Troubleshooting
+**Render (JSX)**:
 
-- If a global widget does not run, confirm the App Embed is enabled and the theme changes are saved.
-- If a widget does not render, confirm the handle matches exactly and the widget is saved in APIEase.
-- If a visual widget appears on pages where it should not appear, remove it from **Global widget handles** and add it with the [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block) instead.
+```jsx
+<s-admin-block heading="Resource reference">
+  <s-stack direction="block" gap="base">
+    <s-text>Resource ID: {resourceId}</s-text>
+    <s-text-field
+      label="Reference"
+      value={reference}
+      onInput={event => apiease.setInput("reference", event.currentTarget.value)}
+    />
+    <s-text>Current reference: {reference}</s-text>
+  </s-stack>
+</s-admin-block>
+```
 
-## Related pages
+Input handlers use `event => apiease.setInput("name", expression)`. The event exposes `currentTarget.value`. Use `onChange` in the same form where supported, such as on `s-select`.
 
-- Compare the App Embed with the App Block in [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
-- Use the [Widget App Block](https://docs.apiease.com/docs/widgets/widget-app-block) for ordinary page content or section-specific widgets.
+Typing updates both the field and **Current reference** text. The example only changes the widget's display.
+
+## Send form values to a request
+
+A request call separately chooses which values to send and their parameter location. For example, a button can send the current reference as a query parameter:
+
+```jsx
+<s-button onClick={() => apiease.runRequest("lookup-reference", {queryParamsEmbedded: {reference}})}>
+  Look up
+</s-button>
+```
+
+Here, `reference` is the variable from the form example, and `queryParamsEmbedded` determines where it goes in the request. You can also pass a fixed value or a Shopify selection directly; `inputs` is optional. See [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for complete request setup, embedded parameter groups, responses, and bulk selections.
+
+## Supported components and properties
+
+Use the components and properties below in **Render (JSX)**. Other components, properties, JSX spreads, and nested `s-admin-block` elements are rejected when you save.
+
+| Component | Supported properties |
+| --- | --- |
+| `s-admin-block` | `heading` (Render root only) |
+| `s-stack` | `direction`, `gap`, `alignItems`, `justifyContent` |
+| `s-box` | `padding`, `background`, `border`, `borderRadius`, `inlineSize`, `maxInlineSize`, `maxBlockSize` |
+| `s-section` | `heading` |
+| `s-heading`, `s-paragraph`, `s-divider` | No properties |
+| `s-text` | `tone`, `type`, `color` |
+| `s-badge` | `tone` |
+| `s-banner` | `heading`, `tone` |
+| `s-text-field` | `label`, `name`, `value`, `placeholder`, `details`, `error`, `disabled`, `readOnly`, `onInput`, `onChange` |
+| `s-text-area` | Text-field properties, plus `rows` |
+| `s-select` | `label`, `name`, `value`, `details`, `error`, `disabled`, `onChange` |
+| `s-option` | `value`, `disabled` |
+| `s-button` | `variant`, `tone`, `disabled`, `loading`, `onClick` |
+| `s-image` | `src`, `alt`, `aspectRatio`, `objectFit`, `inlineSize`, `loading` |
+
+For images, use descriptive `alt` text and a compact display area. The cat example reads `apiease.response?.data?.[0]?.url` and uses `aspectRatio="16/9"` with `objectFit="contain"` to keep the whole image visible. Its surrounding `s-box` uses `inlineSize="100%"`, `maxInlineSize="320px"`, and `maxBlockSize="180px"` to limit the image area. Existing saved examples keep their source; use **Replace with cat example** and save to adopt the current example.
+
+## Existing content and validation
+
+**Save** validates the Variables and Render fields. Resolve reported syntax or component errors before saving again. After saving, reload the Shopify page or reopen the action to load the new content.
+
+Older widgets may open in a **UI definition (JSON)** editor. You can keep editing that definition or choose **Replace content** to start a new Variables/Render draft. Discard the draft to keep the previous saved content.
+
+Older message-only widgets open as equivalent editable text content. The conversion is saved only when you save the widget.
 
 SOURCE
 https://docs.apiease.com/docs/widgets/using-requests-in-widgets
 
 TITLE
-Using Requests in Widgets
+Requests In Widgets
 
 CONTENT
-# Using Requests in Widgets
+# Requests In Widgets
 
-Widgets can call APIEase requests through JavaScript. The widget's JavaScript runs in the browser, but the request runs on the server. This separation keeps integrations secure by keeping credentials and private logic off the storefront.
+Widgets provide the interface; saved APIEase requests perform server-side work. Choose the calling method that matches the widget type.
 
-For the JavaScript call below, add the **Storefront App Proxy** trigger to the directly called request and save it. The JavaScript sends a [storefront call](https://docs.apiease.com/docs/requests/triggers/storefont-calls) through Shopify's app proxy. The widget contains the storefront UI, the request performs the server-side work, and an [App Block or App Embed](https://docs.apiease.com/docs/widgets/widget-app-extensions) determines where the widget loads.
+| Widget type | How it calls a request | Per-call values |
+| --- | --- | --- |
+| **Storefront** | JavaScript calls `apiease.runRequest` through Shopify's app proxy; the directly called request needs a **Storefront App Proxy** trigger. | Embedded parameter groups, such as `liquidParamsEmbedded` |
+| **Admin** | A button calls `apiease.runRequest` inside the authenticated Shopify admin widget; no Storefront App Proxy trigger is required. | The same embedded parameter groups |
 
-## Configure a request call
-1. Get the handle for the request you want to run.
-2. In the widget edit page, the **Liquid** field is required; you can use a simple placeholder like `<div></div>`.
-3. Paste the JavaScript below into the widget's **JavaScript** field to call the APIEase integration endpoint with `fetch` and read the JSON response:
+Start with [Edit Storefront Widgets](https://docs.apiease.com/docs/widgets/edit-storefront-widgets) or [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring) to configure the interface, then use the examples below to connect it to requests.
+
+## Form values and request parameters
+
+An Admin widget can remember editable form values in `inputs` and update them with `apiease.setInput`. This controls the widget's display, including field values, previews, and conditional controls. It does not send values to a saved request. See [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring) for form state examples.
+
+`runRequest` separately specifies the request handle and the embedded parameter groups to send. Values can come from form state, Shopify's selection, a JavaScript variable, or a literal value. You do not need an `inputs` object to call a request.
+
+For example, this Admin button sends a fixed query parameter without using form state:
+
+```jsx
+<s-button onClick={() => apiease.runRequest("lookup-reference", {queryParamsEmbedded: {reference: "ABC123"}})}>
+  Look up
+</s-button>
+```
+
+## Storefront request calls
+
+1. Create and save the request you want to run, and copy its handle.
+2. Add the **Storefront App Proxy** trigger to that directly called request and save it.
+3. In the Storefront widget, keep a nonempty **Liquid** template; `<div></div>` is sufficient for trying a JavaScript call.
+4. Paste the `runRequest` example below into **JavaScript**, replacing `product-details-proxy` with your saved request handle. Ensure **Disable JavaScript** is not selected.
+
+### Call with runRequest
+
+APIEase loads `apiease.runRequest(requestHandle, parameters)` automatically before your widget's inline and external JavaScript in both App Block and App Embed placements. No extra library or script URL is needed.
+
+```js
+apiease.runRequest('product-details-proxy')
+  .then(function (response) {
+    if (response.status < 200 || response.status >= 300) {
+      console.error(response.errorMessage || 'Request returned ' + response.status);
+      return;
+    }
+    console.log(response.data);
+  })
+  .catch(function (error) {
+    console.error(error.message);
+  });
+```
+
+The first argument is the saved request handle. The optional second argument contains [embedded parameter groups](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview); omit it or pass `{}` when no runtime values are needed. The helper sends the call and parses the response for you.
+
+Save and load the widget through [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets). This example runs when the widget's JavaScript loads. Put the call in an event handler if it should run after a visitor clicks a button or submits a form.
+
+### Classic fetch call
+
+The existing app-proxy call remains supported, including in theme JavaScript that does not load an APIEase widget:
 
 ```js
 const queryParams = new URLSearchParams({
@@ -5277,8 +5774,183 @@ fetch('/apps/apiease/integration/caller/call?' + queryParams)
   });
 ```
 
-## Security warning
-Never place sensitive credentials (API keys, access tokens, passwords) in a widget. Widgets are delivered to the browser and are inspectable. Configure credentials inside the APIEase request so they are stored securely and only used on the server.
+This example logs the JSON response. Replace the logging with your widget's display or interaction logic as needed.
+
+### Pass values to a Liquid request
+
+With `runRequest`, pass an object in `liquidParamsEmbedded`. For example, with a saved Liquid request whose handle is `storefront-reference`:
+
+```js
+apiease.runRequest('storefront-reference', {
+  liquidParamsEmbedded: {reference: 'example-reference'},
+})
+  .then(function (response) { console.log(response.status, response.data); })
+  .catch(function (error) { console.error(error.message); });
+```
+
+For the classic fetch call, use the handle as `requestId` and JSON-stringify the group before putting it in the URL:
+
+```js
+const queryParams = new URLSearchParams({
+  requestId: 'storefront-reference',
+  liquidParamsEmbedded: JSON.stringify({reference: 'example-reference'}),
+});
+
+fetch('/apps/apiease/integration/caller/call?' + queryParams)
+  .then(function (response) { return response.json(); })
+  .then(function (jsonResponse) { console.log(jsonResponse); });
+```
+
+Both call methods supply `reference` as a Liquid parameter for that execution. You do not need to add a matching saved parameter. See [Dynamic embedded Liquid parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/liquid-parameters) for using parameter placeholders in the request's template.
+
+### Handle storefront results and errors
+
+`runRequest` returns a Promise for one response object:
+
+| Field | Meaning |
+| --- | --- |
+| `status` | Numeric request status. Check for a value from 200 through 299 for success. |
+| `data` | The request's returned content. |
+| `errorMessage` | Error text when supplied by the request result. |
+
+A completed request with a failing status still resolves the Promise, including a storefront access denial. Check `response.status`; a `.catch` handler alone does not handle these results. You can also use `await apiease.runRequest(...)` inside an `async` event handler.
+
+Endpoint validation or authentication failures reject with an `Error`; its `status` property contains the endpoint's HTTP status. Network failures or unreadable responses also reject, but the request may already have completed. Check the request's **Logs** before running it again. The helper does not retry automatically.
+
+Each storefront call returns its own result. Manage loading, errors, and display state in your widget JavaScript; the Admin-only `apiease.response`, `apiease.loading`, and `apiease.error` values are not provided on the storefront.
+
+### Storefront access
+
+The app proxy does not by itself require a logged-in customer. Add [customer validation](https://docs.apiease.com/docs/requests/customer-authenticated-requests) when the request should be limited to authenticated or selected customers.
+
+## Admin request calls
+
+Admin widgets run active saved requests in the current shop using a literal request handle in a button's `onClick` handler. Opening a widget or action does not run the request; clicking the button does.
+
+The examples below use the Variables/Render editor described in [Edit Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widget-authoring).
+
+### Example: send an editable reference to a request
+
+First, [create a request](https://docs.apiease.com/docs/requests/how-to-add-requests) with **Liquid** as its type and `echo-reference` as its handle. Leave its request parameters empty and save this Liquid code:
+
+```liquid
+Reference: {reference}
+```
+
+In your Admin widget, click **Add content** if needed and replace **Variables** with:
+
+```js
+const resourceId = shopify.data.selected?.[0]?.id ?? "";
+const reference = inputs.reference ?? resourceId;
+```
+
+Replace **Render (JSX)** with:
+
+```jsx
+<s-admin-block heading="Reference lookup">
+  <s-stack direction="block" gap="base">
+    <s-text>Resource ID: {resourceId}</s-text>
+    <s-text-field
+      label="Reference"
+      value={reference}
+      onInput={event => apiease.setInput("reference", event.currentTarget.value)}
+    />
+    <s-button
+      loading={apiease.loading}
+      onClick={() => apiease.runRequest("echo-reference", {liquidParamsEmbedded: {reference}})}
+    >Run request</s-button>
+    <s-text-area
+      label="Response"
+      readOnly
+      rows={6}
+      value={JSON.stringify(apiease.response, null, 2) ?? ""}
+    />
+  </s-stack>
+</s-admin-block>
+```
+
+Choose a surface and location, save, and open the widget in Shopify admin. The reference starts with the current resource ID. Edit it and click **Run request** to see the echoed value in the response.
+
+`inputs.reference` remembers the edited field value. The button sends it only when clicked, through `liquidParamsEmbedded`. The saved Liquid template uses the `{reference}` parameter placeholder and returns text in the response's `data` property.
+
+This button runs the saved request in the current shop through the authenticated Admin widget. It does not require a **Storefront App Proxy** trigger or a storefront JavaScript call.
+
+### Button handlers
+
+Button handlers must use a literal request handle and an embedded parameter groups object:
+
+```jsx
+onClick={() => apiease.runRequest("echo-reference", {liquidParamsEmbedded: {reference}})}
+```
+
+To call an Admin request without runtime parameters, pass `{}`. The built-in cat example uses `apiease.runRequest("sampleRequest1", {})`; this sample is available without creating a saved request. For your own requests, use the handle from the saved request editor.
+
+### Choose the request parameter location
+
+Use `liquidParamsEmbedded` for Liquid request parameters, such as `reference` in the example. You can supply a parameter for one execution without adding it to the saved request first.
+
+Use `queryParamsEmbedded`, `headersEmbedded`, `pathParamsEmbedded`, `bodyEmbedded`, `flowParamsEmbedded`, or `systemParamsEmbedded` for values intended for those locations. Each group is an object, and its values can include nested objects, arrays, strings, numbers, booleans, and null. See [Dynamic embedded parameters](https://docs.apiease.com/docs/requests/request-parameters/dynamic-embedded-parameters/dynamic-embedded-parameters-overview) for the shared format and override rules.
+
+### Update older widget calls
+
+Replace flat calls such as `apiease.runRequest("echo-reference", {reference})` with `apiease.runRequest("echo-reference", {liquidParamsEmbedded: {reference}})`. Choose the group that matches the receiving request's parameter location. Saved widget code is not rewritten automatically.
+
+Keep `inputs.reference` and `apiease.setInput` where they manage editable form values. The change to request arguments does not change how Admin form state works.
+
+### Example: pass the whole bulk selection
+
+Create a saved **Liquid** request with the handle `echo-selection`, no request parameters, and this code:
+
+```liquid
+{"resourceIds": {resourceIds}}
+```
+
+In the widget's **Variables**, use:
+
+```js
+const resourceIds = apiease.selectedResourceIds;
+```
+
+In **Render (JSX)**, use:
+
+```jsx
+<s-admin-block heading="Selected resources">
+  <s-stack direction="block" gap="base">
+    <s-text>Selected resources: {resourceIds.length}</s-text>
+    <s-button
+      disabled={resourceIds.length === 0}
+      loading={apiease.loading}
+      onClick={() => apiease.runRequest("echo-selection", {liquidParamsEmbedded: {resourceIds}})}
+    >Send selection</s-button>
+    <s-text-area
+      label="Response"
+      readOnly
+      rows={6}
+      value={JSON.stringify(apiease.response, null, 2) ?? ""}
+    />
+  </s-stack>
+</s-admin-block>
+```
+
+Set **Surface** to **Bulk-selection action**, choose **Products**, and save. Select products on Shopify's Products list and open **APIEase Admin Widget** from the selection's **More actions** menu. Click **Send selection** to see the selected IDs in the response.
+
+One click makes one request call with the complete array under `liquidParamsEmbedded.resourceIds`. APIEase replaces the `{resourceIds}` placeholder with the array as JSON. This example uses the Shopify selection directly, so no `inputs` form state is needed. The saved request owns any looping or work for individual records. Opening the action alone does not run the request.
+
+### Admin results and refresh behavior
+
+`apiease.response` holds the APIEase response wrapper, so inspect its `data` property for the request's returned content. Display a result as text or bind selected values to supported components. Returned HTML and JavaScript are not executed as widget content.
+
+Request buttons are disabled while another button is running in the same widget. Inputs and results are local to the open widget; reopening it or choosing another widget resets them. After editing and saving a button's request binding, reload the Shopify page or reopen the action before running it again.
+
+### Troubleshoot Admin request calls
+
+- If a saved request cannot be found, confirm the button uses its exact handle and the request is saved and active in the same shop.
+- If a button or input is no longer available, reload the Shopify page or reopen the action after saving the widget.
+- If the result cannot be confirmed, check the request's **Logs** before running it again. A network failure can happen after the request completes; these failures are not retried automatically.
+
+## Credentials and input validation
+
+Never place API keys, access tokens, passwords, or other credentials in widget content or JavaScript. Configure them inside the saved APIEase request. Treat widget inputs and submitted resource IDs as input data that the request must validate.
 
 SOURCE
 https://docs.apiease.com/docs/general/faq/faq
@@ -5317,11 +5989,11 @@ APIEase can connect to an external HTTP API when the provider exposes the requir
 
 ## What information do I need from an API provider?
 
-You need the endpoint and HTTP method, authentication instructions and issued credentials, required headers and parameters, request and response shapes, permissions, pagination, rate limits, and preferably a test environment. The provider's current documentation or support team must supply provider-specific details. See the complete [provider information checklist](https://docs.apiease.com/docs/requests/connect-external-api).
+Start with the intended operation, endpoint, authentication configuration, and any required inputs. A basic request can be proposed with clearly identified, reasonable assumptions before you have complete documentation. Response mappings, pagination, and other details become necessary when the requested behavior depends on them; creating the request does not verify that it works. Use the provider's current documentation or support team to resolve material gaps, and consult the [provider information checklist](https://docs.apiease.com/docs/requests/connect-external-api) as you build and verify the integration.
 
 ## Can APIEase obtain provider documentation or credentials for me?
 
-No. APIEase cannot retrieve missing provider documentation, issue another company's API key or access token, bypass permissions, or infer a safe write payload from incomplete requirements. Ask the provider for the missing contract or credential, then use [Connect to an external API](https://docs.apiease.com/docs/requests/connect-external-api) to map it to APIEase.
+APIEase cannot obtain another company's private documentation or credentials, bypass permissions, or infer a safe write payload from incomplete requirements. Missing documentation alone does not prevent creating a useful initial request from details already supplied. Ask the provider for specific facts that block the intended operation, and enter credentials in the secure request configuration. See [Connect to an external API](https://docs.apiease.com/docs/requests/connect-external-api).
 
 ## How do I create, find, edit, duplicate, or delete a request?
 
@@ -5500,7 +6172,11 @@ For a storefront call, add `validateCustomer=true` as a System parameter to requ
 
 ## What is the difference between a widget, an App Block, and an App Embed?
 
-A **widget** is reusable storefront Liquid, CSS, and JavaScript. An **App Block** places a widget in a specific theme section or template, while an **App Embed** loads selected widgets across the storefront. See [Widgets overview](https://docs.apiease.com/docs/widgets/widgets-overview) and [Widget App Extensions](https://docs.apiease.com/docs/widgets/widget-app-extensions).
+A **widget** is a reusable interface that you manage in APIEase. **Storefront** widgets use Liquid and JavaScript; a theme **App Block** places one in a specific section or template, while an **App Embed** loads selected widgets across the storefront. **Admin** widgets use Shopify components in admin blocks and action dialogs. See [Widgets Overview](https://docs.apiease.com/docs/widgets/widgets-overview), [Storefront Widgets](https://docs.apiease.com/docs/widgets/storefront-widgets), and [Admin Widgets](https://docs.apiease.com/docs/widgets/admin-widgets).
+
+## How do widgets call requests?
+
+Storefront widget JavaScript calls through Shopify's app proxy and needs a **Storefront App Proxy** trigger on the directly called request. Admin widget buttons call saved requests through the authenticated admin interface. Follow [Requests In Widgets](https://docs.apiease.com/docs/widgets/using-requests-in-widgets) for embedded parameters, responses, and bulk-selection examples.
 
 ## How do I send APIEase data into Shopify Flow?
 
