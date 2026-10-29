@@ -3023,6 +3023,15 @@
         }
       }
     },
+    "descriptionChange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["before", "after"],
+      "properties": {
+        "before": { "type": ["string", "null"], "maxLength": 65536 },
+        "after": { "type": ["string", "null"], "maxLength": 65536 }
+      }
+    },
     "createOperation": {
       "type": "object",
       "additionalProperties": false,
@@ -3036,6 +3045,9 @@
       "properties": {
         "operation": {
           "const": "create-if-absent"
+        },
+        "descriptionChange": {
+          "$ref": "#/$defs/descriptionChange"
         },
         "resourceType": {
           "$ref": "#/$defs/resourceType"
@@ -3067,6 +3079,9 @@
       "properties": {
         "operation": {
           "const": "update"
+        },
+        "descriptionChange": {
+          "$ref": "#/$defs/descriptionChange"
         },
         "resourceType": {
           "$ref": "#/$defs/resourceType"
@@ -3529,6 +3544,9 @@
         },
         "resultingLiveRevision": {
           "$ref": "#/$defs/nonnegativeInteger"
+        },
+        "resultingBaseline": {
+          "$ref": "#/$defs/baseline"
         },
         "resources": {
           "type": "array",

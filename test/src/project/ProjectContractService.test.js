@@ -90,6 +90,76 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateProjectApiResponse', () => {
+    it('should accept the resulting baseline returned in a committed apply receipt', async () => {
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const applyResponse = await readWorkflowResponse('apply');
+      const planResponse = await readWorkflowResponse('plan');
+      applyResponse.result.resultingBaseline = {
+        ...planResponse.result.baseline,
+        liveRevision: applyResponse.result.resultingLiveRevision,
+      };
+
+      const result = projectContractService.validateProjectApiResponse(
+        '/api/v1/projects/apply', applyResponse,
+      );
+
+      assert.deepEqual(result, { ok: true });
+    });
+
+    it('should reject a committed apply receipt with an incomplete resulting baseline', async () => {
+      const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+      const projectContractService = new ProjectContractService();
+      const applyResponse = await readWorkflowResponse('apply');
+      applyResponse.result.resultingBaseline = { liveRevision: 1 };
+
+      const result = projectContractService.validateProjectApiResponse(
+        '/api/v1/projects/apply', applyResponse,
+      );
+
+      assert.equal(result.ok, false);
+    });
+
+    for (const operationDefinition of ['createOperation', 'updateOperation']) {
+      it(`should accept description comparisons in ${operationDefinition}`, async () => {
+        const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+        const projectContractService = new ProjectContractService();
+        const planResponse = await readWorkflowResponse('plan');
+        const operation = planResponse.result.operations.find(candidate => (
+          candidate.operation === (operationDefinition === 'createOperation' ? 'create-if-absent' : 'update')
+        ));
+        operation.descriptionChange = { before: null, after: 'Reads one product page.' };
+
+        const result = projectContractService.validateProjectApiResponse(
+          '/api/v1/projects/plan', planResponse,
+        );
+
+        assert.deepEqual(result, { ok: true });
+      });
+
+      for (const descriptionChange of [
+        { before: null },
+        { before: 42, after: 'Description' },
+        { before: null, after: 'Description', extra: true },
+      ]) {
+        it(`should reject malformed description comparison ${JSON.stringify(descriptionChange)} in ${operationDefinition}`, async () => {
+          const { ProjectContractService } = await import(projectContractServiceModuleUrl);
+          const projectContractService = new ProjectContractService();
+          const planResponse = await readWorkflowResponse('plan');
+          const operation = planResponse.result.operations.find(candidate => (
+            candidate.operation === (operationDefinition === 'createOperation' ? 'create-if-absent' : 'update')
+          ));
+          operation.descriptionChange = descriptionChange;
+
+          const result = projectContractService.validateProjectApiResponse(
+            '/api/v1/projects/plan', planResponse,
+          );
+
+          assert.equal(result.ok, false);
+        });
+      }
+    }
+
     it('should accept the authoritative change-set contract version in bootstrap artifacts', async () => {
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
       const projectContractService = new ProjectContractService();
