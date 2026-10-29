@@ -45,7 +45,7 @@ apiease --version
 apiease init [project-name]
 apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease design-context [--output-dir <new-directory>] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
+apiease design-context [--inline | --output-dir <new-directory> | --resource-path <path>...] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
 apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease apply [--require-approval] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
@@ -162,42 +162,67 @@ Command-line Codex acts as the Codex Project Designer by editing canonical local
 apiease design-context
 ```
 
-The JSON result retrieves the effective protocol version, common-instruction bytes and digest, Codex execution envelope, stable Mongo baseline, canonical resource inventory and bodies, local edits, explicit deletion intent, safe protected-value selectors, and workflow guidance. The CLI verifies the retrieved protocol identity and digest; this README does not copy or pin either value.
+The default returns a compact JSON briefing with current server/local baselines,
+change counts, `readFirst` paths, and an index of verified local instruction modules.
+Read the small core and Codex envelope, then the modules applicable to the resource
+family, request type and provider involved in your task. The index states when each
+module applies. It does not infer scope from your conversation or filter resources
+based on requirements.
 
-Requirements are optional and unnecessary when the coding agent already has the task in its conversation. The bare command returns the existing instructions, server resources, baseline, local changes, and other project context. It omits `projectRequirements` from both the request and returned context instead of inventing requirements.
+The CLI refreshes these references automatically whenever you run this command.
+It checks the current authenticated server and verifies module digests before
+reusing unchanged bytes. References are isolated by server and project and stored
+beside checkout-local Git state, outside versioned source. Corrupt module bytes are
+retrieved again; unsafe cache paths or invalid responses fail. A failed or offline
+request never falls back to an old context. Canonical files, operational baselines,
+and customer guidance remain unchanged.
 
-For large contexts, export reference files and print a compact JSON briefing:
+`files.inventory` contains the complete resource inventory and dependency information;
+`files.localChanges` records local edits, deletions and protected-value selectors.
+Read relevant source files in your checkout. Retrieve current server source for an
+exact path when needed, repeating the option for additional distinct paths:
+
+```bash
+apiease design-context --resource-path resources/requests/read-product-page.json
+```
+
+The selected sources appear in `files.serverResources` and `files.context`.
+Selection changes only source delivery; whole-project validation, discovery and
+conflict checks remain intact. Every response includes fresh state. Module references
+and captured context are not an offline baseline, approval, or permission to apply.
+
+For the full JSON contract, including all current source bodies and instructions:
+
+```bash
+apiease design-context --inline
+```
+
+Scripts that consumed the former bare-command full JSON should add `--inline`.
+The compact default negotiates design-context contract version 2. Existing clients
+retain version 1 responses. Deploy the updated server before using the compact CLI;
+an older server returns an explicit version error, with `--inline` as the deliberate
+compatibility path. There is no automatic fallback.
+
+`apiease upgrade` separately maintains template-owned files. `design-context`
+maintains current server references; neither command replaces the other.
+
+Requirements already in the conversation need no CLI argument.
+
+For a standalone capture, use an existing parent and a new destination outside
+managed resources:
 
 ```bash
 apiease design-context --output-dir /tmp/apiease-context-1
 ```
 
-The parent directory must exist and the destination must be new. Relative paths
-resolve from the invocation directory. Use a location outside managed resources.
-The result includes baselines, change counts, reading guidance, and file paths
-with byte sizes and SHA-256 digests:
-
-| File | Contents |
-| --- | --- |
-| `instructions.md` | Exact verified common instructions; read before authoring. |
-| `codex-envelope.md` | Exact Codex execution instructions; read before authoring. |
-| `inventory.json` | Complete resource inventory for discovery. |
-| `server-resources.json` | Exact server source objects; inspect relevant entries. |
-| `local-changes.json` | Local edits, explicit deletions, and protected-value selectors. |
-| `context.json` | Complete original result, including bindings, limits, diagnostics, and supplied requirements. |
-
-Authentication, identity, protocol verification, and baseline conflicts are checked
-before export. Existing destinations, including symlinks, are refused with exit
-code 6. A write failure removes this invocation's incomplete bundle and reports a
-local-integrity failure. Directories and files use private local permissions.
-Canonical files and operational state are unchanged. Without `--output-dir`, the
-existing inline JSON output is unchanged.
-
-An export is a point-in-time reference, not an offline authority, approval, or
-automatically refreshed cache. Retrieve fresh context for new work. `apiease upgrade`
-separately maintains template-owned files; context export does not upgrade the
-template. This delivery mode preserves all protocol content and network retrieval;
-it reduces stdout size without claiming to reduce the instruction set.
+This explicit mode preserves the full export contract: `context.json`,
+`instructions.md`, `codex-envelope.md`, `inventory.json`, `server-resources.json`,
+and `local-changes.json`. It returns paths, byte sizes and digests. It retrieves the
+complete instruction set and source bodies, independently of the compact cache.
+Existing paths and symlinks are refused; incomplete bundles are removed on write
+failure. Relative paths resolve from the invocation directory. Files use private
+permissions. `--inline`, `--output-dir`, and compact-only `--resource-path` cannot
+be combined. A capture remains a point-in-time reference, not authority or approval.
 
 To include explicit requirements, supply the supported structure:
 

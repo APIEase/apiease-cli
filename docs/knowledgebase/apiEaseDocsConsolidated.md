@@ -643,7 +643,7 @@ Use the identifier field that belongs to the resource's public JSON shape:
 | Request | `handle` | `name` | Use the handle as the request identifier in CLI and public API calls. |
 | Widget | `handle` | `name` | Use the handle as the widget identifier in CLI, public API, and theme extension settings. |
 | Variable | `handle` | `name` | Use `handle` in System Request arguments whenever possible. |
-| Function | `handle` | `name` | The saved resource has a handle; the Liquid function tag still calls Functions by `functionName` or legacy `functionId`. |
+| Function | `handle` | `name` | Pass the handle in the JSON Liquid function tag's `functionId` field. Existing immutable IDs and `functionName` calls remain supported. |
 
 APIEase responses may include both `id` and `handle`. Treat `id` as metadata returned by the server, not as a value to copy into source files.
 
@@ -829,14 +829,19 @@ Do not commit real secrets, API keys, or environment files into the repository.
 
 ## Retrieve context for project design
 
-Before designing project changes in an authenticated, initialized checkout, run `apiease design-context` without arguments. It returns the verified design instructions, server resources, baseline, and local changes without applying resource changes or rewriting canonical files. Follow the returned protocol along with the task in your conversation.
+Before designing changes in an authenticated, initialized checkout, run
+`apiease design-context`. Read its `readFirst` files, then the applicable modules
+in `files.instructionIndex`. The command refreshes verified local references and
+current project context while preserving canonical files and operational state.
 
-For large outputs, CLI versions listing `--output-dir` in `apiease --help` can
-export a new local reference directory and return a compact briefing. See
-[Save context as local reference files](https://docs.apiease.com/docs/developers/apiease-cli).
-Read the exported instructions and Codex envelope before authoring, then inspect
-the inventory, local edits, and relevant resource bodies. Search the template's
-consolidated product documentation by topic instead of loading it all at startup.
+Inspect inventory and local changes, then read relevant source files and dependencies.
+Search the template's consolidated product reference by topic instead of loading it
+all at startup. Do not duplicate protocol instructions in project guidance.
+
+Use `--inline` for full JSON or `--output-dir <new-directory>` for a standalone
+capture. See [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli)
+for source selection, cache behavior and compatibility. `apiease upgrade` maintains
+template files independently; it does not replace context refresh.
 
 Requirements are optional; do not infer them from documentation or manufacture them just to retrieve context. If explicit requirements are useful, see the supported `--project-requirements <json>` structure in [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli). Authentication, project identity, protocol verification, and baseline conflict checks remain required.
 
@@ -1458,7 +1463,49 @@ With authentication configured, run this from an initialized project checkout:
 apiease design-context
 ```
 
-The command returns the verified APIEase Project Design Protocol instructions and Codex execution envelope, server resources, server and local baselines, local edits, deletion intent, protected-value selectors, limits, and diagnostics. Context retrieval does not apply resource changes or rewrite canonical resource files. Authentication, project identity, protocol verification, and baseline conflict checks still apply. Initialize a new checkout with `apiease init` or `apiease init --from-existing-resources`; use `apiease pull` to establish or deliberately refresh its baseline.
+The default returns a compact JSON briefing with current server/local baselines,
+change counts, `readFirst` paths, and an index of verified local instruction modules.
+Read the small core and Codex envelope, then the modules applicable to the resource
+family, request type and provider involved in your task. The index states when each
+module applies. It does not infer scope from your conversation or filter resources
+based on requirements.
+
+The CLI refreshes these references automatically whenever you run this command.
+It checks the current authenticated server and verifies module digests before
+reusing unchanged bytes. References are isolated by server and project and stored
+beside checkout-local Git state, outside versioned source. Corrupt module bytes are
+retrieved again; unsafe cache paths or invalid responses fail. A failed or offline
+request never falls back to an old context. Canonical files, operational baselines,
+and customer guidance remain unchanged.
+
+`files.inventory` contains the complete resource inventory and dependency information;
+`files.localChanges` records local edits, deletions and protected-value selectors.
+Read relevant source files in your checkout. Retrieve current server source for an
+exact path when needed, repeating the option for additional distinct paths:
+
+```bash
+apiease design-context --resource-path resources/requests/read-product-page.json
+```
+
+The selected sources appear in `files.serverResources` and `files.context`.
+Selection changes only source delivery; whole-project validation, discovery and
+conflict checks remain intact. Every response includes fresh state. Module references
+and captured context are not an offline baseline, approval, or permission to apply.
+
+For the full JSON contract, including all current source bodies and instructions:
+
+```bash
+apiease design-context --inline
+```
+
+Scripts that consumed the former bare-command full JSON should add `--inline`.
+The compact default negotiates design-context contract version 2. Existing clients
+retain version 1 responses. Deploy the updated server before using the compact CLI;
+an older server returns an explicit version error, with `--inline` as the deliberate
+compatibility path. There is no automatic fallback.
+
+`apiease upgrade` separately maintains template-owned files. `design-context`
+maintains current server references; neither command replaces the other.
 
 Requirements are optional and unnecessary when the coding agent already has the task in its conversation. When omitted, `projectRequirements` is absent from the request and returned context. The command does not infer requirements from documentation or create empty requirements. Supplied requirements are validated and returned; they do not filter the resources or instruction modules.
 
@@ -1474,35 +1521,21 @@ The JSON object must contain exactly `projectName`, `customerRequirements`, and 
 
 ### Save context as local reference files
 
-If `apiease --help` lists `--output-dir`, use it to keep large contexts out of the
-terminal output:
+For a standalone capture, use an existing parent and a new destination outside
+managed resources:
 
 ```bash
 apiease design-context --output-dir /tmp/apiease-context-1
 ```
 
-The destination must be new and its parent must exist. Relative paths resolve from
-the directory where you run the command. Choose a location outside `resources/`.
-The JSON briefing contains project baselines, change counts, reading guidance, and
-file paths with byte sizes and SHA-256 digests.
-
-Read `instructions.md` and `codex-envelope.md` before authoring. Inspect
-`inventory.json` and `local-changes.json`, then read the relevant entries from
-`server-resources.json`. The complete original context remains in `context.json`,
-including limits, diagnostics, resource bindings, and requirements when supplied.
-Instruction bytes are preserved exactly; authentication, verification, and conflict
-checks still run before files are written.
-
-Existing files, directories, and symlink destinations are never overwritten.
-An existing destination or write failure returns exit code 6; incomplete files
-created by this invocation are removed on write failure. Canonical resources and
-project operational state are unchanged. Without the option, output stays inline.
-
-This export is a point-in-time reference, not an automatically refreshed cache or
-approval. Retrieve fresh context for new work. `apiease upgrade` separately updates
-template-owned files; retrieving context does not upgrade the template or edit
-your custom guidance. File delivery preserves the current instruction set and
-server retrieval while reducing terminal output.
+This explicit mode preserves the full export contract: `context.json`,
+`instructions.md`, `codex-envelope.md`, `inventory.json`, `server-resources.json`,
+and `local-changes.json`. It returns paths, byte sizes and digests. It retrieves the
+complete instruction set and source bodies, independently of the compact cache.
+Existing paths and symlinks are refused; incomplete bundles are removed on write
+failure. Relative paths resolve from the invocation directory. Files use private
+permissions. `--inline`, `--output-dir`, and compact-only `--resource-path` cannot
+be combined. A capture remains a point-in-time reference, not authority or approval.
 
 ## Upgrade a project
 
@@ -1801,16 +1834,16 @@ That is why the template is the preferred starting point even if your end goal i
 
 ## Retrieve context before project design
 
-From an authenticated, initialized project, run `apiease design-context` without arguments to retrieve the shared design instructions, server resources, baseline, and local changes. Requirements are optional and unnecessary when the coding agent already has the task in its conversation. Unsupplied requirements remain absent; do not invent them to retrieve context. Retrieval does not apply changes or rewrite canonical files.
+From an authenticated, initialized project, run `apiease design-context` without arguments for a compact briefing with the current baseline, local changes, and verified local references. Read its small core and applicable family/provider modules. The full resource inventory and dependencies remain available; request detailed sources with `--resource-path`. Requirements are optional and unnecessary when the coding agent already has the task in its conversation. Unsupplied requirements remain absent; do not invent them to retrieve context. Retrieval does not apply changes or rewrite canonical files.
 
-See [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli) for the optional requirements structure and failure behavior.
+See [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli) for optional requirements, full JSON, standalone exports, compatibility, and failure behavior.
 
-The template's agent entry point directs selective reading of product documentation.
-Use `apiease upgrade` to refresh template-owned files while preserving custom
-guidance. Context retrieval is separate: supporting CLI versions can
-[save reference files](https://docs.apiease.com/docs/developers/apiease-cli) and
-return a compact briefing without upgrading the template. Exported context is a
-point-in-time reference; retrieve it again for new work.
+The template supplies a short agent entry point and workflow navigation.
+`apiease upgrade` maintains those files. `apiease design-context` separately
+refreshes current server context and verified local authoring references. Keep
+project-specific guidance in `CUSTOM_*` files, which upgrades preserve; do not
+copy protocol text there or into the template. Retrieve context again for new
+work: cached references do not provide an offline or stale-server fallback.
 
 SOURCE
 https://docs.apiease.com/docs/requests/requests-overview
@@ -2549,7 +2582,7 @@ Important behavior:
 
 - `as <name>` is required.
 - Inline arguments are mapped to the Function's declared parameters in order.
-- Object syntax supports `functionName` or legacy `functionId`. Prefer `functionName` in new Liquid templates.
+- Object syntax accepts a stable function handle in `functionId`. Existing immutable IDs and `functionName` calls remain supported. Prefer handles for repository-managed templates.
 - Missing arguments resolve to `null`.
 - Extra positional arguments are rejected.
 
@@ -4963,7 +4996,7 @@ Each function includes these fields:
 - **Parameters**: Optional parameter definitions for the function.
 - **Liquid**: Required. The Liquid code that runs when the function is called.
 
-When you manage Functions through `apiease-cli` or the public API, include a stable `handle` in the JSON source file. The Function `name` remains the value used by the current Liquid function tag. For the repository identifier pattern, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
+When you manage Functions through `apiease-cli` or the public API, include a stable `handle` in the JSON source file. Pass that handle in the JSON Liquid function tag's `functionId` field. Existing `functionName` calls and inline calls still use the Function `name`. For the repository identifier pattern, see [Resource handles](https://docs.apiease.com/docs/developers/resource-handles).
 
 The editor supports the same save bar behavior used elsewhere in APIEase:
 
@@ -5094,7 +5127,7 @@ Example using `functionName`:
 {{ summary.message }}
 ```
 
-Use `functionName` for new Liquid templates. `functionId` remains a legacy option when you already have a server-owned function id, but do not copy server-owned ids into repository-managed examples.
+For stable references in repository-managed templates, pass the function handle in `functionId`, for example `{"functionId":"build-summary","args":{"name":"Kevin"}}`. The handle must belong to the saved function; it is separate from its display name. Existing `functionName` calls remain supported. `functionId` also accepts a legacy server-owned ID, with ID matches taking precedence; do not copy server-owned IDs into repository-managed examples.
 
 You can also pass a variable that already contains the invocation object:
 

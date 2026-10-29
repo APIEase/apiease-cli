@@ -13,6 +13,27 @@ const designContextCommandModuleUrl = pathToFileURL(
 
 describe('DesignContextCommand', () => {
   describe('run', () => {
+    it('uses compact references by default and keeps full context explicitly selectable', async () => {
+      const {DesignContextCommand} = await import(designContextCommandModuleUrl);
+      const calls = [], stdoutChunks = [];
+      const command = buildDesignContextCommand({DesignContextCommand, calls, stdoutChunks});
+      await command.run(['design-context']);
+      assert.equal(calls[1][1].referenceMode, true);
+      calls.length = 0;
+      await command.run(['design-context', '--inline']);
+      assert.equal(calls[1][1].referenceMode, undefined);
+    });
+
+    it('passes exact resource paths only in compact mode and rejects mixed delivery flags', async () => {
+      const {DesignContextCommand} = await import(designContextCommandModuleUrl);
+      const calls = [], stdoutChunks = [];
+      const command = buildDesignContextCommand({DesignContextCommand, calls, stdoutChunks});
+      assert.equal(await command.run(['design-context', '--resource-path', 'resources/requests/page.json']), 0);
+      assert.deepEqual(calls[1][1].resourcePaths, ['resources/requests/page.json']);
+      calls.length = 0;
+      assert.equal(await command.run(['design-context', '--inline', '--output-dir', 'export']), 2);
+      assert.deepEqual(calls, []);
+    });
     it('should write a context bundle relative to the invocation directory and emit references', async context => {
       const { DesignContextCommand } = await import(designContextCommandModuleUrl);
       const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-context-command-'));
@@ -103,6 +124,7 @@ describe('DesignContextCommand', () => {
       // Act
       const exitCode = await designContextCommand.run([
         'design-context',
+        '--inline',
         '--project-requirements',
         JSON.stringify(projectRequirements),
         '--base-url',

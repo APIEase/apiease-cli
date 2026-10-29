@@ -23,6 +23,21 @@ const fixtureDirectoryPath = path.join(
 );
 
 describe('ApiEaseProjectApiClient', () => {
+  describe('version 2 reference integrity', () => {
+    it('checks supplied module and envelope bytes while permitting omitted cached content', () => {
+      const client = new ApiEaseProjectApiClient();
+      const content = 'verified\n';
+      const digest = `sha256:${createHash('sha256').update(content).digest('hex')}`;
+      const entry = {content, digest, bytes: Buffer.byteLength(content)};
+      const response = {ok: true, designContextContractVersion: 2,
+        result: {protocol: {modules: [entry], envelope: {...entry}}}};
+      assert.equal(client.hasValidProjectDesignProtocolDigest('/api/v1/projects/design-context', response), true);
+      response.result.protocol.modules[0] = {digest, bytes: entry.bytes};
+      assert.equal(client.hasValidProjectDesignProtocolDigest('/api/v1/projects/design-context', response), true);
+      response.result.protocol.envelope.content += 'tampered';
+      assert.equal(client.hasValidProjectDesignProtocolDigest('/api/v1/projects/design-context', response), false);
+    });
+  });
   describe('bootstrapProject', () => {
     it('should return the Mongo-authoritative snapshot without projection polling', async () => {
       // Arrange

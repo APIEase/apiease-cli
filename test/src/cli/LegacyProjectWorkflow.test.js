@@ -29,6 +29,33 @@ const legacyMetadata = {
 
 describe('Legacy project public command workflow', () => {
   describe('design-context API boundary', () => {
+    it('refreshes compact context from the server while reusing static modules and preserving local edits', async context => {
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      const source = JSON.parse(fixture.response.result.files[1].content);
+      source.name = 'Local edit'; await writeResource(fixture, `${JSON.stringify(source, null, 2)}\n`);
+      const before = await snapshot(fixture.directory);
+      const boundary = buildDesignContextBoundary(fixture);
+      assert.equal(await boundary.command.run(['design-context'], fixture.options), 0, boundary.stderr.join(''));
+      const cold = JSON.parse(boundary.stdout.join('')).result;
+      assert.equal(cold.delivery, 'references');
+      assert.equal(cold.counts.updates, 1);
+      assert.equal(cold.cache.reusedModules, 0);
+      assert.ok(cold.cache.downloadedBytes > 0);
+      boundary.stdout.length = 0;
+      assert.equal(await boundary.command.run(['design-context', '--resource-path', 'resources/variables/api-origin.json'], fixture.options), 0);
+      const warm = JSON.parse(boundary.stdout.join('')).result;
+      assert.notEqual(warm.files.context.path, cold.files.context.path);
+      assert.equal(JSON.parse(await fs.readFile(cold.files.context.path)).canonicalBodies.length, 0);
+      assert.equal(warm.cache.downloadedBytes, 0);
+      assert.equal(warm.cache.reusedModules, 2);
+      assert.equal(boundary.requests.length, 2);
+      assert.equal(boundary.requests[1].knownModuleDigests.length, 2);
+      const saved = JSON.parse(await fs.readFile(warm.files.context.path));
+      assert.equal(saved.localEdits.updates[0].source.name, 'Local edit');
+      assert.equal(saved.canonicalBodies[0].source.name, 'API Origin');
+      assert.deepEqual(await snapshot(fixture.directory), before);
+    });
     it('should export verified context without changing resources or operational state', async context => {
       const fixture = await buildFixture(context);
       assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
@@ -73,8 +100,8 @@ describe('Legacy project public command workflow', () => {
         const before = await snapshot(fixture.directory);
         const stateBefore = await fs.readFile(path.join(fixture.directory, '.git/apiease/project-state-v1.json'), 'utf8');
         const { command, requests, stdout } = buildDesignContextBoundary(fixture);
-        const args = requirements === undefined ? ['design-context']
-          : ['design-context', '--project-requirements', JSON.stringify(requirements)];
+        const args = requirements === undefined ? ['design-context', '--inline']
+          : ['design-context', '--inline', '--project-requirements', JSON.stringify(requirements)];
 
         assert.equal(await command.run(args, fixture.options), 0);
         const result = JSON.parse(stdout.join('')).result;
@@ -457,7 +484,7 @@ function buildDesignContextResponse(snapshot, request) {
   const commonInstructions = 'Follow the Project Design Protocol.\n';
   const canonicalBodies = snapshot.files.filter(file => file.path.startsWith('resources/'))
     .map(file => ({ path: file.path, sourceDigest: file.digest, source: JSON.parse(file.content) }));
-  return {
+  const response = {
     contractVersion: 1, designContextContractVersion: 1, ok: true, outcome: 'PROJECT_DESIGN_CONTEXT_READY',
     result: {
       protocol: { protocolVersion: '1.0.0', commonInstructions, commonInstructionDigest: `sha256:${hash(commonInstructions)}`, codexEnvelope: 'Edit local canonical files.' },
@@ -469,4 +496,16 @@ function buildDesignContextResponse(snapshot, request) {
       diagnostics: [],
     },
   };
+  if (request.designContextContractVersion !== 2) return response;
+  const content = value => ({digest: `sha256:${hash(value)}`, bytes: Buffer.byteLength(value),
+    ...(request.knownModuleDigests.includes(`sha256:${hash(value)}`) ? {} : {content: value})});
+  response.designContextContractVersion = 2;
+  response.result.protocol = {protocolVersion: '1.0.0', manifestIdentity: `sha256:${hash('manifest')}`,
+    moduleSetIdentity: `sha256:${hash(commonInstructions)}`,
+    modules: [{id: 'core', required: true, when: 'Always.', ...content(commonInstructions)}],
+    envelope: content('Edit local canonical files.\n')};
+  response.result.dependencies = [];
+  response.result.dependencyDiagnostics = [];
+  response.result.canonicalBodies = canonicalBodies.filter(body => request.resourcePaths.includes(body.path));
+  return response;
 }

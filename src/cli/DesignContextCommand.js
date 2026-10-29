@@ -11,6 +11,8 @@ import {
 const JSON_FLAG = '--json';
 const PROJECT_REQUIREMENTS_OPTION = '--project-requirements';
 const OUTPUT_DIRECTORY_OPTION = '--output-dir';
+const INLINE_FLAG = '--inline';
+const RESOURCE_PATH_OPTION = '--resource-path';
 const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
   '--base-url': 'apiBaseUrl',
@@ -53,6 +55,10 @@ class DesignContextCommand {
       if (nextIndex === null) return this.buildParseFailure(parseResult.diagnosticCode);
       argumentIndex = nextIndex;
     }
+    if (parseResult.inline && parseResult.outputDirectory !== undefined
+      || parseResult.resourcePaths?.length && (parseResult.inline || parseResult.outputDirectory !== undefined)) {
+      return this.buildParseFailure();
+    }
     return parseResult;
   }
 
@@ -63,6 +69,19 @@ class DesignContextCommand {
   parseOption(commandArguments, argumentIndex, parseResult) {
     const argument = commandArguments[argumentIndex];
     if (argument === JSON_FLAG) return this.parseJsonFlag(argumentIndex, parseResult);
+    if (argument === INLINE_FLAG) {
+      if (parseResult.inline) return null;
+      parseResult.inline = true;
+      return argumentIndex;
+    }
+    if (argument === RESOURCE_PATH_OPTION) {
+      const resourcePath = commandArguments[argumentIndex + 1];
+      if (!resourcePath || !/^resources\/(functions|requests|variables|widgets)\/[a-z0-9]+(?:-[a-z0-9]+)*\.json$/u.test(resourcePath)) return null;
+      parseResult.resourcePaths ??= [];
+      if (parseResult.resourcePaths.includes(resourcePath) || parseResult.resourcePaths.length >= 1000) return null;
+      parseResult.resourcePaths.push(resourcePath);
+      return argumentIndex + 1;
+    }
     if (argument === OUTPUT_DIRECTORY_OPTION) {
       const outputDirectory = this.readOptionValue(commandArguments, argumentIndex, parseResult);
       if (outputDirectory === null) return null;
@@ -154,6 +173,8 @@ class DesignContextCommand {
       },
       ...(Object.hasOwn(parseResult, 'projectRequirements')
         ? { projectRequirements: parseResult.projectRequirements } : {}),
+      ...(!parseResult.inline && parseResult.outputDirectory === undefined
+        ? {referenceMode: true, resourcePaths: parseResult.resourcePaths ?? []} : {}),
     });
   }
 
@@ -269,6 +290,9 @@ class DesignContextCommand {
   }
 
   buildFailureGuidance(commandResult) {
+    if (commandResult.outcome === 'CONTRACT_VERSION_UNSUPPORTED') return [
+      'This server does not support compact design context yet. Upgrade the server, or use "apiease design-context --inline" for the supported full-context contract.',
+    ];
     if (commandResult.error?.code === 'PROJECT_DESIGN_BUNDLE_DESTINATION_EXISTS') return [
       'Choose a new --output-dir directory. Existing files and directories are never overwritten.',
     ];
@@ -282,7 +306,7 @@ class DesignContextCommand {
       'Requirements are optional. Run "apiease design-context" when the agent already has the task in its conversation.',
     ];
     if (commandResult.error?.category === 'usage') return [
-      'Invalid design-context arguments: use "apiease design-context [--output-dir <new-directory>] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]". Supply each option once with its value.',
+      'Invalid design-context arguments: use "apiease design-context [--inline | --output-dir <new-directory>] [--resource-path <path>] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]". Repeat --resource-path only for distinct paths in compact mode.',
     ];
     return [];
   }

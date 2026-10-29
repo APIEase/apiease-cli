@@ -48,6 +48,16 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateProjectApiRequest', () => {
+    it('accepts version 2 references and rejects cache controls on version 1', async () => {
+      const {ProjectContractService} = await import(projectContractServiceModuleUrl);
+      const service = new ProjectContractService();
+      const request = {contractVersion: 1, designContextContractVersion: 2, projectId: 'project-1',
+        knownModuleDigests: [], resourcePaths: ['resources/requests/page.json']};
+      assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', request).ok, true);
+      assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', {...request, designContextContractVersion: 1}).ok, false);
+      assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', {...request, resourcePaths: ['../private']}).ok, false);
+      assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', {...request, knownModuleDigests: ['tampered']}).ok, false);
+    });
     it('should validate design-context and mutation requests against endpoint definitions', async () => {
       // Arrange
       const { ProjectContractService } = await import(projectContractServiceModuleUrl);
