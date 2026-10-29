@@ -12,8 +12,8 @@ const contractDirectoryPath = path.join(projectDirectoryPath, 'contracts', 'apex
 
 const expectedSourceCommit = null;
 const expectedFileHashes = {
-  'apiease-project-contract.schema.json': '6f5d8f9cf2ae13bd41b6d603159e165848c267998a28d5f3bb44f98917a15100',
-  'fixtures/unified-project-contracts.json': '320a18bffb90d231d94f3ffe88903f15e9eb3f8bdb9b2e1cbff87164a8f5cce4',
+  'apiease-project-contract.schema.json': '2dd3fb3bfdf1b5ff1e1a729b010d0bd338250cd528bc294d3a4aa0e2202c4aad',
+  'fixtures/unified-project-contracts.json': '66052e12b37213fc665a7c78743ecb8c0bd187ea83fa0d788ba37dd1d2a28caa',
 };
 
 describe('Apex Project contract assets', () => {

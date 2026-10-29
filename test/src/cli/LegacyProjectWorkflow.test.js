@@ -432,7 +432,7 @@ function buildDesignContextResponse(snapshot, request) {
       snapshot: { projectIdentity: { normalizedShopDomain: snapshot.projectIdentity.normalizedShopDomain, projectId: snapshot.projectIdentity.projectId }, liveRevision: snapshot.liveRevision, snapshotDigest: snapshot.snapshotDigest },
       inventory: canonicalBodies.map(({ path: resourcePath, sourceDigest, source }) => ({ path: resourcePath, sourceDigest, handle: source.handle, resourceType: source.resourceType })),
       canonicalBodies, bindings: snapshot.bindings,
-      limits: { maximumFileCount: snapshot.limits.maximumFileCount, maximumAggregateBytes: snapshot.limits.maximumAggregateBytes },
+      limits: { ...snapshot.limits },
       diagnostics: [],
     },
   };

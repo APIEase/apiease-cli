@@ -156,6 +156,18 @@ describe('ApiEaseProjectApiClient', () => {
       );
     });
 
+    for (const maximumFileBytes of [0, 1_000_001, '1000000', null]) {
+      it(`should reject an invalid design-context per-file byte limit ${JSON.stringify(maximumFileBytes)}`, async () => {
+        const response = buildProjectDesignContextResponse();
+        response.result.limits.maximumFileBytes = maximumFileBytes;
+        const client = buildClient({ responses: [buildJsonResponse(200, response)] });
+
+        const result = await client.retrieveProjectDesignContext(buildInvocation(buildProjectDesignContextRequest()));
+
+        assert.deepEqual(result.error.diagnostics, [{ code: 'PROJECT_RESPONSE_CONTRACT_INVALID' }]);
+      });
+    }
+
     it('should reject a protocol version mismatch', async () => {
       // Arrange
       const responseDocument = buildProjectDesignContextResponse();
@@ -703,6 +715,7 @@ function buildProjectDesignContextResponse() {
       bindings: [],
       limits: {
         maximumFileCount: 1_000,
+        maximumFileBytes: 1_000_000,
         maximumAggregateBytes: 25_000_000,
       },
       diagnostics: [],
