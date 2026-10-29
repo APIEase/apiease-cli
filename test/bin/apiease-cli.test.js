@@ -122,7 +122,7 @@ describe('apiease-cli', () => {
     it('should delegate design-context command arguments to DesignContextCommand', async () => {
       // Arrange
       const { runCli } = await import(entrypointModuleUrl);
-      const commandArguments = ['design-context', '--project-requirements', '{}'];
+      const commandArguments = ['design-context', '--resource-path', 'resources/requests/example.json'];
       const receivedCommandArguments = [];
       const designContextCommand = {
         async run(incomingCommandArguments) {
@@ -176,7 +176,7 @@ describe('apiease-cli', () => {
 
       // Assert
       assert.deepEqual(exitCodes, [0, 0, 0]);
-      assert.deepEqual(invocations, [
+      assert.deepEqual(invocations.sort((left, right) => ['validate', 'apply', 'rename'].indexOf(left.commandName) - ['validate', 'apply', 'rename'].indexOf(right.commandName)), [
         { commandName: 'validate', commandArguments: ['validate', '--json'] },
         { commandName: 'apply', commandArguments: ['apply', '--json'] },
         {
@@ -455,7 +455,7 @@ describe('apiease-cli', () => {
       // Assert
       assert.equal(exitCode, 0);
       assert.match(stdoutChunks.join(''), /pull\s+Pull verified Project API resources\./);
-      assert.match(stdoutChunks.join(''), /design-context \[--project-requirements <json>\]/);
+      assert.match(stdoutChunks.join(''), /design-context \[--resource-path <path>\]/);
       assert.doesNotMatch(stdoutChunks.join(''), /\btest\b/);
       assert.equal(stderrChunks.join(''), '');
     });
@@ -590,11 +590,11 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
-        '  design-context [--project-requirements <json>] [--inline | --output-dir <new-directory>] [--resource-path <path>]   Refresh verified local design references.',
+        '  design-context [--resource-path <path>]   Report project status and check the synchronization baseline.',
         '  validate                          Validate the complete project without execution.',
         '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
-        '  upgrade                           Upgrade an existing APIEase project.',
+        '  upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]   Update project instructions and template files.',
         '',
         'Options:',
         '  --base-url <url>                  APIEase base URL.',
@@ -634,11 +634,11 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
-        '  design-context [--project-requirements <json>] [--inline | --output-dir <new-directory>] [--resource-path <path>]   Refresh verified local design references.',
+        '  design-context [--resource-path <path>]   Report project status and check the synchronization baseline.',
         '  validate                          Validate the complete project without execution.',
         '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
-        '  upgrade                           Upgrade an existing APIEase project.',
+        '  upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]   Update project instructions and template files.',
         '',
         'Options:',
         '  --base-url <url>                  APIEase base URL.',
@@ -678,11 +678,11 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
-        '  design-context [--project-requirements <json>] [--inline | --output-dir <new-directory>] [--resource-path <path>]   Refresh verified local design references.',
+        '  design-context [--resource-path <path>]   Report project status and check the synchronization baseline.',
         '  validate                          Validate the complete project without execution.',
         '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
-        '  upgrade                           Upgrade an existing APIEase project.',
+        '  upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]   Update project instructions and template files.',
         '',
         'Options:',
         '  --base-url <url>                  APIEase base URL.',
@@ -722,11 +722,11 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
-        '  design-context [--project-requirements <json>] [--inline | --output-dir <new-directory>] [--resource-path <path>]   Refresh verified local design references.',
+        '  design-context [--resource-path <path>]   Report project status and check the synchronization baseline.',
         '  validate                          Validate the complete project without execution.',
         '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
-        '  upgrade                           Upgrade an existing APIEase project.',
+        '  upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]   Update project instructions and template files.',
         '',
         'Options:',
         '  --base-url <url>                  APIEase base URL.',
@@ -766,11 +766,11 @@ describe('apiease-cli', () => {
         '  delete <request|widget|variable|function>   Delete a resource by identifier.',
         '  init [project-name] [--from-existing-resources]   Initialize a new APIEase project.',
         '  pull                              Pull verified Project API resources.',
-        '  design-context [--project-requirements <json>] [--inline | --output-dir <new-directory>] [--resource-path <path>]   Refresh verified local design references.',
+        '  design-context [--resource-path <path>]   Report project status and check the synchronization baseline.',
         '  validate                          Validate the complete project without execution.',
         '  apply [--require-approval]        Apply immediately or submit for deferred approval.',
         '  rename <resource-type> <old-handle> <new-handle>   Rename a bound project resource.',
-        '  upgrade                           Upgrade an existing APIEase project.',
+        '  upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]   Update project instructions and template files.',
         '',
         'Options:',
         '  --base-url <url>                  APIEase base URL.',

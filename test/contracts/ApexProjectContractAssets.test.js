@@ -12,8 +12,8 @@ const contractDirectoryPath = path.join(projectDirectoryPath, 'contracts', 'apex
 
 const expectedSourceCommit = null;
 const expectedFileHashes = {
-  'apiease-project-contract.schema.json': '2e6ec505326f226f0077be8d3d8076cb64364340a9857da0a765841d4bf43f16',
-  'fixtures/unified-project-contracts.json': '7c5848c2b7fc3e1db30438f6a1816cbe0e130590ba013ff3015b2f404ffa115d',
+  'apiease-project-contract.schema.json': '26f3a39bee113f712f7223efe6c170cad2ddea17d68e2afefc5e14a09d91a368',
+  'fixtures/unified-project-contracts.json': '46dc9ad3d3512a58c7c04aa2a0f0ae68d99ea4f2c51679cdb2e2600fe6967272',
 };
 
 describe('Apex Project contract assets', () => {
@@ -30,7 +30,7 @@ describe('Apex Project contract assets', () => {
         provenanceVersion: 1,
         sourceRepository: 'https://github.com/APIEase/apiease.git',
         sourceCommit: expectedSourceCommit,
-        sourceBaseCommit: 'abc693b9e47663cfaf9b34f18de7e646d677171e',
+        sourceBaseCommit: 'd351e26cbf30c5f06ee90a8f6874145a8c6cf5cc',
         sourceState: 'working-tree',
         fixtureSourceDirectory: 'test/contracts/apex-projects/v1/fixtures',
         sourceDirectory: 'contracts/apex-projects/v1',

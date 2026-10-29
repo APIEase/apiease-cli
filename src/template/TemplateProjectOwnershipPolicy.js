@@ -6,6 +6,7 @@ const EXCLUDED_TEMPLATE_DIRECTORY_NAMES = new Set([
   '.git',
   '.idea',
   '.codex',
+  '.apiease',
   'node_modules',
 ]);
 const ALWAYS_REFRESH_TEMPLATE_PATHS = new Set([
@@ -14,7 +15,8 @@ const ALWAYS_REFRESH_TEMPLATE_PATHS = new Set([
 
 class TemplateProjectOwnershipPolicy {
   isTemplateManagedPath(templatePath) {
-    return !CUSTOMER_OWNED_TEMPLATE_PATHS.has(templatePath) && !this.hasExcludedDirectorySegment(templatePath);
+    return !CUSTOMER_OWNED_TEMPLATE_PATHS.has(templatePath) && !this.hasExcludedDirectorySegment(templatePath)
+      && !(templatePath.startsWith('resources/') && templatePath.endsWith('.json'));
   }
 
   shouldAlwaysRefreshPath(templatePath) {

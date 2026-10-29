@@ -48,11 +48,11 @@ describe('ProjectContractService', () => {
   });
 
   describe('validateProjectApiRequest', () => {
-    it('accepts version 2 references and rejects cache controls on version 1', async () => {
+    it('accepts status v3 and rejects retired delivery versions and fields', async () => {
       const {ProjectContractService} = await import(projectContractServiceModuleUrl);
       const service = new ProjectContractService();
-      const request = {contractVersion: 1, designContextContractVersion: 2, projectId: 'project-1',
-        knownModuleDigests: [], resourcePaths: ['resources/requests/page.json']};
+      const request = {contractVersion: 1, designContextContractVersion: 3, projectId: 'project-1',
+        resourcePaths: ['resources/requests/page.json']};
       assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', request).ok, true);
       assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', {...request, designContextContractVersion: 1}).ok, false);
       assert.equal(service.validateProjectApiRequest('/api/v1/projects/design-context', {...request, resourcePaths: ['../private']}).ok, false);
@@ -489,16 +489,7 @@ function collectAnnotatedDocuments(value) {
 async function readProjectRequestsByEndpoint() {
   const workflowFixture = await readJson('fixtures/project-workflow-success.json');
   const bootstrapRequest = { contractVersion: 1 };
-  const designContextRequest = {
-    contractVersion: 1,
-    designContextContractVersion: 1,
-    projectId: 'project-1',
-    projectRequirements: {
-      projectName: 'Inventory tools',
-      customerRequirements: [{ id: 'requirement-1', text: 'Keep inventory tools current.' }],
-      confirmedDecisions: ['Preserve the existing protected token.'],
-    },
-  };
+  const designContextRequest = {contractVersion: 1, designContextContractVersion: 3, projectId: 'project-1'};
   const requestsByEndpoint = new Map([
     ['/api/v1/projects/bootstrap', bootstrapRequest],
     ['/api/v1/projects/design-context', designContextRequest],

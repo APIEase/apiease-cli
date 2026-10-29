@@ -178,6 +178,7 @@ function buildService({
   projectLocalStateService = { async readLocalState() {} },
 } = {}) {
   return new ProjectGitCheckoutService({
+    templateProjectVersionResolver: {resolveTemplateVersion: async () => ({type: 'gitCommit', value: 'a'.repeat(40)})},
     projectLocalStateService,
     async gitExecution(invocation) {
       gitInvocations.push(invocation);

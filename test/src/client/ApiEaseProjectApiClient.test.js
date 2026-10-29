@@ -23,21 +23,6 @@ const fixtureDirectoryPath = path.join(
 );
 
 describe('ApiEaseProjectApiClient', () => {
-  describe('version 2 reference integrity', () => {
-    it('checks supplied module and envelope bytes while permitting omitted cached content', () => {
-      const client = new ApiEaseProjectApiClient();
-      const content = 'verified\n';
-      const digest = `sha256:${createHash('sha256').update(content).digest('hex')}`;
-      const entry = {content, digest, bytes: Buffer.byteLength(content)};
-      const response = {ok: true, designContextContractVersion: 2,
-        result: {protocol: {modules: [entry], envelope: {...entry}}}};
-      assert.equal(client.hasValidProjectDesignProtocolDigest('/api/v1/projects/design-context', response), true);
-      response.result.protocol.modules[0] = {digest, bytes: entry.bytes};
-      assert.equal(client.hasValidProjectDesignProtocolDigest('/api/v1/projects/design-context', response), true);
-      response.result.protocol.envelope.content += 'tampered';
-      assert.equal(client.hasValidProjectDesignProtocolDigest('/api/v1/projects/design-context', response), false);
-    });
-  });
   describe('bootstrapProject', () => {
     it('should return the Mongo-authoritative snapshot without projection polling', async () => {
       // Arrange
@@ -149,7 +134,7 @@ describe('ApiEaseProjectApiClient', () => {
       });
     }
 
-    it('should return the exact verified common instructions, Codex envelope, and context', async () => {
+    it('should return project status without an instruction payload', async () => {
       // Arrange
       const responseDocument = buildProjectDesignContextResponse();
       const fetchCalls = [];
@@ -183,10 +168,10 @@ describe('ApiEaseProjectApiClient', () => {
       });
     }
 
-    it('should reject a protocol version mismatch', async () => {
+    it('should reject a status version mismatch', async () => {
       // Arrange
       const responseDocument = buildProjectDesignContextResponse();
-      responseDocument.result.protocol.protocolVersion = '2.0.0';
+      responseDocument.designContextContractVersion = 2;
       const apiEaseProjectApiClient = buildClient({
         responses: [buildJsonResponse(200, responseDocument)],
       });
@@ -202,10 +187,10 @@ describe('ApiEaseProjectApiClient', () => {
       }]);
     });
 
-    it('should reject a common-instruction digest mismatch without exposing response content', async () => {
+    it('should reject retired instruction delivery without exposing response content', async () => {
       // Arrange
       const responseDocument = buildProjectDesignContextResponse();
-      responseDocument.result.protocol.commonInstructions = 'protected-value-must-not-appear';
+      responseDocument.result.protocol = {commonInstructions: 'protected-value-must-not-appear'};
       const apiEaseProjectApiClient = buildClient({
         responses: [buildJsonResponse(200, responseDocument)],
       });
@@ -217,7 +202,7 @@ describe('ApiEaseProjectApiClient', () => {
 
       // Assert
       assert.deepEqual(result.error.diagnostics, [{
-        code: 'PROJECT_DESIGN_PROTOCOL_DIGEST_MISMATCH',
+        code: 'PROJECT_RESPONSE_CONTRACT_INVALID',
       }]);
       assert.equal(JSON.stringify(result).includes('protected-value-must-not-appear'), false);
     });
@@ -689,34 +674,19 @@ function buildErrorResponse(outcome) {
 function buildProjectDesignContextRequest() {
   return {
     contractVersion: 1,
-    designContextContractVersion: 1,
+    designContextContractVersion: 3,
     projectId: 'project-1',
-    projectRequirements: {
-      projectName: 'Inventory tools',
-      customerRequirements: [{
-        id: 'requirement-1',
-        text: 'Keep inventory tools current.',
-      }],
-      confirmedDecisions: ['Preserve the existing protected token.'],
-    },
+    resourcePaths: [],
   };
 }
 
 function buildProjectDesignContextResponse() {
-  const commonInstructions = 'exact common instructions\n';
   return {
     contractVersion: 1,
-    designContextContractVersion: 1,
+    designContextContractVersion: 3,
     ok: true,
     outcome: 'PROJECT_DESIGN_CONTEXT_READY',
     result: {
-      protocol: {
-        protocolVersion: '1.0.0',
-        commonInstructions,
-        commonInstructionDigest: buildTextDigest(commonInstructions),
-        codexEnvelope: 'exact Codex envelope\n',
-      },
-      projectRequirements: buildProjectDesignContextRequest().projectRequirements,
       snapshot: {
         projectIdentity: {
           normalizedShopDomain: 'fixture.myshopify.com',
@@ -734,6 +704,8 @@ function buildProjectDesignContextResponse() {
         maximumAggregateBytes: 25_000_000,
       },
       diagnostics: [],
+      dependencies: [],
+      dependencyDiagnostics: [],
     },
   };
 }

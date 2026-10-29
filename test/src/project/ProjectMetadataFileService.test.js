@@ -98,6 +98,14 @@ describe('ProjectMetadataFileService legacy preservation', () => {
       const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
       assert.equal(new ProjectMetadataFileService().isLegacyTemplateMetadata(metadata), true);
     });
+    it('should preserve pending upgrade conflicts through legacy initialization', async () => {
+      const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
+      const service = new ProjectMetadataFileService();
+      assert.equal(service.isLegacyTemplateMetadata({...metadata, template: {...metadata.template,
+        pendingPaths: ['docs/resource-instructions/source-authoring.md']}}), true);
+      assert.equal(service.isLegacyTemplateMetadata({...metadata, template: {...metadata.template,
+        pendingPaths: ['../outside.md']}}), false);
+    });
     it('should reject partial operational identities and malformed manifests', async () => {
       const { ProjectMetadataFileService } = await import(projectMetadataFileServiceModuleUrl);
       assert.equal(new ProjectMetadataFileService().isLegacyTemplateMetadata({ ...metadata, projectId: 'other' }), false);

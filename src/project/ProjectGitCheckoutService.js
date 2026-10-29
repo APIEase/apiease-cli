@@ -6,6 +6,8 @@ import { promisify } from 'node:util';
 import { PUBLIC_TEMPLATE_IDENTITY } from './ProjectBootstrapArtifactService.js';
 import { ProjectMetadataFileService } from './ProjectMetadataFileService.js';
 import { ProjectLocalStateService } from './ProjectLocalStateService.js';
+import { TemplateProjectManifestBuilder } from '../template/TemplateProjectManifestBuilder.js';
+import { TemplateProjectVersionResolver } from '../template/TemplateProjectVersionResolver.js';
 
 const executeFile = promisify(execFile);
 const PROJECT_METADATA_PATH = '.apiease/project.json';
@@ -39,10 +41,14 @@ class ProjectGitCheckoutService {
     gitExecution = defaultGitExecution,
     projectLocalStateService = new ProjectLocalStateService(),
     projectMetadataFileService = new ProjectMetadataFileService(),
+    templateProjectManifestBuilder = new TemplateProjectManifestBuilder(),
+    templateProjectVersionResolver = new TemplateProjectVersionResolver(),
   } = {}) {
     this.gitExecution = gitExecution;
     this.projectLocalStateService = projectLocalStateService;
     this.projectMetadataFileService = projectMetadataFileService;
+    this.templateProjectManifestBuilder = templateProjectManifestBuilder;
+    this.templateProjectVersionResolver = templateProjectVersionResolver;
   }
 
   async clonePublicTemplate({ destinationDirectoryPath }) {
@@ -60,7 +66,19 @@ class ProjectGitCheckoutService {
       throw buildCheckoutError('PROJECT_PUBLIC_TEMPLATE_CLONE_FAILED');
     }
 
+    await this.recordClonedTemplateMetadata(resolvedDestinationPath);
     return { repositoryTopLevelPath: resolvedDestinationPath };
+  }
+
+  async recordClonedTemplateMetadata(projectDirectoryPath) {
+    const manifest = await this.templateProjectManifestBuilder.buildTemplateManifest(projectDirectoryPath);
+    const version = await this.templateProjectVersionResolver.resolveTemplateVersion(projectDirectoryPath);
+    const {version: cliVersion} = JSON.parse(await fs.readFile(new URL('../../package.json', import.meta.url), 'utf8'));
+    await fs.mkdir(path.join(projectDirectoryPath, '.apiease'), {recursive: true});
+    await this.projectMetadataFileService.preserveTemplateMetadata({projectDirectoryPath, projectMetadata: {
+      cliVersion, template: {manifest, version, sourceType: 'publicRepository',
+        displayTemplateSource: PUBLIC_TEMPLATE_URL, publicRepositoryUrl: PUBLIC_TEMPLATE_URL},
+    }});
   }
 
   async validateProjectCheckout(projectDirectoryPath, { allowLegacy = false } = {}) {

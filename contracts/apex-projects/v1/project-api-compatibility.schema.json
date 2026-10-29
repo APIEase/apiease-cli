@@ -2241,14 +2241,32 @@
       }
     },
     "projectDesignContextRequest": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/projectDesignContextRequestV1"
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "designContextContractVersion",
+        "projectId"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": 1
         },
-        {
-          "$ref": "#/$defs/projectDesignContextRequestV2"
+        "designContextContractVersion": {
+          "const": 3
+        },
+        "projectId": {
+          "$ref": "#/$defs/identity"
+        },
+        "resourcePaths": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/resourcePath"
+          },
+          "uniqueItems": true
         }
-      ]
+      }
     },
     "projectDesignProtocol": {
       "type": "object",
@@ -2440,14 +2458,93 @@
       }
     },
     "projectDesignContextResponse": {
-      "oneOf": [
-        {
-          "$ref": "#/$defs/projectDesignContextResponseV1"
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contractVersion",
+        "designContextContractVersion",
+        "ok",
+        "outcome",
+        "result"
+      ],
+      "properties": {
+        "contractVersion": {
+          "const": 1
         },
-        {
-          "$ref": "#/$defs/projectDesignContextResponseV2"
+        "designContextContractVersion": {
+          "const": 3
+        },
+        "ok": {
+          "const": true
+        },
+        "outcome": {
+          "const": "PROJECT_DESIGN_CONTEXT_READY"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "snapshot",
+            "inventory",
+            "canonicalBodies",
+            "bindings",
+            "limits",
+            "diagnostics",
+            "dependencies",
+            "dependencyDiagnostics"
+          ],
+          "properties": {
+            "snapshot": {
+              "$ref": "#/$defs/projectDesignSnapshot"
+            },
+            "inventory": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "#/$defs/projectDesignInventoryEntry"
+              }
+            },
+            "canonicalBodies": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "#/$defs/projectDesignCanonicalBody"
+              }
+            },
+            "bindings": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "#/$defs/projectDesignBinding"
+              }
+            },
+            "limits": {
+              "$ref": "#/$defs/projectDesignLimits"
+            },
+            "diagnostics": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "$ref": "#/$defs/projectDesignDiagnostic"
+              }
+            },
+            "dependencies": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "$ref": "#/$defs/projectDesignDependency"
+              }
+            },
+            "dependencyDiagnostics": {
+              "type": "array",
+              "maxItems": 10000,
+              "items": {
+                "$ref": "#/$defs/projectDesignDiagnostic"
+              }
+            }
+          }
         }
-      ]
+      }
     },
     "artifactResource": {
       "type": "object",
@@ -3647,339 +3744,12 @@
         }
       ]
     },
-    "projectDesignContextRequestV1": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "contractVersion",
-        "designContextContractVersion",
-        "projectId"
-      ],
-      "properties": {
-        "contractVersion": {
-          "const": 1
-        },
-        "designContextContractVersion": {
-          "const": 1
-        },
-        "projectId": {
-          "$ref": "#/$defs/identity"
-        },
-        "projectRequirements": {
-          "$ref": "#/$defs/projectDesignRequirements"
-        }
-      }
-    },
-    "projectDesignContextResponseV1": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "contractVersion",
-        "designContextContractVersion",
-        "ok",
-        "outcome",
-        "result"
-      ],
-      "properties": {
-        "contractVersion": {
-          "const": 1
-        },
-        "designContextContractVersion": {
-          "const": 1
-        },
-        "ok": {
-          "const": true
-        },
-        "outcome": {
-          "const": "PROJECT_DESIGN_CONTEXT_READY"
-        },
-        "result": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "protocol",
-            "snapshot",
-            "inventory",
-            "canonicalBodies",
-            "bindings",
-            "limits",
-            "diagnostics"
-          ],
-          "properties": {
-            "protocol": {
-              "$ref": "#/$defs/projectDesignProtocol"
-            },
-            "projectRequirements": {
-              "$ref": "#/$defs/projectDesignRequirements"
-            },
-            "snapshot": {
-              "$ref": "#/$defs/projectDesignSnapshot"
-            },
-            "inventory": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignInventoryEntry"
-              }
-            },
-            "canonicalBodies": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignCanonicalBody"
-              }
-            },
-            "bindings": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignBinding"
-              }
-            },
-            "limits": {
-              "$ref": "#/$defs/projectDesignLimits"
-            },
-            "diagnostics": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignDiagnostic"
-              }
-            }
-          }
-        }
-      }
-    },
-    "projectDesignContextRequestV2": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "contractVersion",
-        "designContextContractVersion",
-        "projectId"
-      ],
-      "properties": {
-        "contractVersion": {
-          "const": 1
-        },
-        "designContextContractVersion": {
-          "const": 2
-        },
-        "projectId": {
-          "$ref": "#/$defs/identity"
-        },
-        "projectRequirements": {
-          "$ref": "#/$defs/projectDesignRequirements"
-        },
-        "knownModuleDigests": {
-          "type": "array",
-          "maxItems": 128,
-          "items": {
-            "$ref": "#/$defs/digest"
-          },
-          "uniqueItems": true
-        },
-        "resourcePaths": {
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/resourcePath"
-          },
-          "uniqueItems": true
-        }
-      }
-    },
-    "projectDesignContextResponseV2": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "contractVersion",
-        "designContextContractVersion",
-        "ok",
-        "outcome",
-        "result"
-      ],
-      "properties": {
-        "contractVersion": {
-          "const": 1
-        },
-        "designContextContractVersion": {
-          "const": 2
-        },
-        "ok": {
-          "const": true
-        },
-        "outcome": {
-          "const": "PROJECT_DESIGN_CONTEXT_READY"
-        },
-        "result": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "protocol",
-            "snapshot",
-            "inventory",
-            "canonicalBodies",
-            "bindings",
-            "limits",
-            "diagnostics",
-            "dependencies",
-            "dependencyDiagnostics"
-          ],
-          "properties": {
-            "protocol": {
-              "$ref": "#/$defs/projectDesignReferenceProtocol"
-            },
-            "projectRequirements": {
-              "$ref": "#/$defs/projectDesignRequirements"
-            },
-            "snapshot": {
-              "$ref": "#/$defs/projectDesignSnapshot"
-            },
-            "inventory": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignInventoryEntry"
-              }
-            },
-            "canonicalBodies": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignCanonicalBody"
-              }
-            },
-            "bindings": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignBinding"
-              }
-            },
-            "limits": {
-              "$ref": "#/$defs/projectDesignLimits"
-            },
-            "diagnostics": {
-              "type": "array",
-              "maxItems": 1000,
-              "items": {
-                "$ref": "#/$defs/projectDesignDiagnostic"
-              }
-            },
-            "dependencies": {
-              "type": "array",
-              "maxItems": 10000,
-              "items": {
-                "$ref": "#/$defs/projectDesignDependency"
-              }
-            },
-            "dependencyDiagnostics": {
-              "type": "array",
-              "maxItems": 10000,
-              "items": {
-                "$ref": "#/$defs/projectDesignDiagnostic"
-              }
-            }
-          }
-        }
-      }
-    },
-    "projectDesignReferenceContent": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "digest",
-        "bytes"
-      ],
-      "properties": {
-        "digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "bytes": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1000000
-        },
-        "content": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1000000
-        }
-      }
-    },
-    "projectDesignReferenceModule": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "digest",
-        "bytes",
-        "id",
-        "required",
-        "when"
-      ],
-      "properties": {
-        "digest": {
-          "$ref": "#/$defs/digest"
-        },
-        "bytes": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1000000
-        },
-        "content": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1000000
-        },
-        "id": {
-          "type": "string",
-          "pattern": "^[a-z][A-Za-z0-9]*$",
-          "maxLength": 64
-        },
-        "required": {
-          "type": "boolean"
-        },
-        "when": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 1024
-        }
-      }
-    },
-    "projectDesignReferenceProtocol": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "protocolVersion",
-        "manifestIdentity",
-        "moduleSetIdentity",
-        "modules",
-        "envelope"
-      ],
-      "properties": {
-        "protocolVersion": {
-          "const": "1.0.0"
-        },
-        "manifestIdentity": {
-          "$ref": "#/$defs/digest"
-        },
-        "moduleSetIdentity": {
-          "$ref": "#/$defs/digest"
-        },
-        "modules": {
-          "type": "array",
-          "maxItems": 127,
-          "items": {
-            "$ref": "#/$defs/projectDesignReferenceModule"
-          },
-          "minItems": 1
-        },
-        "envelope": {
-          "$ref": "#/$defs/projectDesignReferenceContent"
-        }
-      }
-    },
+
+
+
+
+
+
     "projectDesignDependency": {
       "type": "object",
       "additionalProperties": false,

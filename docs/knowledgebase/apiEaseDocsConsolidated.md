@@ -827,50 +827,40 @@ This matters for agent work because:
 
 Do not commit real secrets, API keys, or environment files into the repository.
 
-## Retrieve context for project design
+## Use the local project workflow
 
-Before designing changes in an authenticated, initialized checkout, run
-`apiease design-context`. Read its `readFirst` files, then the applicable modules
-in `files.instructionIndex`. The command refreshes verified local references and
-current project context while preserving canonical files and operational state.
+Resource instructions are developer-written Markdown explaining how to create and
+edit requests, widgets, variables, and functions. `apiease init` installs a checked
+copy in `docs/resource-instructions/`; `apiease upgrade` maintains it. A script
+copies content from APIEase's authoritative instruction bundle; it does not author
+the instructions. Resource JSON under `resources/*` is the project source you edit.
 
-Inspect inventory and local changes, then read relevant source files and dependencies.
-Search the template's consolidated product reference by topic instead of loading it
-all at startup. Do not duplicate protocol instructions in project guidance.
+Project instructions in `AGENTS.md`, `README.md`, and
+`docs/shared-ongoing-ai-guidance.md` explain project structure and the CLI workflow.
+Start with `AGENTS.md` and `docs/resource-instructions/README.md`. Read the index's
+small required core and adapter envelope, then modules for the resource family,
+request type, and provider involved. Reading instructions requires neither store
+authentication nor a sibling APIEase checkout. Keep customer intent in the
+conversation and durable project decisions in `CUSTOM_*` files.
 
-Use `--inline` for full JSON or `--output-dir <new-directory>` for a standalone
-capture. See [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli)
-for source selection, cache behavior and compatibility. `apiease upgrade` maintains
-template files independently; it does not replace context refresh.
+1. Initialize with `apiease init my-project --from-existing-resources` and enter it.
+   Plain `apiease init my-project` installs the template without authentication;
+   use `git init` if needed and `apiease pull` to establish synchronization before
+   project validation or apply.
+2. Read installed project instructions and applicable resource instructions.
+3. Inspect relevant resource JSON and dependencies, then edit canonical files.
+4. Run `apiease validate` for the complete project without executing resources.
+5. Run `apiease apply` when authorized, or `apiease apply --require-approval` for
+   deferred review. Git diffs present edits; they grant no mutation authority.
+6. When notified, preview `apiease upgrade --dry-run` and upgrade template files.
 
-Requirements are optional; do not infer them from documentation or manufacture them just to retrieve context. If explicit requirements are useful, see the supported `--project-requirements <json>` structure in [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli). Authentication, project identity, protocol verification, and baseline conflict checks remain required.
-
-## Use a repository-first agent loop
-
-For most Codex-style tasks, the working loop should be:
-
-1. read the local guidance files
-2. inspect the current resource files and examples
-3. add or edit JSON definitions under `resources/*`
-4. sync those definitions with idempotent `apiease create` commands
-5. read the saved resource back when needed to confirm the change
-6. review and commit the repository changes
-
-Example flow for a request:
-
-```bash
-cp docs/examples/resources/requests/example-request.json resources/requests/product-details-proxy.json
-apiease create request --file ./resources/requests/product-details-proxy.json
-apiease read request --request-handle product-details-proxy
-```
-
-After editing the same file again, rerun the same create command:
-
-```bash
-apiease create request --file ./resources/requests/product-details-proxy.json
-```
-
-When a resource file has a valid `handle`, `apiease create` creates the resource if it is missing and updates the existing resource if that handle already exists. Use the same create-or-update pattern for widgets, variables, and functions. Use the resource-specific handle flags documented in [apiease-cli](https://docs.apiease.com/docs/developers/apiease-cli) for read, explicit update, and delete commands.
+Use `apiease design-context` for current project status when needed. A baseline
+check compares the recorded synchronization baseline with current server state;
+local edits are reported separately. Read relevant JSON locally and select server
+bodies with `--resource-path` when useful. See
+[project status](https://docs.apiease.com/docs/developers/apiease-cli) for output and
+migration details. Authentication and concurrency checks still guard validation
+and apply. Installed instructions remain readable offline.
 
 ## Prefer the CLI over direct HTTP
 
@@ -1455,107 +1445,117 @@ Current CLI behavior:
 
 That makes `init` safe to use when you are starting a new repository or layering the template into an existing directory.
 
+## Read installed instructions
+
+Resource instructions are developer-written Markdown explaining how to create and
+edit requests, widgets, variables, and functions. `apiease init` installs a checked
+copy in `docs/resource-instructions/`; `apiease upgrade` maintains it. A script
+copies content from APIEase's authoritative instruction bundle; it does not author
+the instructions. Resource JSON under `resources/*` is the project source you edit.
+
+Project instructions in `AGENTS.md`, `README.md`, and
+`docs/shared-ongoing-ai-guidance.md` explain project structure and the CLI workflow.
+Start with `AGENTS.md` and `docs/resource-instructions/README.md`. Read the index's
+small required core and adapter envelope, then modules for the resource family,
+request type, and provider involved. Reading instructions requires neither store
+authentication nor a sibling APIEase checkout. Keep customer intent in the
+conversation and durable project decisions in `CUSTOM_*` files.
+
+1. Initialize with `apiease init my-project --from-existing-resources` and enter it.
+   Plain `apiease init my-project` installs the template without authentication;
+   use `git init` if needed and `apiease pull` to establish synchronization before
+   project validation or apply.
+2. Read installed project instructions and applicable resource instructions.
+3. Inspect relevant resource JSON and dependencies, then edit canonical files.
+4. Run `apiease validate` for the complete project without executing resources.
+5. Run `apiease apply` when authorized, or `apiease apply --require-approval` for
+   deferred review. Git diffs present edits; they grant no mutation authority.
+6. When notified, preview `apiease upgrade --dry-run` and upgrade template files.
+
 ## Retrieve project design context
 
-With authentication configured, run this from an initialized project checkout:
+Use `apiease design-context` for current **project status**: resource inventory,
+dependencies, local changes, and a **baseline check**. It requires authentication
+and an initialized checkout, but is optional for reading instructions.
 
 ```bash
 apiease design-context
-```
-
-The default returns a compact JSON briefing with current server/local baselines,
-change counts, `readFirst` paths, and an index of verified local instruction modules.
-Read the small core and Codex envelope, then the modules applicable to the resource
-family, request type and provider involved in your task. The index states when each
-module applies. It does not infer scope from your conversation or filter resources
-based on requirements.
-
-The CLI refreshes these references automatically whenever you run this command.
-It checks the current authenticated server and verifies module digests before
-reusing unchanged bytes. References are isolated by server and project and stored
-beside checkout-local Git state, outside versioned source. Corrupt module bytes are
-retrieved again; unsafe cache paths or invalid responses fail. A failed or offline
-request never falls back to an old context. Canonical files, operational baselines,
-and customer guidance remain unchanged.
-
-`files.inventory` contains the complete resource inventory and dependency information;
-`files.localChanges` records local edits, deletions and protected-value selectors.
-Read relevant source files in your checkout. Retrieve current server source for an
-exact path when needed, repeating the option for additional distinct paths:
-
-```bash
 apiease design-context --resource-path resources/requests/read-product-page.json
 ```
 
-The selected sources appear in `files.serverResources` and `files.context`.
-Selection changes only source delivery; whole-project validation, discovery and
-conflict checks remain intact. Every response includes fresh state. Module references
-and captured context are not an offline baseline, approval, or permission to apply.
+The **synchronization baseline** is the server state recorded after successful
+synchronization or apply. A baseline check compares that recorded state with
+current server state to detect intervening changes. It is separate from detecting
+local edits and does not use Git commits as authority.
 
-For the full JSON contract, including all current source bodies and instructions:
+The command returns one JSON result on stdout. `result.inventory`, `dependencies`,
+and `dependencyDiagnostics` cover the whole project. `localEdits.hasManagedEdits`
+compares local content with the synchronization baseline; `differencesFromServer`
+contains creates and updates relative to current server resources.
+`baselineCheck.status` is `current` or `changed`, with details in `conflicts`.
+A successful status read returns exit code 0 even when the baseline changed.
+Reconcile deliberately before apply; validation and apply still enforce server
+concurrency checks. Status does not synchronize or authorize changes.
 
-```bash
-apiease design-context --inline
-```
+`canonicalBodies` contains only sources selected with repeated `--resource-path`;
+it is empty by default. Selection does not narrow inventory, dependencies,
+validation, or apply. The command writes no instruction cache or context files.
+Authentication and transport failures have no stale-state fallback.
 
-Scripts that consumed the former bare-command full JSON should add `--inline`.
-The compact default negotiates design-context contract version 2. Existing clients
-retain version 1 responses. Deploy the updated server before using the compact CLI;
-an older server returns an explicit version error, with `--inline` as the deliberate
-compatibility path. There is no automatic fallback.
-
-`apiease upgrade` separately maintains template-owned files. `design-context`
-maintains current server references; neither command replaces the other.
-
-Requirements are optional and unnecessary when the coding agent already has the task in its conversation. When omitted, `projectRequirements` is absent from the request and returned context. The command does not infer requirements from documentation or create empty requirements. Supplied requirements are validated and returned; they do not filter the resources or instruction modules.
-
-To include explicit requirements:
-
-```bash
-apiease design-context --project-requirements '{"projectName":"Order status","customerRequirements":[{"id":"status","text":"Show order status."}],"confirmedDecisions":[]}'
-```
-
-The JSON object must contain exactly `projectName`, `customerRequirements`, and `confirmedDecisions`. Use a nonempty project name, an array of `{id, text}` objects with nonempty strings, and an array of nonempty decision strings. Both arrays may be empty. Names and requirement IDs allow up to 1,024 characters; requirement text and decisions allow up to 65,536 characters; each array allows up to 1,000 entries. Malformed JSON, invalid shapes, unknown fields, and explicit `null` fail.
-
-`design-context` emits one JSON result on stdout, including on failure. Corrective argument guidance goes to stderr. Existing exit codes distinguish usage/configuration (2), authentication/authorization (3), contract/validation (4), baseline conflicts (5), checkout integrity (6), and service/transport failures (7).
-
-### Save context as local reference files
-
-For a standalone capture, use an existing parent and a new destination outside
-managed resources:
-
-```bash
-apiease design-context --output-dir /tmp/apiease-context-1
-```
-
-This explicit mode preserves the full export contract: `context.json`,
-`instructions.md`, `codex-envelope.md`, `inventory.json`, `server-resources.json`,
-and `local-changes.json`. It returns paths, byte sizes and digests. It retrieves the
-complete instruction set and source bodies, independently of the compact cache.
-Existing paths and symlinks are refused; incomplete bundles are removed on write
-failure. Relative paths resolve from the invocation directory. Files use private
-permissions. `--inline`, `--output-dir`, and compact-only `--resource-path` cannot
-be combined. A capture remains a point-in-time reference, not authority or approval.
+Migration: instruction downloads, `--inline`, `--output-dir`, and
+`--project-requirements` are retired. Read installed instructions after `init` or
+`upgrade`; keep requirements in the conversation or `CUSTOM_*` files. Scripts must
+consume the status fields above instead of `protocol`, `readFirst`, `files`, or
+`cache`. CLI and server require design-context contract version 3; deploy them
+together. Versions 1 and 2 fail explicitly. Other Project API and CLI JSON envelope
+versions are unchanged. Invalid options exit 2; authentication/authorization,
+contract, checkout-integrity, and service errors retain their existing exit codes.
 
 ## Upgrade a project
 
-Use `upgrade` to compare your project against the current template version:
+`apiease upgrade` updates project instructions, installed resource instructions,
+and other template-managed files. It preserves `CUSTOM_*` guidance, resource JSON,
+and operational bindings and synchronization state.
 
 ```bash
 apiease upgrade --check
 apiease upgrade --dry-run
 apiease upgrade
+apiease upgrade --on-conflict ignore
+apiease upgrade --on-conflict overwrite
 ```
 
-Current behavior:
+`--check` and `--dry-run` compare actual files and manifests as well as the recorded
+template version; neither writes files. Exit code 0 means current; 1 means changes,
+conflicts, or a failed check. `--dry-run --on-conflict overwrite` previews which
+conflicting files would be replaced.
 
-- `--check` compares the stored template version in `.apiease/project.json` to the current template version
-- `--dry-run` shows planned `Add`, `Update`, `Remove`, and `Skip conflict` paths without writing files
-- `upgrade` applies safe template-managed changes and leaves conflicts in place
-- `CUSTOM_README.md` and `CUSTOM_AGENT_GUIDANCE.md` are treated as customer-owned files instead of template-managed content
-- the project metadata is updated after safe changes are applied
+Unchanged managed files update normally. Differing local content is a conflict.
+If the installed instruction manifest declares a higher protocol version, the CLI
+reports it as newer; differing hashes and modification times do not establish age.
+Interactive upgrades offer **Overwrite** or **Ignore**, defaulting to Ignore.
+Scripts and agents use `--on-conflict overwrite|ignore`. Without an explicit
+overwrite choice, noninteractive upgrades preserve and report conflicts without
+prompting. Overwrite applies only to template-managed paths.
 
-This is the CLI command that keeps a template-based repository current without blindly replacing local work.
+Resource instructions and their project entry points resolve as one set, so
+ignoring a conflict preserves a coherent instruction set. Ignored paths remain
+pending in template metadata and are not marked updated. An upgrade with unresolved
+conflicts exits 1. Move custom guidance to `CUSTOM_*` before choosing overwrite.
+Unrelated files remain untouched. The bundled product knowledge file retains its
+existing always-refresh policy.
+
+Template provenance lives in `.apiease/template.json` for operational checkouts,
+and in `.apiease/project.json` before first synchronization. Older operational
+checkouts without provenance treat differing existing files as conflicts; they do
+not silently adopt those bytes as an unmodified template baseline.
+
+`pull`, `validate`, `apply`, and `design-context` perform a shared, inexpensive
+update check. Public templates use a commit feed without downloading the full
+template; local development also compares template content. Available updates and
+unavailable checks are reported on stderr, leaving JSON stdout unchanged. An
+unavailable check does not mean current and does not block the requested command.
+Checks never install updates. Use `upgrade --check` for a full file comparison.
 
 ## Manage resources
 
@@ -1832,18 +1832,37 @@ Starting from the template keeps the human workflow and the AI-agent workflow al
 
 That is why the template is the preferred starting point even if your end goal is to automate APIEase through the CLI or the public API.
 
-## Retrieve context before project design
+## Read installed project and resource instructions
 
-From an authenticated, initialized project, run `apiease design-context` without arguments for a compact briefing with the current baseline, local changes, and verified local references. Read its small core and applicable family/provider modules. The full resource inventory and dependencies remain available; request detailed sources with `--resource-path`. Requirements are optional and unnecessary when the coding agent already has the task in its conversation. Unsupplied requirements remain absent; do not invent them to retrieve context. Retrieval does not apply changes or rewrite canonical files.
+Resource instructions are developer-written Markdown explaining how to create and
+edit requests, widgets, variables, and functions. `apiease init` installs a checked
+copy in `docs/resource-instructions/`; `apiease upgrade` maintains it. A script
+copies content from APIEase's authoritative instruction bundle; it does not author
+the instructions. Resource JSON under `resources/*` is the project source you edit.
 
-See [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli) for optional requirements, full JSON, standalone exports, compatibility, and failure behavior.
+Project instructions in `AGENTS.md`, `README.md`, and
+`docs/shared-ongoing-ai-guidance.md` explain project structure and the CLI workflow.
+Start with `AGENTS.md` and `docs/resource-instructions/README.md`. Read the index's
+small required core and adapter envelope, then modules for the resource family,
+request type, and provider involved. Reading instructions requires neither store
+authentication nor a sibling APIEase checkout. Keep customer intent in the
+conversation and durable project decisions in `CUSTOM_*` files.
 
-The template supplies a short agent entry point and workflow navigation.
-`apiease upgrade` maintains those files. `apiease design-context` separately
-refreshes current server context and verified local authoring references. Keep
-project-specific guidance in `CUSTOM_*` files, which upgrades preserve; do not
-copy protocol text there or into the template. Retrieve context again for new
-work: cached references do not provide an offline or stale-server fallback.
+1. Initialize with `apiease init my-project --from-existing-resources` and enter it.
+   Plain `apiease init my-project` installs the template without authentication;
+   use `git init` if needed and `apiease pull` to establish synchronization before
+   project validation or apply.
+2. Read installed project instructions and applicable resource instructions.
+3. Inspect relevant resource JSON and dependencies, then edit canonical files.
+4. Run `apiease validate` for the complete project without executing resources.
+5. Run `apiease apply` when authorized, or `apiease apply --require-approval` for
+   deferred review. Git diffs present edits; they grant no mutation authority.
+6. When notified, preview `apiease upgrade --dry-run` and upgrade template files.
+
+Use `apiease design-context` when current project status is useful. See
+[project status](https://docs.apiease.com/docs/developers/apiease-cli) for baseline
+checks and source selection, and [upgrades](https://docs.apiease.com/docs/developers/apiease-cli)
+for overwrite/ignore choices. Keep project-specific guidance in `CUSTOM_*` files.
 
 SOURCE
 https://docs.apiease.com/docs/requests/requests-overview

@@ -29,125 +29,78 @@ const legacyMetadata = {
 
 describe('Legacy project public command workflow', () => {
   describe('design-context API boundary', () => {
-    it('refreshes compact context from the server while reusing static modules and preserving local edits', async context => {
+    it('reports status and selected server resources without writing or downloading instructions', async context => {
       const fixture = await buildFixture(context);
       assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
       const source = JSON.parse(fixture.response.result.files[1].content);
-      source.name = 'Local edit'; await writeResource(fixture, `${JSON.stringify(source, null, 2)}\n`);
+      source.name = 'Local edit';
+      await writeResource(fixture, `${JSON.stringify(source, null, 2)}\n`);
       const before = await snapshot(fixture.directory);
+      const statePath = path.join(fixture.directory, '.git/apiease/project-state-v1.json');
+      const stateBefore = await fs.readFile(statePath, 'utf8');
       const boundary = buildDesignContextBoundary(fixture);
       assert.equal(await boundary.command.run(['design-context'], fixture.options), 0, boundary.stderr.join(''));
-      const cold = JSON.parse(boundary.stdout.join('')).result;
-      assert.equal(cold.delivery, 'references');
-      assert.equal(cold.counts.updates, 1);
-      assert.equal(cold.cache.reusedModules, 0);
-      assert.ok(cold.cache.downloadedBytes > 0);
+      const result = JSON.parse(boundary.stdout.join('')).result;
+      assert.equal(result.localEdits.hasManagedEdits, true);
+      assert.equal(result.baselineCheck.status, 'current');
+      assert.equal(result.differencesFromServer.updates[0].source.name, 'Local edit');
+      assert.deepEqual(result.canonicalBodies, []);
+      assert.equal(Object.hasOwn(result, 'protocol'), false);
+      assert.equal(Object.hasOwn(result, 'files'), false);
       boundary.stdout.length = 0;
       assert.equal(await boundary.command.run(['design-context', '--resource-path', 'resources/variables/api-origin.json'], fixture.options), 0);
-      const warm = JSON.parse(boundary.stdout.join('')).result;
-      assert.notEqual(warm.files.context.path, cold.files.context.path);
-      assert.equal(JSON.parse(await fs.readFile(cold.files.context.path)).canonicalBodies.length, 0);
-      assert.equal(warm.cache.downloadedBytes, 0);
-      assert.equal(warm.cache.reusedModules, 2);
-      assert.equal(boundary.requests.length, 2);
-      assert.equal(boundary.requests[1].knownModuleDigests.length, 2);
-      const saved = JSON.parse(await fs.readFile(warm.files.context.path));
-      assert.equal(saved.localEdits.updates[0].source.name, 'Local edit');
-      assert.equal(saved.canonicalBodies[0].source.name, 'API Origin');
+      const selected = JSON.parse(boundary.stdout.join('')).result;
+      assert.equal(selected.canonicalBodies[0].source.name, 'API Origin');
+      assert.equal(Object.hasOwn(boundary.requests[1], 'knownModuleDigests'), false);
       assert.deepEqual(await snapshot(fixture.directory), before);
-    });
-    it('should export verified context without changing resources or operational state', async context => {
-      const fixture = await buildFixture(context);
-      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
-      const bundleParent = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-verified-bundle-'));
-      context.after(() => fs.rm(bundleParent, { recursive: true, force: true }));
-      const before = await snapshot(fixture.directory);
-      const { command, stdout, requests } = buildDesignContextBoundary(fixture);
-
-      assert.equal(await command.run(['design-context', '--output-dir', path.join(bundleParent, 'context')], fixture.options), 0);
-      const result = JSON.parse(stdout.join('')).result;
-      const saved = JSON.parse(await fs.readFile(result.files.context.path));
-      assert.equal(result.files.instructions.digest, saved.protocol.commonInstructionDigest);
-      assert.equal(saved.canonicalBodies[0].source.name, 'API Origin');
-      assert.equal(Object.hasOwn(saved, 'projectRequirements'), false);
-      assert.equal(Object.hasOwn(requests[0], 'projectRequirements'), false);
-      assert.deepEqual(await snapshot(fixture.directory), before);
-      assert.equal((await fs.readFile(result.files.context.path, 'utf8')).includes('test-key'), false);
+      assert.equal(await fs.readFile(statePath, 'utf8'), stateBefore);
     });
 
-    it('should reject a tampered protocol before publishing a bundle', async context => {
+    it('rejects a server instruction-delivery payload at the contract boundary', async context => {
       const fixture = await buildFixture(context);
       assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
       const before = await snapshot(fixture.directory);
-      const { command, stdout } = buildDesignContextBoundary(fixture, response => {
-        response.result.protocol.commonInstructions += 'tampered';
+      const {command, stdout} = buildDesignContextBoundary(fixture, response => {
+        response.result.protocol = {commonInstructions: 'obsolete'};
       });
-      assert.equal(await command.run(['design-context', '--output-dir', 'must-not-exist'], fixture.options), 4);
+      assert.equal(await command.run(['design-context'], fixture.options), 4);
       assert.equal(JSON.parse(stdout.join('')).state, 'failure');
       assert.deepEqual(await snapshot(fixture.directory), before);
     });
 
-    for (const requirements of [undefined, {
-      projectName: 'Order status', customerRequirements: [{ id: 'status', text: 'Show order status.' }],
-      confirmedDecisions: [],
-    }]) {
-      it(`should retrieve context with ${requirements ? 'supplied' : 'omitted'} requirements without writes`, async context => {
+    for (const option of ['--inline', '--output-dir', '--project-requirements']) {
+      it(`rejects retired ${option} before network access`, async context => {
         const fixture = await buildFixture(context);
         assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
-        const source = JSON.parse(fixture.response.result.files[1].content);
-        source.name = 'Locally edited';
-        await writeResource(fixture, `${JSON.stringify(source, null, 2)}\n`);
+        const {command, requests, stdout, stderr} = buildDesignContextBoundary(fixture);
         const before = await snapshot(fixture.directory);
-        const stateBefore = await fs.readFile(path.join(fixture.directory, '.git/apiease/project-state-v1.json'), 'utf8');
-        const { command, requests, stdout } = buildDesignContextBoundary(fixture);
-        const args = requirements === undefined ? ['design-context', '--inline']
-          : ['design-context', '--inline', '--project-requirements', JSON.stringify(requirements)];
-
-        assert.equal(await command.run(args, fixture.options), 0);
-        const result = JSON.parse(stdout.join('')).result;
-        assert.equal(Object.hasOwn(requests[0], 'projectRequirements'), requirements !== undefined);
-        assert.equal(Object.hasOwn(result, 'projectRequirements'), requirements !== undefined);
-        assert.deepEqual(result.projectRequirements, requirements);
-        assert.equal(result.canonicalBodies[0].source.name, 'API Origin');
-        assert.equal(result.localEdits.updates[0].source.name, 'Locally edited');
+        assert.equal(await command.run(['design-context', option, 'private-input'], fixture.options), 2);
+        assert.equal(JSON.parse(stdout.join('')).error.category, 'usage');
+        assert.match(stderr.join(''), /apiease upgrade/);
+        assert.equal((stdout.join('') + stderr.join('')).includes('private-input'), false);
+        assert.deepEqual(requests, []);
         assert.deepEqual(await snapshot(fixture.directory), before);
-        assert.equal(await fs.readFile(path.join(fixture.directory, '.git/apiease/project-state-v1.json'), 'utf8'), stateBefore);
-        assert.equal(requests.length, 1);
       });
     }
 
-    it('should explain invalid requirements through stderr while preserving contract exit code and JSON', async context => {
-      const fixture = await buildFixture(context);
-      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
-      const { command, requests, stdout, stderr } = buildDesignContextBoundary(fixture);
-      const before = await snapshot(fixture.directory);
-
-      assert.equal(await command.run(['design-context', '--project-requirements', '{"objective":"private-input"}', '--json'], fixture.options), 4);
-      assert.equal(JSON.parse(stdout.join('')).error.category, 'contract');
-      assert.match(stderr.join(''), /projectName.*customerRequirements.*confirmedDecisions/);
-      assert.match(stderr.join(''), /apiease design-context/);
-      assert.equal((stdout.join('') + stderr.join('')).includes('private-input'), false);
-      assert.deepEqual(requests, []);
-      assert.deepEqual(await snapshot(fixture.directory), before);
-    });
-
-    it('should retain a baseline conflict with omitted requirements without writes', async context => {
+    it('reports intervening server changes separately from local edits without synchronizing', async context => {
       const fixture = await buildFixture(context);
       assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
       fixture.response.result.liveRevision += 1;
-      const { command, stdout } = buildDesignContextBoundary(fixture);
+      const {command, stdout} = buildDesignContextBoundary(fixture);
       const before = await snapshot(fixture.directory);
-
-      assert.equal(await command.run(['design-context'], fixture.options), 5);
-      assert.equal(JSON.parse(stdout.join('')).error.code, 'PROJECT_DESIGN_LOCAL_BASELINE_CONFLICT');
+      assert.equal(await command.run(['design-context'], fixture.options), 0);
+      const result = JSON.parse(stdout.join('')).result;
+      assert.equal(result.localEdits.hasManagedEdits, false);
+      assert.equal(result.baselineCheck.status, 'changed');
+      assert.equal(result.conflicts[0].code, 'PROJECT_DESIGN_BASELINE_REVISION_CONFLICT');
       assert.deepEqual(await snapshot(fixture.directory), before);
     });
 
-    it('should retain missing initialization with omitted requirements before network access', async context => {
+    it('retains missing initialization failure before network access', async context => {
       const fixture = await buildFixture(context);
-      const { command, requests, stdout } = buildDesignContextBoundary(fixture);
+      const {command, requests, stdout} = buildDesignContextBoundary(fixture);
       const before = await snapshot(fixture.directory);
-
       assert.equal(await command.run(['design-context'], fixture.options), 6);
       assert.equal(JSON.parse(stdout.join('')).error.category, 'local-integrity');
       assert.deepEqual(requests, []);
@@ -481,31 +434,16 @@ function buildDesignContextBoundary(fixture, mutateResponse = () => {}) {
 }
 
 function buildDesignContextResponse(snapshot, request) {
-  const commonInstructions = 'Follow the Project Design Protocol.\n';
   const canonicalBodies = snapshot.files.filter(file => file.path.startsWith('resources/'))
-    .map(file => ({ path: file.path, sourceDigest: file.digest, source: JSON.parse(file.content) }));
-  const response = {
-    contractVersion: 1, designContextContractVersion: 1, ok: true, outcome: 'PROJECT_DESIGN_CONTEXT_READY',
+    .map(file => ({path: file.path, sourceDigest: file.digest, source: JSON.parse(file.content)}));
+  return {
+    contractVersion: 1, designContextContractVersion: 3, ok: true, outcome: 'PROJECT_DESIGN_CONTEXT_READY',
     result: {
-      protocol: { protocolVersion: '1.0.0', commonInstructions, commonInstructionDigest: `sha256:${hash(commonInstructions)}`, codexEnvelope: 'Edit local canonical files.' },
-      ...(Object.hasOwn(request, 'projectRequirements') ? { projectRequirements: request.projectRequirements } : {}),
-      snapshot: { projectIdentity: { normalizedShopDomain: snapshot.projectIdentity.normalizedShopDomain, projectId: snapshot.projectIdentity.projectId }, liveRevision: snapshot.liveRevision, snapshotDigest: snapshot.snapshotDigest },
-      inventory: canonicalBodies.map(({ path: resourcePath, sourceDigest, source }) => ({ path: resourcePath, sourceDigest, handle: source.handle, resourceType: source.resourceType })),
-      canonicalBodies, bindings: snapshot.bindings,
-      limits: { ...snapshot.limits },
-      diagnostics: [],
+      snapshot: {projectIdentity: {normalizedShopDomain: snapshot.projectIdentity.normalizedShopDomain, projectId: snapshot.projectIdentity.projectId}, liveRevision: snapshot.liveRevision, snapshotDigest: snapshot.snapshotDigest},
+      inventory: canonicalBodies.map(({path: resourcePath, sourceDigest, source}) => ({path: resourcePath, sourceDigest, handle: source.handle, resourceType: source.resourceType})),
+      canonicalBodies: canonicalBodies.filter(body => request.resourcePaths.includes(body.path)),
+      bindings: snapshot.bindings, limits: {...snapshot.limits}, diagnostics: [],
+      dependencies: [], dependencyDiagnostics: [],
     },
   };
-  if (request.designContextContractVersion !== 2) return response;
-  const content = value => ({digest: `sha256:${hash(value)}`, bytes: Buffer.byteLength(value),
-    ...(request.knownModuleDigests.includes(`sha256:${hash(value)}`) ? {} : {content: value})});
-  response.designContextContractVersion = 2;
-  response.result.protocol = {protocolVersion: '1.0.0', manifestIdentity: `sha256:${hash('manifest')}`,
-    moduleSetIdentity: `sha256:${hash(commonInstructions)}`,
-    modules: [{id: 'core', required: true, when: 'Always.', ...content(commonInstructions)}],
-    envelope: content('Edit local canonical files.\n')};
-  response.result.dependencies = [];
-  response.result.dependencyDiagnostics = [];
-  response.result.canonicalBodies = canonicalBodies.filter(body => request.resourcePaths.includes(body.path));
-  return response;
 }

@@ -41,6 +41,7 @@ import { ProjectRenameService } from '../src/project/ProjectRenameService.js';
 import { ProjectSecureInputService } from '../src/project/ProjectSecureInputService.js';
 import { ProjectSynchronizationService } from '../src/project/ProjectSynchronizationService.js';
 import { ProjectValidationService } from '../src/project/ProjectValidationService.js';
+import { ProjectTemplateUpdateService } from '../src/project/ProjectTemplateUpdateService.js';
 
 const JSON_FLAG = '--json';
 const DEFAULT_FAILURE_STATUS = 500;
@@ -242,6 +243,7 @@ async function runCli({
   upgradeProjectCommand,
   versionCommand,
   topLevelCliCommandRouter = buildTopLevelCliCommandRouter(),
+  projectTemplateUpdateService = new ProjectTemplateUpdateService(),
   stdout = process.stdout,
   stderr = process.stderr,
 } = {}) {
@@ -296,6 +298,11 @@ async function runCli({
   }
 
   try {
+    if (['pull', 'validate', 'apply', 'design-context'].includes(commandName)) {
+      const update = await projectTemplateUpdateService.checkForUpdate(process.cwd());
+      if (update.status === 'available') stderr.write('APIEase template updates are available. Run "apiease upgrade" to review and install them.\n');
+      if (update.status === 'unavailable') stderr.write('APIEase template update check is unavailable; continuing. Try "apiease upgrade --check" later.\n');
+    }
     return await commandResult.command.run(commandArguments);
   } catch (error) {
     const failureResult = buildUnexpectedFailureResult(error);

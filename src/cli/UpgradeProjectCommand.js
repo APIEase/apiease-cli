@@ -1,3 +1,4 @@
+import {createInterface} from 'node:readline/promises';
 import { ProjectMetadataFileService } from '../project/ProjectMetadataFileService.js';
 import { ProjectUpgradeApplierService } from '../project/ProjectUpgradeApplierService.js';
 import { ProjectUpgradePlanService } from '../project/ProjectUpgradePlanService.js';
@@ -10,7 +11,7 @@ import { TemplateProjectVersionResolver } from '../template/TemplateProjectVersi
 const CHECK_FLAG = '--check';
 const DRY_RUN_FLAG = '--dry-run';
 const TEMPLATE_MANIFEST_NOT_FOUND_ERROR_CODE = 'APIEASE_PROJECT_TEMPLATE_MANIFEST_NOT_FOUND';
-const USAGE_TEXT = 'Usage: apiease upgrade [--check] [--dry-run]';
+const USAGE_TEXT = 'Usage: apiease upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]';
 
 class UpgradeProjectCommand {
   constructor({
@@ -22,6 +23,8 @@ class UpgradeProjectCommand {
     templateProjectSourceMaterializer = new TemplateProjectSourceMaterializer(),
     templateProjectSourceResolver = new TemplateProjectSourceResolver(),
     templateProjectVersionResolver = new TemplateProjectVersionResolver(),
+    stdin = process.stdin,
+    promptConflictChoice,
     stdout = process.stdout,
     stderr = process.stderr,
   } = {}) {
@@ -33,6 +36,8 @@ class UpgradeProjectCommand {
     this.templateProjectSourceMaterializer = templateProjectSourceMaterializer;
     this.templateProjectSourceResolver = templateProjectSourceResolver;
     this.templateProjectVersionResolver = templateProjectVersionResolver;
+    this.stdin = stdin;
+    this.promptConflictChoice = promptConflictChoice;
     this.stdout = stdout;
     this.stderr = stderr;
   }
@@ -58,95 +63,74 @@ class UpgradeProjectCommand {
         ?? await this.templateProjectVersionResolver.resolveTemplateVersion(materializedTemplate.templateDirectoryPath);
       const currentProjectTemplateVersion = projectMetadataResult.projectMetadata.template?.version?.value;
 
+      let upgradePlanResult = await this.tryBuildUpgradePlan({
+        currentWorkingDirectoryPath,
+        projectMetadata: projectMetadataResult.projectMetadata,
+        templateDirectoryPath: materializedTemplate.templateDirectoryPath,
+        conflictChoice: parseResult.conflictChoice,
+      });
+      if (!upgradePlanResult.ok) {
+        this.stderr.write(this.buildFailureOutput(upgradePlanResult));
+        return 1;
+      }
+      if (parseResult.mode === 'apply' && !parseResult.conflictChoice
+        && upgradePlanResult.upgradePlan.skipPaths.length && this.stdin.isTTY) {
+        const choice = await this.askConflictChoice(upgradePlanResult.upgradePlan);
+        if (choice === 'overwrite') upgradePlanResult = await this.tryBuildUpgradePlan({
+          currentWorkingDirectoryPath, projectMetadata: projectMetadataResult.projectMetadata,
+          templateDirectoryPath: materializedTemplate.templateDirectoryPath, conflictChoice: choice,
+        });
+        if (!upgradePlanResult.ok) {
+          this.stderr.write(this.buildFailureOutput(upgradePlanResult));
+          return 1;
+        }
+      }
+      const {upgradePlan, currentTemplateManifest} = upgradePlanResult;
+      const outputArguments = {currentProjectTemplateVersion, templateVersion, upgradePlan};
       if (parseResult.mode === 'dryRun') {
-        const upgradePlanResult = await this.tryBuildUpgradePlan({
-          currentWorkingDirectoryPath,
-          projectMetadata: projectMetadataResult.projectMetadata,
-          templateDirectoryPath: materializedTemplate.templateDirectoryPath,
-        });
-        if (!upgradePlanResult.ok) {
-          this.stderr.write(this.buildFailureOutput(upgradePlanResult));
-          return 1;
-        }
-
-        this.stdout.write(
-          this.buildDryRunOutput({
-            currentProjectTemplateVersion,
-            templateVersion,
-            upgradePlan: upgradePlanResult.upgradePlan,
-          }),
-        );
-        return this.hasPlannedChanges(upgradePlanResult.upgradePlan) ? 1 : 0;
+        this.stdout.write(this.buildDryRunOutput(outputArguments));
+        return this.hasPlannedChanges(upgradePlan) || currentProjectTemplateVersion !== templateVersion.value ? 1 : 0;
       }
-
-      if (parseResult.mode === 'check' && currentProjectTemplateVersion === templateVersion.value) {
-        this.stdout.write('APIEASE project template is up to date.\n');
-        return 0;
-      }
-
-      if (parseResult.mode === 'apply') {
-        const upgradePlanResult = await this.tryBuildUpgradePlan({
-          currentWorkingDirectoryPath,
-          projectMetadata: projectMetadataResult.projectMetadata,
-          templateDirectoryPath: materializedTemplate.templateDirectoryPath,
-        });
-        if (!upgradePlanResult.ok) {
-          this.stderr.write(this.buildFailureOutput(upgradePlanResult));
-          return 1;
+      if (parseResult.mode === 'check') {
+        if (!this.hasPlannedChanges(upgradePlan) && currentProjectTemplateVersion === templateVersion.value) {
+          this.stdout.write('APIEASE project template is up to date.\n');
+          return 0;
         }
-
-        const applyResult = await this.tryApplyUpgradePlan({
-          currentProjectDirectoryPath: currentWorkingDirectoryPath,
-          templateDirectoryPath: materializedTemplate.templateDirectoryPath,
-          upgradePlan: upgradePlanResult.upgradePlan,
-        });
-        if (!applyResult.ok) {
-          this.stderr.write(this.buildFailureOutput(applyResult));
-          return 1;
-        }
-
-        await this.projectMetadataFileService.writeProjectMetadata({
-          projectDirectoryPath: currentWorkingDirectoryPath,
-          projectMetadata: this.buildUpdatedProjectMetadata({
-            currentTemplateManifest: upgradePlanResult.currentTemplateManifest,
-            projectMetadata: projectMetadataResult.projectMetadata,
-            templateSource,
-            templateVersion: upgradePlanResult.upgradePlan.skipPaths.length === 0
-              ? templateVersion
-              : projectMetadataResult.projectMetadata.template.version,
-            upgradePlan: upgradePlanResult.upgradePlan,
-          }),
-        });
-        this.stdout.write(
-          this.buildApplyOutput({
-            currentProjectTemplateVersion,
-            templateVersion,
-            upgradePlan: upgradePlanResult.upgradePlan,
-          }),
-        );
-        return upgradePlanResult.upgradePlan.skipPaths.length === 0 ? 0 : 1;
+        this.stdout.write('APIEASE project template upgrade is available.\n');
+        this.stdout.write(this.buildDryRunOutput(outputArguments));
+        return 1;
       }
-
-      this.stdout.write(
-        [
-          'APIEASE project template upgrade is available.',
-          `Current project template version: ${currentProjectTemplateVersion}`,
-          `Latest template version: ${templateVersion.value}`,
-          '',
-        ].join('\n'),
-      );
-      return 1;
+      const applyResult = await this.tryApplyUpgradePlan({
+        currentProjectDirectoryPath: currentWorkingDirectoryPath,
+        templateDirectoryPath: materializedTemplate.templateDirectoryPath, upgradePlan,
+      });
+      if (!applyResult.ok) {
+        this.stderr.write(this.buildFailureOutput(applyResult));
+        return 1;
+      }
+      await this.projectMetadataFileService.writeProjectMetadata({
+        projectDirectoryPath: currentWorkingDirectoryPath,
+        projectMetadata: this.buildUpdatedProjectMetadata({
+          currentTemplateManifest, projectMetadata: projectMetadataResult.projectMetadata,
+          templateSource, templateVersion: upgradePlan.skipPaths.length === 0
+            ? templateVersion : projectMetadataResult.projectMetadata.template.version,
+          upgradePlan,
+        }),
+      });
+      this.stdout.write(this.buildApplyOutput(outputArguments));
+      return upgradePlan.skipPaths.length === 0 ? 0 : 1;
     } finally {
       await materializedTemplate.cleanup();
     }
   }
 
-  async tryBuildUpgradePlan({ currentWorkingDirectoryPath, projectMetadata, templateDirectoryPath }) {
+  async tryBuildUpgradePlan({ currentWorkingDirectoryPath, projectMetadata, templateDirectoryPath, conflictChoice }) {
     try {
       return await this.buildUpgradePlan({
         currentWorkingDirectoryPath,
         projectMetadata,
         templateDirectoryPath,
+        conflictChoice,
       });
     } catch (error) {
       return this.buildManagedPathFailureResult(error);
@@ -166,7 +150,7 @@ class UpgradeProjectCommand {
     }
   }
 
-  async buildUpgradePlan({ currentWorkingDirectoryPath, projectMetadata, templateDirectoryPath }) {
+  async buildUpgradePlan({ currentWorkingDirectoryPath, projectMetadata, templateDirectoryPath, conflictChoice }) {
     const storedTemplateManifest = projectMetadata.template?.manifest;
     if (!storedTemplateManifest) {
       return {
@@ -189,6 +173,8 @@ class UpgradeProjectCommand {
         currentProjectDirectoryPath: currentWorkingDirectoryPath,
         currentTemplateManifest,
         storedTemplateManifest: managedStoredTemplateManifest,
+        templateDirectoryPath,
+        conflictChoice,
       }),
     };
   }
@@ -201,25 +187,26 @@ class UpgradeProjectCommand {
       };
     }
 
-    if (
-      commandArguments.length > 2 ||
-      (commandArguments[1] && ![CHECK_FLAG, DRY_RUN_FLAG].includes(commandArguments[1]))
-    ) {
-      return {
-        ok: false,
-        message: 'Only the optional --check and --dry-run flags are supported.',
-      };
+    const options = commandArguments.slice(1);
+    const result = {ok: true, mode: 'apply'};
+    for (let index = 0; index < options.length; index += 1) {
+      const option = options[index];
+      if ([CHECK_FLAG, DRY_RUN_FLAG].includes(option) && result.mode === 'apply') {
+        result.mode = option === CHECK_FLAG ? 'check' : 'dryRun';
+      } else if (option === '--on-conflict' && !result.conflictChoice
+        && ['overwrite', 'ignore'].includes(options[index + 1])) {
+        result.conflictChoice = options[++index];
+      } else return {ok: false, message: 'Use --check or --dry-run, and --on-conflict overwrite|ignore.'};
     }
+    return result;
+  }
 
-    return {
-      ok: true,
-      mode:
-        commandArguments[1] === CHECK_FLAG
-          ? 'check'
-          : commandArguments[1] === DRY_RUN_FLAG
-            ? 'dryRun'
-            : 'apply',
-    };
+  async askConflictChoice(upgradePlan) {
+    const prompt = `${upgradePlan.conflictReason ?? 'Differing or conflicting template content.'}\n${upgradePlan.skipPaths.join('\n')}\nOverwrite with template instructions, or Ignore for this upgrade? [Ignore]: `;
+    if (this.promptConflictChoice) return await this.promptConflictChoice(prompt);
+    const reader = createInterface({input: this.stdin, output: this.stderr});
+    try { return (await reader.question(prompt)).trim().toLowerCase(); }
+    finally { reader.close(); }
   }
 
   buildFailureOutput(projectMetadataResult) {
@@ -262,6 +249,7 @@ class UpgradeProjectCommand {
     this.appendSection(outputLines, 'Update:', upgradePlan.updatePaths);
     this.appendSection(outputLines, 'Remove:', upgradePlan.removePaths);
     this.appendSection(outputLines, 'Skip conflict:', upgradePlan.skipPaths);
+    this.appendConflictGuidance(outputLines, upgradePlan);
 
     return outputLines.join('\n');
   }
@@ -280,15 +268,18 @@ class UpgradeProjectCommand {
     this.appendSection(outputLines, 'Updated:', upgradePlan.updatePaths);
     this.appendSection(outputLines, 'Removed:', upgradePlan.removePaths);
     this.appendSection(outputLines, 'Skipped conflicting paths:', upgradePlan.skipPaths);
+    this.appendConflictGuidance(outputLines, upgradePlan);
 
     return outputLines.join('\n');
   }
 
   buildUpdatedProjectMetadata({ currentTemplateManifest, projectMetadata, templateSource, templateVersion, upgradePlan }) {
+    const {pendingPaths, ...previousTemplate} = projectMetadata.template;
     return {
       ...projectMetadata,
       template: {
-        ...projectMetadata.template,
+        ...previousTemplate,
+        ...(upgradePlan.skipPaths.length ? {pendingPaths: upgradePlan.skipPaths} : {}),
         displayTemplateSource: templateSource.displayTemplateSource,
         manifest: this.buildUpdatedTemplateManifest({
           currentTemplateManifest,
@@ -325,6 +316,13 @@ class UpgradeProjectCommand {
     }
 
     return updatedTemplateManifest;
+  }
+
+  appendConflictGuidance(outputLines, upgradePlan) {
+    if (upgradePlan.conflictReason) outputLines.push(upgradePlan.conflictReason);
+    if (upgradePlan.skipPaths.length) outputLines.push(
+      'Preserved conflicts. Choose --on-conflict overwrite to replace them, or --on-conflict ignore to preserve them for this upgrade.', '',
+    );
   }
 
   appendSection(outputLines, heading, paths) {

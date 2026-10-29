@@ -1,4 +1,3 @@
-import { createHash } from 'node:crypto';
 
 import { ProjectContractService } from '../project/ProjectContractService.js';
 const PROJECT_API_ENDPOINTS = Object.freeze({
@@ -252,25 +251,7 @@ class ApiEaseProjectApiClient {
       return this.buildInvalidResponse('PROJECT_RESPONSE_STATUS_INVALID');
     }
 
-    if (!this.hasValidProjectDesignProtocolDigest(endpoint, responseDocument)) {
-      return this.buildInvalidResponse('PROJECT_DESIGN_PROTOCOL_DIGEST_MISMATCH');
-    }
-
     return this.classifyValidResponse(response, responseDocument);
-  }
-
-  hasValidProjectDesignProtocolDigest(endpoint, responseDocument) {
-    if (endpoint !== PROJECT_API_ENDPOINTS.designContext || !responseDocument.ok) return true;
-    const protocol = responseDocument.result.protocol;
-    if (responseDocument.designContextContractVersion === 2) {
-      return [...protocol.modules, protocol.envelope].every(entry => {
-        if (!Object.hasOwn(entry, 'content')) return true;
-        const digest = createHash('sha256').update(entry.content, 'utf8').digest('hex');
-        return entry.digest === `sha256:${digest}` && entry.bytes === Buffer.byteLength(entry.content);
-      });
-    }
-    const digest = createHash('sha256').update(protocol.commonInstructions, 'utf8').digest('hex');
-    return protocol.commonInstructionDigest === `sha256:${digest}`;
   }
 
   async parseResponseDocument(response) {

@@ -16,6 +16,8 @@ class ProjectUpgradePlanService {
     currentProjectDirectoryPath,
     currentTemplateManifest,
     storedTemplateManifest,
+    templateDirectoryPath,
+    conflictChoice = 'ignore',
   }) {
     const addPaths = [];
     const removePaths = [];
@@ -72,10 +74,6 @@ class ProjectUpgradePlanService {
         continue;
       }
 
-      if (storedTemplateHash === currentTemplateHash) {
-        continue;
-      }
-
       if (currentProjectFileHash === currentTemplateHash) {
         continue;
       }
@@ -88,12 +86,52 @@ class ProjectUpgradePlanService {
       skipPaths.push(managedPath);
     }
 
-    return {
-      addPaths,
-      removePaths,
-      skipPaths,
-      updatePaths,
-    };
+    const plan = {addPaths, removePaths, skipPaths, updatePaths};
+    const newerInstructions = templateDirectoryPath && await this.hasNewerInstructionVersion(
+      currentProjectDirectoryPath, templateDirectoryPath,
+    );
+    if (newerInstructions || skipPaths.some(managedPath => this.isInstructionSetPath(managedPath))) {
+      const instructionPaths = [...managedPaths].filter(managedPath => this.isInstructionSetPath(managedPath));
+      for (const key of ['addPaths', 'removePaths', 'updatePaths']) {
+        plan[key] = plan[key].filter(managedPath => !instructionPaths.includes(managedPath));
+      }
+      plan.skipPaths = [...new Set([...skipPaths, ...instructionPaths])].sort();
+    }
+    if (newerInstructions) plan.conflictReason = 'Installed instructions declare a newer protocol version.';
+    if (conflictChoice === 'overwrite') await this.overwriteConflicts(plan, currentTemplateManifest, currentProjectDirectoryPath);
+    return plan;
+  }
+
+  isInstructionSetPath(managedPath) {
+    return managedPath.startsWith('docs/resource-instructions/') || [
+      'AGENTS.md', 'CLAUDE.md', 'README.md', '.github/copilot-instructions.md', 'docs/shared-ongoing-ai-guidance.md',
+    ].includes(managedPath);
+  }
+
+  async hasNewerInstructionVersion(projectDirectoryPath, templateDirectoryPath) {
+    const versions = await Promise.all([projectDirectoryPath, templateDirectoryPath].map(async rootDirectoryPath => {
+      const manifestPath = this.projectManagedPathResolver.resolveManagedPath({
+        managedPath: 'docs/resource-instructions/manifest.json', rootDirectoryPath,
+      });
+      try { return JSON.parse(await fs.readFile(manifestPath, 'utf8')).protocolVersion; }
+      catch (error) { if (error.code === 'ENOENT' || error instanceof SyntaxError) return null; throw error; }
+    }));
+    if (!versions.every(version => typeof version === 'string' && /^\d+\.\d+\.\d+$/.test(version))) return false;
+    const [installed, available] = versions.map(version => version.split('.').map(Number));
+    const difference = installed.findIndex((part, index) => part !== available[index]);
+    return difference !== -1 && installed[difference] > available[difference];
+  }
+
+  async overwriteConflicts(plan, currentTemplateManifest, projectDirectoryPath) {
+    for (const managedPath of plan.skipPaths) {
+      const existingHash = await this.readProjectFileHash(projectDirectoryPath, managedPath);
+      const templateHash = currentTemplateManifest[managedPath];
+      if (existingHash === templateHash) continue;
+      if (!templateHash) { if (existingHash) plan.removePaths.push(managedPath); }
+      else plan[existingHash ? 'updatePaths' : 'addPaths'].push(managedPath);
+    }
+    plan.skipPaths = [];
+    for (const key of ['addPaths', 'removePaths', 'updatePaths']) plan[key].sort();
   }
 
   async readProjectFileHash(currentProjectDirectoryPath, managedPath) {

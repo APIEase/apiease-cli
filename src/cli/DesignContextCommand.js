@@ -1,17 +1,12 @@
-import path from 'node:path';
 import { PersonalProjectAuthenticationAdapter } from '../auth/PersonalProjectAuthenticationAdapter.js';
 import { ApiEaseProjectApiClient } from '../client/ApiEaseProjectApiClient.js';
 import { ProjectDesignContextService } from '../project/ProjectDesignContextService.js';
-import { ProjectDesignContextBundleService } from '../project/ProjectDesignContextBundleService.js';
 import {
   CLI_RESULT_VERSION,
   ProjectCommandResultService,
 } from './ProjectCommandResultService.js';
 
 const JSON_FLAG = '--json';
-const PROJECT_REQUIREMENTS_OPTION = '--project-requirements';
-const OUTPUT_DIRECTORY_OPTION = '--output-dir';
-const INLINE_FLAG = '--inline';
 const RESOURCE_PATH_OPTION = '--resource-path';
 const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
@@ -23,14 +18,12 @@ class DesignContextCommand {
   constructor({
     personalProjectAuthenticationAdapter = new PersonalProjectAuthenticationAdapter(),
     projectDesignContextService,
-    projectDesignContextBundleService = new ProjectDesignContextBundleService(),
     stdout = process.stdout,
     stderr = process.stderr,
     projectCommandResultService = new ProjectCommandResultService({ stdout, stderr }),
   } = {}) {
     this.personalProjectAuthenticationAdapter = personalProjectAuthenticationAdapter;
     this.projectDesignContextService = projectDesignContextService;
-    this.projectDesignContextBundleService = projectDesignContextBundleService;
     this.stdout = stdout;
     this.projectCommandResultService = projectCommandResultService;
   }
@@ -55,10 +48,6 @@ class DesignContextCommand {
       if (nextIndex === null) return this.buildParseFailure(parseResult.diagnosticCode);
       argumentIndex = nextIndex;
     }
-    if (parseResult.inline && parseResult.outputDirectory !== undefined
-      || parseResult.resourcePaths?.length && (parseResult.inline || parseResult.outputDirectory !== undefined)) {
-      return this.buildParseFailure();
-    }
     return parseResult;
   }
 
@@ -69,11 +58,6 @@ class DesignContextCommand {
   parseOption(commandArguments, argumentIndex, parseResult) {
     const argument = commandArguments[argumentIndex];
     if (argument === JSON_FLAG) return this.parseJsonFlag(argumentIndex, parseResult);
-    if (argument === INLINE_FLAG) {
-      if (parseResult.inline) return null;
-      parseResult.inline = true;
-      return argumentIndex;
-    }
     if (argument === RESOURCE_PATH_OPTION) {
       const resourcePath = commandArguments[argumentIndex + 1];
       if (!resourcePath || !/^resources\/(functions|requests|variables|widgets)\/[a-z0-9]+(?:-[a-z0-9]+)*\.json$/u.test(resourcePath)) return null;
@@ -81,15 +65,6 @@ class DesignContextCommand {
       if (parseResult.resourcePaths.includes(resourcePath) || parseResult.resourcePaths.length >= 1000) return null;
       parseResult.resourcePaths.push(resourcePath);
       return argumentIndex + 1;
-    }
-    if (argument === OUTPUT_DIRECTORY_OPTION) {
-      const outputDirectory = this.readOptionValue(commandArguments, argumentIndex, parseResult);
-      if (outputDirectory === null) return null;
-      parseResult.outputDirectory = outputDirectory;
-      return argumentIndex + 1;
-    }
-    if (argument === PROJECT_REQUIREMENTS_OPTION) {
-      return this.parseProjectRequirements(commandArguments, argumentIndex, parseResult);
     }
     if (Object.hasOwn(PROJECT_CONFIGURATION_OPTION_FIELDS, argument)) {
       return this.parseConfigurationOption(commandArguments, argumentIndex, parseResult);
@@ -101,22 +76,6 @@ class DesignContextCommand {
     if (parseResult.seenOptions.has(JSON_FLAG)) return null;
     parseResult.seenOptions.add(JSON_FLAG);
     return argumentIndex;
-  }
-
-  parseProjectRequirements(commandArguments, argumentIndex, parseResult) {
-    const serializedRequirements = this.readOptionValue(commandArguments, argumentIndex, parseResult);
-    if (serializedRequirements === null) return null;
-    try {
-      parseResult.projectRequirements = JSON.parse(serializedRequirements);
-      if (!parseResult.projectRequirements) {
-        parseResult.diagnosticCode = 'PROJECT_DESIGN_REQUIREMENTS_INVALID';
-        return null;
-      }
-      return argumentIndex + 1;
-    } catch {
-      parseResult.diagnosticCode = 'PROJECT_DESIGN_REQUIREMENTS_JSON_INVALID';
-      return null;
-    }
   }
 
   parseConfigurationOption(commandArguments, argumentIndex, parseResult) {
@@ -150,10 +109,7 @@ class DesignContextCommand {
       parseResult,
       requestConfiguration,
     });
-    return await this.renderDesignContextResult(designContext, {
-      outputDirectoryPath: parseResult.outputDirectory === undefined ? undefined
-        : path.resolve(currentWorkingDirectoryPath, parseResult.outputDirectory),
-    });
+    return await this.renderDesignContextResult(designContext);
   }
 
   async resolveRequestConfiguration(parseResult) {
@@ -171,10 +127,7 @@ class DesignContextCommand {
         apiBaseUrl: requestConfiguration.apiBaseUrl,
         authenticationContext: requestConfiguration.authenticationContext,
       },
-      ...(Object.hasOwn(parseResult, 'projectRequirements')
-        ? { projectRequirements: parseResult.projectRequirements } : {}),
-      ...(!parseResult.inline && parseResult.outputDirectory === undefined
-        ? {referenceMode: true, resourcePaths: parseResult.resourcePaths ?? []} : {}),
+      resourcePaths: parseResult.resourcePaths ?? [],
     });
   }
 
@@ -187,14 +140,9 @@ class DesignContextCommand {
     return this.projectDesignContextService;
   }
 
-  async renderDesignContextResult(designContext, { outputDirectoryPath } = {}) {
+  async renderDesignContextResult(designContext) {
     if (!designContext.ok) return this.renderFailure(this.buildApiFailure(designContext));
-    if (designContext.conflicts.length > 0) {
-      return this.renderFailure(this.buildBaselineConflictFailure(designContext.conflicts));
-    }
-    const result = outputDirectoryPath === undefined ? designContext
-      : await this.projectDesignContextBundleService.writeBundle({ designContext, outputDirectoryPath });
-    const envelope = this.buildSuccessEnvelope(result);
+    const envelope = this.buildSuccessEnvelope(designContext);
     this.writeEnvelope(envelope);
     return this.projectCommandResultService.resolveExitCode(envelope);
   }
@@ -231,15 +179,6 @@ class DesignContextCommand {
     if (status === 409) return 'conflict';
     if ([429, 503].includes(status)) return 'service';
     return 'internal';
-  }
-
-  buildBaselineConflictFailure(conflicts) {
-    return {
-      command: 'design-context',
-      state: 'failure',
-      error: { code: 'PROJECT_DESIGN_LOCAL_BASELINE_CONFLICT', category: 'conflict' },
-      diagnostics: conflicts.map(({ code }) => ({ code })),
-    };
   }
 
   buildUsageFailure(parseResult) {
@@ -291,22 +230,11 @@ class DesignContextCommand {
 
   buildFailureGuidance(commandResult) {
     if (commandResult.outcome === 'CONTRACT_VERSION_UNSUPPORTED') return [
-      'This server does not support compact design context yet. Upgrade the server, or use "apiease design-context --inline" for the supported full-context contract.',
-    ];
-    if (commandResult.error?.code === 'PROJECT_DESIGN_BUNDLE_DESTINATION_EXISTS') return [
-      'Choose a new --output-dir directory. Existing files and directories are never overwritten.',
-    ];
-    const diagnostics = commandResult.diagnostics ?? [];
-    const invalidRequirements = diagnostics.some(({ code, path }) => (
-      code.startsWith('PROJECT_DESIGN_REQUIREMENTS_') || path?.startsWith('/projectRequirements')
-    ));
-    if (invalidRequirements) return [
-      'Invalid --project-requirements: supply valid JSON with exactly projectName (nonempty string), customerRequirements (array of {id, text}), and confirmedDecisions (array of nonempty strings). Null is invalid.',
-      `Example: --project-requirements '{"projectName":"Order status","customerRequirements":[{"id":"status","text":"Show order status."}],"confirmedDecisions":[]}'`,
-      'Requirements are optional. Run "apiease design-context" when the agent already has the task in its conversation.',
+      'This CLI requires project-status contract version 3. Update the APIEase server and CLI together.',
     ];
     if (commandResult.error?.category === 'usage') return [
-      'Invalid design-context arguments: use "apiease design-context [--inline | --output-dir <new-directory>] [--resource-path <path>] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]". Repeat --resource-path only for distinct paths in compact mode.',
+      'Use "apiease design-context [--resource-path <path>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]".',
+      'Instructions are installed by "apiease init" and "apiease upgrade". Read docs/resource-instructions/README.md. The --inline, --output-dir and --project-requirements options are retired; keep intent in the conversation and CUSTOM_* files.',
     ];
     return [];
   }

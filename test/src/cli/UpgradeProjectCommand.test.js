@@ -17,12 +17,15 @@ describe('UpgradeProjectCommand', () => {
       const stdoutChunks = [];
       const stderrChunks = [];
       const upgradeProjectCommand = new UpgradeProjectCommand({
+        templateProjectManifestBuilder: {buildTemplateManifest: async () => ({})},
+        projectUpgradePlanService: {buildUpgradePlan: async () => ({addPaths: [], removePaths: [], updatePaths: [], skipPaths: []})},
         projectMetadataFileService: {
           async readProjectMetadata() {
             return {
               ok: true,
               projectMetadata: {
                 template: {
+                  manifest: {},
                   version: {
                     type: 'gitCommit',
                     value: 'template-sha-1',
@@ -66,12 +69,15 @@ describe('UpgradeProjectCommand', () => {
       const stdoutChunks = [];
       const stderrChunks = [];
       const upgradeProjectCommand = new UpgradeProjectCommand({
+        templateProjectManifestBuilder: {buildTemplateManifest: async () => ({})},
+        projectUpgradePlanService: {buildUpgradePlan: async () => ({addPaths: [], removePaths: [], updatePaths: [], skipPaths: []})},
         projectMetadataFileService: {
           async readProjectMetadata() {
             return {
               ok: true,
               projectMetadata: {
                 template: {
+                  manifest: {},
                   version: {
                     type: 'gitCommit',
                     value: 'template-sha-1',
@@ -109,6 +115,7 @@ describe('UpgradeProjectCommand', () => {
         stdoutChunks.join(''),
         [
           'APIEASE project template upgrade is available.',
+          'APIEASE project upgrade dry run.',
           'Current project template version: template-sha-1',
           'Latest template version: template-sha-2',
           '',
@@ -238,6 +245,8 @@ describe('UpgradeProjectCommand', () => {
           'Skip conflict:',
           'conflict.txt',
           '',
+          'Preserved conflicts. Choose --on-conflict overwrite to replace them, or --on-conflict ignore to preserve them for this upgrade.',
+          '',
         ].join('\n'),
       );
       assert.equal(stderrChunks.join(''), '');
@@ -342,6 +351,8 @@ describe('UpgradeProjectCommand', () => {
         {
           kind: 'plan',
           upgradePlanInput: {
+            templateDirectoryPath: '/tmp/apiease-template',
+            conflictChoice: undefined,
             currentProjectDirectoryPath: '/tmp/project',
             currentTemplateManifest: {
               'added.txt': 'added-hash',
@@ -509,6 +520,8 @@ describe('UpgradeProjectCommand', () => {
         {
           kind: 'plan',
           upgradePlanInput: {
+            templateDirectoryPath: '/tmp/apiease-template',
+            conflictChoice: undefined,
             currentProjectDirectoryPath: '/tmp/project',
             currentTemplateManifest: {
               'README.md': 'readme-new-hash',
@@ -672,6 +685,7 @@ describe('UpgradeProjectCommand', () => {
             cliVersion: '0.1.0-test',
             template: {
               displayTemplateSource: '../apiease-template',
+              pendingPaths: ['conflict.txt'],
               manifest: {
                 'conflict.txt': 'conflict-old-hash',
                 'updated.txt': 'new-hash',
@@ -698,6 +712,8 @@ describe('UpgradeProjectCommand', () => {
           '',
           'Skipped conflicting paths:',
           'conflict.txt',
+          '',
+          'Preserved conflicts. Choose --on-conflict overwrite to replace them, or --on-conflict ignore to preserve them for this upgrade.',
           '',
         ].join('\n'),
       );

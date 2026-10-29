@@ -45,7 +45,7 @@ apiease --version
 apiease init [project-name]
 apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease design-context [--inline | --output-dir <new-directory> | --resource-path <path>...] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
+apiease design-context [--resource-path <path>...] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
 apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease apply [--require-approval] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
@@ -154,95 +154,71 @@ Run Project API commands from anywhere inside a checkout initialized with `apiea
 
 Plain `apiease init` copies the starter files and records template upgrade metadata; it does not authenticate or establish a Project API baseline. Run `git init` if needed, then `apiease pull` to initialize that checkout from APIEase. `apiease validate` remains read-only and explains this recovery step until initialization succeeds. Use `init --from-existing-resources` when starting in a new or empty destination.
 
-### Design with the APIEase Project Design Protocol
+### Read installed instructions
 
-Command-line Codex acts as the Codex Project Designer by editing canonical local files. Before designing, retrieve the authenticated project context and the current effective APIEase Project Design Protocol:
+Resource instructions are developer-written Markdown explaining how to create and
+edit requests, widgets, variables, and functions. `apiease init` installs a checked
+copy in `docs/resource-instructions/`; `apiease upgrade` maintains it. A script
+copies content from APIEase's authoritative instruction bundle; it does not author
+the instructions. Resource JSON under `resources/*` is the project source you edit.
+
+Project instructions in `AGENTS.md`, `README.md`, and
+`docs/shared-ongoing-ai-guidance.md` explain project structure and the CLI workflow.
+Start with `AGENTS.md` and `docs/resource-instructions/README.md`. Read the index's
+small required core and adapter envelope, then modules for the resource family,
+request type, and provider involved. Reading instructions requires neither store
+authentication nor a sibling APIEase checkout. Keep customer intent in the
+conversation and durable project decisions in `CUSTOM_*` files.
+
+1. Initialize with `apiease init my-project --from-existing-resources` and enter it.
+   Plain `apiease init my-project` installs the template without authentication;
+   use `git init` if needed and `apiease pull` to establish synchronization before
+   project validation or apply.
+2. Read installed project instructions and applicable resource instructions.
+3. Inspect relevant resource JSON and dependencies, then edit canonical files.
+4. Run `apiease validate` for the complete project without executing resources.
+5. Run `apiease apply` when authorized, or `apiease apply --require-approval` for
+   deferred review. Git diffs present edits; they grant no mutation authority.
+6. When notified, preview `apiease upgrade --dry-run` and upgrade template files.
+
+### Inspect project status
+
+Use `apiease design-context` for current **project status**: resource inventory,
+dependencies, local changes, and a **baseline check**. It requires authentication
+and an initialized checkout, but is optional for reading instructions.
 
 ```bash
 apiease design-context
-```
-
-The default returns a compact JSON briefing with current server/local baselines,
-change counts, `readFirst` paths, and an index of verified local instruction modules.
-Read the small core and Codex envelope, then the modules applicable to the resource
-family, request type and provider involved in your task. The index states when each
-module applies. It does not infer scope from your conversation or filter resources
-based on requirements.
-
-The CLI refreshes these references automatically whenever you run this command.
-It checks the current authenticated server and verifies module digests before
-reusing unchanged bytes. References are isolated by server and project and stored
-beside checkout-local Git state, outside versioned source. Corrupt module bytes are
-retrieved again; unsafe cache paths or invalid responses fail. A failed or offline
-request never falls back to an old context. Canonical files, operational baselines,
-and customer guidance remain unchanged.
-
-`files.inventory` contains the complete resource inventory and dependency information;
-`files.localChanges` records local edits, deletions and protected-value selectors.
-Read relevant source files in your checkout. Retrieve current server source for an
-exact path when needed, repeating the option for additional distinct paths:
-
-```bash
 apiease design-context --resource-path resources/requests/read-product-page.json
 ```
 
-The selected sources appear in `files.serverResources` and `files.context`.
-Selection changes only source delivery; whole-project validation, discovery and
-conflict checks remain intact. Every response includes fresh state. Module references
-and captured context are not an offline baseline, approval, or permission to apply.
+The **synchronization baseline** is the server state recorded after successful
+synchronization or apply. A baseline check compares that recorded state with
+current server state to detect intervening changes. It is separate from detecting
+local edits and does not use Git commits as authority.
 
-For the full JSON contract, including all current source bodies and instructions:
+The command returns one JSON result on stdout. `result.inventory`, `dependencies`,
+and `dependencyDiagnostics` cover the whole project. `localEdits.hasManagedEdits`
+compares local content with the synchronization baseline; `differencesFromServer`
+contains creates and updates relative to current server resources.
+`baselineCheck.status` is `current` or `changed`, with details in `conflicts`.
+A successful status read returns exit code 0 even when the baseline changed.
+Reconcile deliberately before apply; validation and apply still enforce server
+concurrency checks. Status does not synchronize or authorize changes.
 
-```bash
-apiease design-context --inline
-```
+`canonicalBodies` contains only sources selected with repeated `--resource-path`;
+it is empty by default. Selection does not narrow inventory, dependencies,
+validation, or apply. The command writes no instruction cache or context files.
+Authentication and transport failures have no stale-state fallback.
 
-Scripts that consumed the former bare-command full JSON should add `--inline`.
-The compact default negotiates design-context contract version 2. Existing clients
-retain version 1 responses. Deploy the updated server before using the compact CLI;
-an older server returns an explicit version error, with `--inline` as the deliberate
-compatibility path. There is no automatic fallback.
-
-`apiease upgrade` separately maintains template-owned files. `design-context`
-maintains current server references; neither command replaces the other.
-
-Requirements already in the conversation need no CLI argument.
-
-For a standalone capture, use an existing parent and a new destination outside
-managed resources:
-
-```bash
-apiease design-context --output-dir /tmp/apiease-context-1
-```
-
-This explicit mode preserves the full export contract: `context.json`,
-`instructions.md`, `codex-envelope.md`, `inventory.json`, `server-resources.json`,
-and `local-changes.json`. It returns paths, byte sizes and digests. It retrieves the
-complete instruction set and source bodies, independently of the compact cache.
-Existing paths and symlinks are refused; incomplete bundles are removed on write
-failure. Relative paths resolve from the invocation directory. Files use private
-permissions. `--inline`, `--output-dir`, and compact-only `--resource-path` cannot
-be combined. A capture remains a point-in-time reference, not authority or approval.
-
-To include explicit requirements, supply the supported structure:
-
-```bash
-apiease design-context --project-requirements '{"projectName":"Order status","customerRequirements":[{"id":"status","text":"Show order status."}],"confirmedDecisions":[]}'
-```
-
-All three fields are required when the option is supplied: a nonempty `projectName`, `customerRequirements` containing `{id, text}` objects with nonempty strings, and `confirmedDecisions` containing nonempty strings. Both arrays may be empty. Unknown fields, malformed JSON, and explicit `null` are invalid. Failures retain the JSON result and established exit codes; corrective guidance goes to stderr. Authentication and an initialized checkout are still required, and baseline conflicts must be reconciled deliberately.
-
-Use the returned context to design by editing canonical resource files locally. Those files encode Canonical Resource Source objects. Neither the checkout, Git history, nor a Git diff is mutation authority, and `design-context` does not validate, submit, or apply a change.
-
-Canonical version 1 source supports `description` on requests, widgets, variables, and functions. Request, widget, and variable descriptions are optional so legacy files remain byte-stable when the field is absent; functions retain their required description. An explicit empty string clears a description, while `null` is invalid. Descriptions may contain at most 65,536 Unicode code points and participate in source, change-set, validation, plan, and apply identity.
-
-Widgets support `type: "storefront"` and `type: "admin"`. An omitted `type` retains legacy storefront behavior and stays omitted in canonical bytes. Optional `adminTarget`, `adminText`, and `adminUi` fields also retain their exact values or omission. `adminTarget` is an exact supported Shopify Admin location; omission or `""` selects the manual picker. Admin widgets require nonblank `adminText` or `adminUi`. `adminText` is literal text. `adminUi` is a JSON **string**, containing either the supported version 1 components or one version 2 Block with `variables` and `render`; nonblank UI replaces text at render time. The CLI checks allowed fields, targets, bounds, component definitions, and Block source using the server contract. New Admin widgets normally use `liquid: ""`, `javascript: ""`, `externalJavascriptUrls: []`, and `disableJavascript: false`. These fields remain required in canonical files; the CLI does not invent optional defaults or rewrite UI JSON strings.
-
-After local design:
-
-1. Run `apiease validate` for authoritative validation without mutation.
-2. Choose the lifecycle separately. `apiease apply` is an explicit personal immediate apply that validates, plans, and synchronously commits through the shared server pipeline.
-3. When using deferred submission, submit the same Canonical Resource Change Set for Project Proposal review instead of immediate apply. Deferred submission stores an immutable Project Change Artifact and makes no live mutation before approval.
+Migration: instruction downloads, `--inline`, `--output-dir`, and
+`--project-requirements` are retired. Read installed instructions after `init` or
+`upgrade`; keep requirements in the conversation or `CUSTOM_*` files. Scripts must
+consume the status fields above instead of `protocol`, `readFirst`, `files`, or
+`cache`. CLI and server require design-context contract version 3; deploy them
+together. Versions 1 and 2 fail explicitly. Other Project API and CLI JSON envelope
+versions are unchanged. Invalid options exit 2; authentication/authorization,
+contract, checkout-integrity, and service errors retain their existing exit codes.
 
 ### Pull Verified Resources
 
@@ -340,62 +316,49 @@ The CLI does not accept secure values. The current version 1 server contract can
 
 ## Check for Template Upgrades
 
-Check whether the current project template metadata matches the latest local template version:
+`apiease upgrade` updates project instructions, installed resource instructions,
+and other template-managed files. It preserves `CUSTOM_*` guidance, resource JSON,
+and operational bindings and synchronization state.
 
 ```bash
 apiease upgrade --check
-```
-
-- The command reads `.apiease/project.json` from the current project directory.
-- During local CLI development, it compares the stored template git commit to the current `../apiease-template` git commit.
-- In installed usage, it compares the stored template git commit to the latest commit fetched from [kevinstl-org/apiease-template](https://github.com/kevinstl-org/apiease-template).
-- It exits `0` when the project is already up to date.
-- It exits `1` when an upgrade is available or when the project metadata is missing.
-
-Example up-to-date output:
-
-```text
-APIEASE project template is up to date.
-```
-
-Example upgrade-available output:
-
-```text
-APIEASE project template upgrade is available.
-Current project template version: <stored-template-commit>
-Latest template version: <current-template-commit>
-```
-
-Preview the file-level upgrade plan without writing any changes:
-
-```bash
 apiease upgrade --dry-run
-```
-
-Current dry-run behavior:
-
-- It compares the stored template manifest from `.apiease/project.json` to the current template manifest.
-- It classifies template-managed file changes as `Add`, `Update`, `Remove`, or `Skip conflict`.
-- It ignores customer-owned template files: `CUSTOM_README.md` and `CUSTOM_AGENT_GUIDANCE.md`.
-- It treats the template `README.md` as template-managed, so README updates can be added, updated, removed, or skipped as conflicts.
-- It never writes project files.
-- It exits `1` when there are planned changes or conflicts to review.
-
-Apply safe template-managed upgrades:
-
-```bash
 apiease upgrade
+apiease upgrade --on-conflict ignore
+apiease upgrade --on-conflict overwrite
 ```
 
-Current apply behavior:
+`--check` and `--dry-run` compare actual files and manifests as well as the recorded
+template version; neither writes files. Exit code 0 means current; 1 means changes,
+conflicts, or a failed check. `--dry-run --on-conflict overwrite` previews which
+conflicting files would be replaced.
 
-- It adds missing template-managed files.
-- It updates template-managed files that still match their previously stored template baseline.
-- It removes deleted template-managed files only when the project copy still matches the stored baseline.
-- It skips conflicting template-managed files instead of overwriting them.
-- It ignores user-added files that are not part of the stored template manifest unless they collide with a newly added template-managed path.
-- It updates `.apiease/project.json` after applying safe changes.
-- It exits `1` when any managed conflicts remain after applying the safe changes.
+Unchanged managed files update normally. Differing local content is a conflict.
+If the installed instruction manifest declares a higher protocol version, the CLI
+reports it as newer; differing hashes and modification times do not establish age.
+Interactive upgrades offer **Overwrite** or **Ignore**, defaulting to Ignore.
+Scripts and agents use `--on-conflict overwrite|ignore`. Without an explicit
+overwrite choice, noninteractive upgrades preserve and report conflicts without
+prompting. Overwrite applies only to template-managed paths.
+
+Resource instructions and their project entry points resolve as one set, so
+ignoring a conflict preserves a coherent instruction set. Ignored paths remain
+pending in template metadata and are not marked updated. An upgrade with unresolved
+conflicts exits 1. Move custom guidance to `CUSTOM_*` before choosing overwrite.
+Unrelated files remain untouched. The bundled product knowledge file retains its
+existing always-refresh policy.
+
+Template provenance lives in `.apiease/template.json` for operational checkouts,
+and in `.apiease/project.json` before first synchronization. Older operational
+checkouts without provenance treat differing existing files as conflicts; they do
+not silently adopt those bytes as an unmodified template baseline.
+
+`pull`, `validate`, `apply`, and `design-context` perform a shared, inexpensive
+update check. Public templates use a commit feed without downloading the full
+template; local development also compares template content. Available updates and
+unavailable checks are reported on stderr, leaving JSON stdout unchanged. An
+unavailable check does not mean current and does not block the requested command.
+Checks never install updates. Use `upgrade --check` for a full file comparison.
 
 ## Configure Authentication
 

@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {ProjectCanonicalArtifactService} from '../../../src/project/ProjectCanonicalArtifactService.js';
 
 import {
-  PROJECT_DESIGN_WORKFLOW_GUIDANCE,
   ProjectDesignContextService,
 } from '../../../src/project/ProjectDesignContextService.js';
 
@@ -14,80 +13,37 @@ const SOURCE_DIGEST = `sha256:${'d'.repeat(64)}`;
 
 describe('ProjectDesignContextService', () => {
   describe('buildDesignContext', () => {
-    it('retrieves fresh v2 context, classifies edits from the full inventory, and publishes only verified references', async () => {
+    it('retrieves status v3 without instruction delivery or writes', async () => {
       const fixture = buildFixture();
-      fixture.changeSetBuildResult.localState.baseline = {...fixture.serverResponse.result.snapshot};
-      fixture.serverResponse.designContextContractVersion = 2;
-      const codec = new ProjectCanonicalArtifactService();
-      fixture.serverResponse.result.inventory = fixture.serverResponse.result.canonicalBodies.map(({path, source}) => ({
-        path, resourceType: source.resourceType, handle: source.handle,
-        sourceDigest: codec.computeFileDigest(codec.serializeParsedResourceSource(source)),
-      }));
-      fixture.serverResponse.result.canonicalBodies = [];
-      fixture.serverResponse.result.dependencies = [];
-      fixture.serverResponse.result.dependencyDiagnostics = [];
-      const cache = referenceCache();
-      const service = buildService(fixture);
-      service.projectCanonicalArtifactService = codec;
-      service.projectDesignReferenceCacheService = cache;
-      const result = await service.buildDesignContext({projectDirectoryPath: '/checkout',
-        projectApiInvocation: fixture.projectApiInvocation, referenceMode: true, resourcePaths: []});
-      assert.equal(fixture.receivedRequest.designContextContractVersion, 2);
-      assert.deepEqual(fixture.receivedRequest.knownModuleDigests, []);
-      assert.equal(result.delivery, 'references');
-      assert.equal(result.counts.updates, 1);
-      assert.equal(result.counts.resources, 2);
-      assert.equal(Object.hasOwn(result.protocol, 'commonInstructions'), false);
-      assert.equal(cache.published, true);
+      const result = await buildService(fixture).buildDesignContext({projectDirectoryPath: '/checkout',
+        projectApiInvocation: fixture.projectApiInvocation, resourcePaths: []});
+      assert.deepEqual(fixture.receivedRequest, {
+        contractVersion: 1, designContextContractVersion: 3, projectId: 'project-1', resourcePaths: [],
+      });
+      assert.equal(Object.hasOwn(result, 'protocol'), false);
+      assert.equal(Object.hasOwn(result, 'files'), false);
+      assert.deepEqual(result, buildExpectedContext(fixture));
     });
 
-    it('does not publish references on a stale baseline or use cached context after a server failure', async () => {
-      const fixture = buildFixture(), cache = referenceCache(), service = buildService(fixture);
-      service.projectCanonicalArtifactService = new ProjectCanonicalArtifactService();
-      service.projectDesignReferenceCacheService = cache;
-      fixture.serverResponse.designContextContractVersion = 2;
-      fixture.serverResponse.result.dependencies = [];
-      const input = {projectDirectoryPath: '/checkout', projectApiInvocation: fixture.projectApiInvocation, referenceMode: true};
-      assert.equal((await service.buildDesignContext(input)).conflicts.length, 2);
-      assert.equal(cache.published, false);
-      fixture.serverResponse = {ok: false, outcome: 'SERVICE_UNAVAILABLE'};
-      assert.deepEqual(await service.buildDesignContext(input), fixture.serverResponse);
-      assert.equal(cache.published, false);
-      assert.equal(cache.prepared, 2);
-    });
-    it('should omit requirements from the request and combined context when absent', async () => {
+    it('keeps local edit detection separate from intervening server changes', async () => {
       const fixture = buildFixture();
-      delete fixture.serverResponse.result.projectRequirements;
+      fixture.changeSetBuildResult.changeSetSnapshotDigest = LOCAL_BASELINE_DIGEST;
       const result = await buildService(fixture).buildDesignContext({
         projectDirectoryPath: '/checkout', projectApiInvocation: fixture.projectApiInvocation,
       });
-      assert.equal(Object.hasOwn(fixture.receivedRequest, 'projectRequirements'), false);
-      assert.equal(Object.hasOwn(result, 'projectRequirements'), false);
-      const expected = buildExpectedContext(fixture);
-      delete expected.projectRequirements;
-      assert.deepEqual(result, expected);
+      assert.equal(result.localEdits.hasManagedEdits, false);
+      assert.equal(result.baselineCheck.status, 'changed');
     });
 
-    it('should combine verified server protocol context with deterministic local design intent', async () => {
-      // Arrange
+    it('reports a current baseline independently of local edits', async () => {
       const fixture = buildFixture();
-      const projectDesignContextService = buildService(fixture);
-
-      // Act
-      const result = await projectDesignContextService.buildDesignContext({
-        projectDirectoryPath: '/checkout/nested',
-        projectApiInvocation: fixture.projectApiInvocation,
-        projectRequirements: fixture.projectRequirements,
+      fixture.serverResponse.result.snapshot = {...fixture.serverResponse.result.snapshot,
+        ...fixture.changeSetBuildResult.localState.baseline};
+      const result = await buildService(fixture).buildDesignContext({
+        projectDirectoryPath: '/checkout', projectApiInvocation: fixture.projectApiInvocation,
       });
-
-      // Assert
-      assert.deepEqual(result, buildExpectedContext(fixture));
-      assert.deepEqual(fixture.receivedRequest, {
-        contractVersion: 1,
-        designContextContractVersion: 1,
-        projectId: 'project-1',
-        projectRequirements: fixture.projectRequirements,
-      });
+      assert.equal(result.localEdits.hasManagedEdits, true);
+      assert.equal(result.baselineCheck.status, 'current');
     });
 
     it('should report revision and snapshot digest conflicts explicitly', async () => {
@@ -124,6 +80,8 @@ describe('ProjectDesignContextService', () => {
           code: 'PROJECT_UNAUTHORIZED',
           message: 'The Project API request did not complete.',
           diagnostics: [],
+      dependencies: [],
+      dependencyDiagnostics: [],
         },
       };
       const projectDesignContextService = buildService(fixture);
@@ -181,14 +139,6 @@ describe('ProjectDesignContextService', () => {
   });
 });
 
-function referenceCache() {
-  return {published: false, prepared: 0, async prepare() {this.prepared += 1; return {knownModuleDigests: []};},
-    async publishProtocol() { this.published = true; return {protocolVersion: '1.0.0', manifestIdentity: SOURCE_DIGEST,
-      moduleSetIdentity: SOURCE_DIGEST, modules: [], envelope: {path: '/cache/envelope.md'}, downloadedBytes: 0, reusedModules: 1}; },
-    async writeReferenceFile(cache, name, content) {return {path: `/cache/${name}`, bytes: Buffer.byteLength(content), digest: SOURCE_DIGEST};},
-  };
-}
-
 function buildService(fixture) {
   return new ProjectDesignContextService({
     apiEaseProjectApiClient: {
@@ -200,9 +150,7 @@ function buildService(fixture) {
     projectChangeSetBuilder: {
       buildChangeSet: async () => fixture.changeSetBuildResult,
     },
-    projectCanonicalArtifactService: {
-      serializeCanonicalValue: value => JSON.stringify(sortCanonicalValue(value)),
-    },
+    projectCanonicalArtifactService: new ProjectCanonicalArtifactService(),
   });
 }
 
@@ -272,15 +220,9 @@ function buildFixture() {
   };
   fixture.serverResponse = {
     ok: true,
+    designContextContractVersion: 3,
     outcome: 'PROJECT_DESIGN_CONTEXT_READY',
     result: {
-      protocol: {
-        protocolVersion: '1.0.0',
-        commonInstructions: 'exact common instructions\n',
-        commonInstructionDigest: `sha256:${'e'.repeat(64)}`,
-        codexEnvelope: 'exact Codex envelope\n',
-      },
-      projectRequirements,
       snapshot: {
         projectIdentity: {
           normalizedShopDomain: 'shop.myshopify.com',
@@ -300,9 +242,16 @@ function buildFixture() {
       bindings: [binding],
       limits: { maximumFileCount: 1_000, maximumAggregateBytes: 25_000_000 },
       diagnostics: [],
+      dependencies: [],
+      dependencyDiagnostics: [],
     },
   };
 
+  const codec = new ProjectCanonicalArtifactService();
+  fixture.serverResponse.result.inventory = fixture.serverResponse.result.canonicalBodies.map(({path, source}) => ({
+    path, handle: source.handle, resourceType: source.resourceType,
+    sourceDigest: codec.computeFileDigest(codec.serializeParsedResourceSource(source)),
+  }));
   return fixture;
 }
 
@@ -312,8 +261,9 @@ function buildExpectedContext(fixture) {
   return {
     ok: true,
     outcome: 'PROJECT_DESIGN_CONTEXT_READY',
-    protocol: serverResult.protocol,
-    projectRequirements: serverResult.projectRequirements,
+    dependencies: [],
+    dependencyDiagnostics: [],
+    baselineCheck: {status: 'changed'},
     serverBaseline: serverResult.snapshot,
     localBaseline: {
       projectIdentity: {
@@ -329,9 +279,8 @@ function buildExpectedContext(fixture) {
     localEdits: {
       snapshotDigest: LOCAL_SNAPSHOT_DIGEST,
       hasManagedEdits: true,
-      creates: [candidateResult.changeSet.creates[0]],
-      updates: [candidateResult.changeSet.updates[1]],
     },
+    differencesFromServer: {creates: [candidateResult.changeSet.creates[0]], updates: [candidateResult.changeSet.updates[1]]},
     deletions: [{
       sourcePath: 'resources/requests/deleted-request.json',
       deletePath: 'resources/requests/delete/deleted-request.json',
@@ -351,7 +300,6 @@ function buildExpectedContext(fixture) {
     }],
     limits: serverResult.limits,
     diagnostics: serverResult.diagnostics,
-    workflowGuidance: [...PROJECT_DESIGN_WORKFLOW_GUIDANCE],
   };
 }
 

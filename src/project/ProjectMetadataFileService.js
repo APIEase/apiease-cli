@@ -23,6 +23,13 @@ class ProjectMetadataFileService {
       };
     } catch (error) {
       if (error?.code === 'ENOENT') {
+        if (projectMetadataFilePath === path.join(projectDirectoryPath, '.apiease', 'template.json')) {
+          // Older operational checkouts did not record template provenance. An empty
+          // manifest makes existing differing files conflicts rather than adopting them.
+          return {ok: true, projectMetadata: {template: {
+            manifest: {}, version: {type: 'unknown', value: 'unknown'},
+          }}};
+        }
         return {
           ok: false,
           errorCode: PROJECT_METADATA_NOT_FOUND_ERROR_CODE,
@@ -59,7 +66,12 @@ class ProjectMetadataFileService {
       || typeof metadata.cliVersion !== 'string'
       || !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/u.test(metadata.cliVersion)) return false;
     const template = metadata.template;
-    return hasExactFields(template, ['displayTemplateSource', 'manifest', 'publicRepositoryUrl', 'sourceType', 'version'])
+    const templateFields = ['displayTemplateSource', 'manifest', 'publicRepositoryUrl', 'sourceType', 'version'];
+    if (Object.hasOwn(template ?? {}, 'pendingPaths')) templateFields.push('pendingPaths');
+    return hasExactFields(template, templateFields)
+      && (!Object.hasOwn(template, 'pendingPaths') || (Array.isArray(template.pendingPaths)
+        && template.pendingPaths.every(filePath => typeof filePath === 'string'
+          && isValidManifest({[filePath]: 'a'.repeat(64)}))))
       && typeof template.displayTemplateSource === 'string' && template.displayTemplateSource.length > 0
       && ['localDevelopment', 'publicRepository'].includes(template.sourceType)
       && /^https:\/\/github\.com\/(?:kevinstl-org|APIEase)\/apiease-template(?:\.git)?$/u.test(template.publicRepositoryUrl)
