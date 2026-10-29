@@ -29,6 +29,37 @@ const legacyMetadata = {
 
 describe('Legacy project public command workflow', () => {
   describe('design-context API boundary', () => {
+    it('should export verified context without changing resources or operational state', async context => {
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      const bundleParent = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-verified-bundle-'));
+      context.after(() => fs.rm(bundleParent, { recursive: true, force: true }));
+      const before = await snapshot(fixture.directory);
+      const { command, stdout, requests } = buildDesignContextBoundary(fixture);
+
+      assert.equal(await command.run(['design-context', '--output-dir', path.join(bundleParent, 'context')], fixture.options), 0);
+      const result = JSON.parse(stdout.join('')).result;
+      const saved = JSON.parse(await fs.readFile(result.files.context.path));
+      assert.equal(result.files.instructions.digest, saved.protocol.commonInstructionDigest);
+      assert.equal(saved.canonicalBodies[0].source.name, 'API Origin');
+      assert.equal(Object.hasOwn(saved, 'projectRequirements'), false);
+      assert.equal(Object.hasOwn(requests[0], 'projectRequirements'), false);
+      assert.deepEqual(await snapshot(fixture.directory), before);
+      assert.equal((await fs.readFile(result.files.context.path, 'utf8')).includes('test-key'), false);
+    });
+
+    it('should reject a tampered protocol before publishing a bundle', async context => {
+      const fixture = await buildFixture(context);
+      assert.equal(await fixture.pull.run(['pull'], fixture.options), 0);
+      const before = await snapshot(fixture.directory);
+      const { command, stdout } = buildDesignContextBoundary(fixture, response => {
+        response.result.protocol.commonInstructions += 'tampered';
+      });
+      assert.equal(await command.run(['design-context', '--output-dir', 'must-not-exist'], fixture.options), 4);
+      assert.equal(JSON.parse(stdout.join('')).state, 'failure');
+      assert.deepEqual(await snapshot(fixture.directory), before);
+    });
+
     for (const requirements of [undefined, {
       projectName: 'Order status', customerRequirements: [{ id: 'status', text: 'Show order status.' }],
       confirmedDecisions: [],
@@ -394,7 +425,7 @@ function changeBootstrapIdentity(response, field, value) {
   result.manifest.totalBytes = result.files.reduce((sum, file) => sum + Buffer.byteLength(file.content), 0);
 }
 
-function buildDesignContextBoundary(fixture) {
+function buildDesignContextBoundary(fixture, mutateResponse = () => {}) {
   const requests = [], stdout = [], stderr = [];
   const personalProjectAuthenticationAdapter = {
     resolveRequestConfiguration: async () => ({ ok: true, apiBaseUrl: 'https://example.invalid', authenticationContext: {} }),
@@ -408,7 +439,9 @@ function buildDesignContextBoundary(fixture) {
       assert.equal(options.method, 'POST');
       const request = JSON.parse(options.body);
       requests.push(request);
-      return new Response(JSON.stringify(buildDesignContextResponse(fixture.response.result, request)), {
+      const response = buildDesignContextResponse(fixture.response.result, request);
+      mutateResponse(response);
+      return new Response(JSON.stringify(response), {
         status: 200, headers: { 'content-type': 'application/json' },
       });
     },

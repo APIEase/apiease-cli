@@ -831,6 +831,13 @@ Do not commit real secrets, API keys, or environment files into the repository.
 
 Before designing project changes in an authenticated, initialized checkout, run `apiease design-context` without arguments. It returns the verified design instructions, server resources, baseline, and local changes without applying resource changes or rewriting canonical files. Follow the returned protocol along with the task in your conversation.
 
+For large outputs, CLI versions listing `--output-dir` in `apiease --help` can
+export a new local reference directory and return a compact briefing. See
+[Save context as local reference files](https://docs.apiease.com/docs/developers/apiease-cli).
+Read the exported instructions and Codex envelope before authoring, then inspect
+the inventory, local edits, and relevant resource bodies. Search the template's
+consolidated product documentation by topic instead of loading it all at startup.
+
 Requirements are optional; do not infer them from documentation or manufacture them just to retrieve context. If explicit requirements are useful, see the supported `--project-requirements <json>` structure in [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli). Authentication, project identity, protocol verification, and baseline conflict checks remain required.
 
 ## Use a repository-first agent loop
@@ -1465,6 +1472,38 @@ The JSON object must contain exactly `projectName`, `customerRequirements`, and 
 
 `design-context` emits one JSON result on stdout, including on failure. Corrective argument guidance goes to stderr. Existing exit codes distinguish usage/configuration (2), authentication/authorization (3), contract/validation (4), baseline conflicts (5), checkout integrity (6), and service/transport failures (7).
 
+### Save context as local reference files
+
+If `apiease --help` lists `--output-dir`, use it to keep large contexts out of the
+terminal output:
+
+```bash
+apiease design-context --output-dir /tmp/apiease-context-1
+```
+
+The destination must be new and its parent must exist. Relative paths resolve from
+the directory where you run the command. Choose a location outside `resources/`.
+The JSON briefing contains project baselines, change counts, reading guidance, and
+file paths with byte sizes and SHA-256 digests.
+
+Read `instructions.md` and `codex-envelope.md` before authoring. Inspect
+`inventory.json` and `local-changes.json`, then read the relevant entries from
+`server-resources.json`. The complete original context remains in `context.json`,
+including limits, diagnostics, resource bindings, and requirements when supplied.
+Instruction bytes are preserved exactly; authentication, verification, and conflict
+checks still run before files are written.
+
+Existing files, directories, and symlink destinations are never overwritten.
+An existing destination or write failure returns exit code 6; incomplete files
+created by this invocation are removed on write failure. Canonical resources and
+project operational state are unchanged. Without the option, output stays inline.
+
+This export is a point-in-time reference, not an automatically refreshed cache or
+approval. Retrieve fresh context for new work. `apiease upgrade` separately updates
+template-owned files; retrieving context does not upgrade the template or edit
+your custom guidance. File delivery preserves the current instruction set and
+server retrieval while reducing terminal output.
+
 ## Upgrade a project
 
 Use `upgrade` to compare your project against the current template version:
@@ -1765,6 +1804,13 @@ That is why the template is the preferred starting point even if your end goal i
 From an authenticated, initialized project, run `apiease design-context` without arguments to retrieve the shared design instructions, server resources, baseline, and local changes. Requirements are optional and unnecessary when the coding agent already has the task in its conversation. Unsupplied requirements remain absent; do not invent them to retrieve context. Retrieval does not apply changes or rewrite canonical files.
 
 See [Retrieve project design context](https://docs.apiease.com/docs/developers/apiease-cli) for the optional requirements structure and failure behavior.
+
+The template's agent entry point directs selective reading of product documentation.
+Use `apiease upgrade` to refresh template-owned files while preserving custom
+guidance. Context retrieval is separate: supporting CLI versions can
+[save reference files](https://docs.apiease.com/docs/developers/apiease-cli) and
+return a compact briefing without upgrading the template. Exported context is a
+point-in-time reference; retrieve it again for new work.
 
 SOURCE
 https://docs.apiease.com/docs/requests/requests-overview

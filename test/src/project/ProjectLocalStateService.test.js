@@ -154,6 +154,39 @@ describe('ProjectLocalStateService', () => {
   });
 
   describe('deriveCommittedLocalState', () => {
+    it('should preserve unchanged bindings omitted from a changed-resource receipt', async () => {
+      const workflowFixture = await readWorkflowFixture();
+      const applyPair = workflowFixture.pairs.find(pair => pair.name === 'apply');
+      const unchanged = {
+        ...buildLocalState().resources[0], path: 'resources/requests/untouched.json',
+        resourceId: 'request_untouched', handle: 'untouched',
+      };
+      const localState = buildLocalState({
+        resources: [...workflowFixture.initialState.resources, unchanged].sort((a, b) => a.path.localeCompare(b.path)),
+      });
+      const before = structuredClone(localState);
+      const result = buildService().deriveCommittedLocalState({
+        localState, changeSet: applyPair.request.document.changeSet,
+        applyReceipt: applyPair.response.document.result,
+        changeSetSnapshotDigest: workflowFixture.resultingState.baseline.snapshotDigest,
+      });
+      assert.deepEqual(result.resources.find(resource => resource.resourceId === unchanged.resourceId), unchanged);
+      assert.equal(result.resources.length, workflowFixture.resultingState.resources.length + 1);
+      assert.deepEqual(localState, before);
+    });
+
+    it('should still reject a receipt resource outside the submitted source paths', async () => {
+      const workflowFixture = await readWorkflowFixture();
+      const applyPair = workflowFixture.pairs.find(pair => pair.name === 'apply');
+      const applyReceipt = structuredClone(applyPair.response.document.result);
+      applyReceipt.resources[0].handle = 'unplanned';
+      assert.throws(() => buildService().deriveCommittedLocalState({
+        localState: buildLocalState({ resources: workflowFixture.initialState.resources }),
+        changeSet: applyPair.request.document.changeSet, applyReceipt,
+        changeSetSnapshotDigest: workflowFixture.resultingState.baseline.snapshotDigest,
+      }), { code: 'PROJECT_APPLY_RECEIPT_RESOURCE_PATH_INVALID' });
+    });
+
     it('should use receipt versions and change-set paths while preserving project identity', async () => {
       // Arrange
       const workflowFixture = await readWorkflowFixture();

@@ -1,6 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import fs from 'node:fs/promises';
+import os from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const currentDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
@@ -11,6 +13,36 @@ const designContextCommandModuleUrl = pathToFileURL(
 
 describe('DesignContextCommand', () => {
   describe('run', () => {
+    it('should write a context bundle relative to the invocation directory and emit references', async context => {
+      const { DesignContextCommand } = await import(designContextCommandModuleUrl);
+      const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-context-command-'));
+      context.after(() => fs.rm(directory, { recursive: true, force: true }));
+      const calls = [], stdoutChunks = [];
+      const command = buildDesignContextCommand({ DesignContextCommand, calls, stdoutChunks });
+
+      assert.equal(await command.run(['design-context', '--output-dir', 'briefing'], {
+        currentWorkingDirectoryPath: directory,
+      }), 0);
+      const envelope = JSON.parse(stdoutChunks.join(''));
+      assert.equal(envelope.result.directory, path.join(directory, 'briefing'));
+      assert.equal(envelope.result.delivery, 'files');
+      assert.equal(stdoutChunks.join('').includes('i'.repeat(2_000)), false);
+      assert.deepEqual(JSON.parse(await fs.readFile(envelope.result.files.context.path)), buildDesignContextSuccess());
+      assert.equal(Object.hasOwn(calls[1][1], 'projectRequirements'), false);
+    });
+
+    it('should retain baseline conflict failure and never create an output bundle', async context => {
+      const { DesignContextCommand } = await import(designContextCommandModuleUrl);
+      const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'apiease-context-conflict-'));
+      context.after(() => fs.rm(directory, { recursive: true, force: true }));
+      const stdoutChunks = [];
+      const command = buildDesignContextCommand({ DesignContextCommand, calls: [], stdoutChunks,
+        designContextResult: buildDesignContextSuccess({ conflicts: [{ code: 'BASELINE_CONFLICT' }] }),
+      });
+      assert.equal(await command.run(['design-context', '--output-dir', path.join(directory, 'briefing')]), 5);
+      assert.deepEqual(await fs.readdir(directory), []);
+    });
+
     it('should retrieve context without inventing requirements for the bare command', async () => {
       const { DesignContextCommand } = await import(designContextCommandModuleUrl);
       const calls = [];
@@ -31,6 +63,8 @@ describe('DesignContextCommand', () => {
       [['--project-requirements', 'null'], 'PROJECT_DESIGN_REQUIREMENTS_INVALID'],
       [['--project-requirements'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
       [['--unknown'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
+      [['--output-dir'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
+      [['--output-dir', 'one', '--output-dir', 'two'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
       [['--project-requirements', '{}', '--project-requirements', '{}'], 'PROJECT_DESIGN_CONTEXT_ARGUMENT_INVALID'],
     ]) {
       it(`should explain invalid supplied arguments: ${argumentsTail.join(' ')}`, async () => {

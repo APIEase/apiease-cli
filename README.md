@@ -45,7 +45,7 @@ apiease --version
 apiease init [project-name]
 apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease design-context [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
+apiease design-context [--output-dir <new-directory>] [--project-requirements <json>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
 apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease apply [--require-approval] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
@@ -165,6 +165,39 @@ apiease design-context
 The JSON result retrieves the effective protocol version, common-instruction bytes and digest, Codex execution envelope, stable Mongo baseline, canonical resource inventory and bodies, local edits, explicit deletion intent, safe protected-value selectors, and workflow guidance. The CLI verifies the retrieved protocol identity and digest; this README does not copy or pin either value.
 
 Requirements are optional and unnecessary when the coding agent already has the task in its conversation. The bare command returns the existing instructions, server resources, baseline, local changes, and other project context. It omits `projectRequirements` from both the request and returned context instead of inventing requirements.
+
+For large contexts, export reference files and print a compact JSON briefing:
+
+```bash
+apiease design-context --output-dir /tmp/apiease-context-1
+```
+
+The parent directory must exist and the destination must be new. Relative paths
+resolve from the invocation directory. Use a location outside managed resources.
+The result includes baselines, change counts, reading guidance, and file paths
+with byte sizes and SHA-256 digests:
+
+| File | Contents |
+| --- | --- |
+| `instructions.md` | Exact verified common instructions; read before authoring. |
+| `codex-envelope.md` | Exact Codex execution instructions; read before authoring. |
+| `inventory.json` | Complete resource inventory for discovery. |
+| `server-resources.json` | Exact server source objects; inspect relevant entries. |
+| `local-changes.json` | Local edits, explicit deletions, and protected-value selectors. |
+| `context.json` | Complete original result, including bindings, limits, diagnostics, and supplied requirements. |
+
+Authentication, identity, protocol verification, and baseline conflicts are checked
+before export. Existing destinations, including symlinks, are refused with exit
+code 6. A write failure removes this invocation's incomplete bundle and reports a
+local-integrity failure. Directories and files use private local permissions.
+Canonical files and operational state are unchanged. Without `--output-dir`, the
+existing inline JSON output is unchanged.
+
+An export is a point-in-time reference, not an offline authority, approval, or
+automatically refreshed cache. Retrieve fresh context for new work. `apiease upgrade`
+separately maintains template-owned files; context export does not upgrade the
+template. This delivery mode preserves all protocol content and network retrieval;
+it reduces stdout size without claiming to reduce the instruction set.
 
 To include explicit requirements, supply the supported structure:
 

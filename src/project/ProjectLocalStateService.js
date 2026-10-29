@@ -71,10 +71,7 @@ class ProjectLocalStateService {
     const changeSetResourcePaths = this.buildChangeSetResourcePaths(changeSet);
     const resources = applyReceipt.outcome === 'PROJECT_APPLY_NO_CHANGE'
       ? localState.resources.map(resource => ({ ...resource }))
-      : applyReceipt.resources
-        .filter(resource => resource.operation !== 'delete')
-        .map(resource => this.buildCommittedResource(resource, changeSetResourcePaths))
-        .sort(compareResourcesByPath);
+      : this.mergeCommittedResources(localState.resources, applyReceipt.resources, changeSetResourcePaths);
     const committedLocalState = {
       ...localState,
       baseline: {
@@ -86,6 +83,17 @@ class ProjectLocalStateService {
 
     this.requireValidLocalState(committedLocalState);
     return committedLocalState;
+  }
+
+  mergeCommittedResources(existingResources, appliedResources, changeSetResourcePaths) {
+    const changedIdentities = new Set(appliedResources.map(buildResourceIdentity));
+    const retainedResources = existingResources
+      .filter(resource => !changedIdentities.has(buildResourceIdentity(resource)))
+      .map(resource => ({ ...resource }));
+    const committedResources = appliedResources
+      .filter(resource => resource.operation !== 'delete')
+      .map(resource => this.buildCommittedResource(resource, changeSetResourcePaths));
+    return [...retainedResources, ...committedResources].sort(compareResourcesByPath);
   }
 
   deriveRenamedLocalState({ localState, currentPath, renamedPath }) {
@@ -244,6 +252,10 @@ async function defaultGitExecution({ arguments: gitArguments, workingDirectoryPa
 function buildResourcePath(resourceType, handle) {
   const resourceDirectoryName = resourceType === 'request' ? 'requests' : `${resourceType}s`;
   return `resources/${resourceDirectoryName}/${handle}.json`;
+}
+
+function buildResourceIdentity(resource) {
+  return `${resource.resourceType}:${resource.resourceId}`;
 }
 
 function compareResourcesByPath(leftResource, rightResource) {
