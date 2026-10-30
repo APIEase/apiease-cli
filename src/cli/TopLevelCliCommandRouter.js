@@ -115,6 +115,7 @@ class TopLevelCliCommandRouter {
       '  upgrade [--check | --dry-run] [--on-conflict overwrite|ignore]   Update project instructions and template files.',
       '',
       'Options:',
+      '  --environment <name>              Select ~/.apiease/.env.<name> for this command.',
       '  --base-url <url>                  APIEase base URL.',
       '  --shop-domain <shop-domain>       Shopify shop domain.',
       '  --api-key <api-key>               APIEase API key.',

@@ -99,6 +99,7 @@ class UpdateRequestCommand {
       apiBaseUrl: optionMap['--base-url'],
       shopDomain: optionMap['--shop-domain'],
       apiKey: optionMap['--api-key'],
+      environment: Object.hasOwn(optionMap, '--environment') ? optionMap['--environment'] ?? '' : undefined,
       json: optionMap[JSON_FLAG] === true,
     };
   }
@@ -108,6 +109,7 @@ class UpdateRequestCommand {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
+      explicitEnvironment: parseResult.environment,
       requiredConfigurationFieldPaths: ['apiKey'],
     });
     if (!configurationResult.ok) {
@@ -202,7 +204,7 @@ class UpdateRequestCommand {
       ? `Path to the ${crudResourceDefinition.resourceName} definition JSON file.`
       : 'Path to the resource definition JSON file.';
     const usageLines = [
-      `Usage: apiease update ${resourceToken} ${identifierOptionName} <${identifierValueName}> --file <path> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]`,
+      `Usage: apiease update ${resourceToken} ${identifierOptionName} <${identifierValueName}> --file <path> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]`,
       '',
       'Options:',
     ];
@@ -220,6 +222,7 @@ class UpdateRequestCommand {
 
     usageLines.push(
       `  --file <path>               ${fileDescription}`,
+      '  --environment <name>       Select ~/.apiease/.env.<name> for this command.',
       '  --base-url <url>            APIEase base URL. Defaults to ~/.apiease/.env.<environment>.',
       '  --shop-domain <shop-domain> Shopify shop domain. Defaults to ~/.apiease/.env.<environment>.',
       '  --api-key <api-key>         APIEase API key. Defaults to ~/.apiease home configuration.',

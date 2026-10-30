@@ -11,6 +11,7 @@ const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
   '--base-url': 'apiBaseUrl',
   '--shop-domain': 'shopDomain',
+  '--environment': 'environment',
 });
 
 class ValidateProjectCommand {
@@ -107,6 +108,7 @@ class ValidateProjectCommand {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
+      explicitEnvironment: parseResult.environment,
     };
     return await this.personalProjectAuthenticationAdapter
       .resolveRequestConfiguration(configurationOptions);

@@ -43,28 +43,28 @@ apiease --version
 ```bash
 apiease --version
 apiease init [project-name]
-apiease init [project-name] --from-existing-resources [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease pull [--force] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease design-context [--resource-path <path>...] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
-apiease validate [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease apply [--require-approval] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease init [project-name] --from-existing-resources [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease pull [--force] [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease design-context [--resource-path <path>...] [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>]
+apiease validate [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease apply [--require-approval] [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 apiease rename <request|widget|variable|function> <old-handle> <new-handle> [--json]
 apiease upgrade
 apiease upgrade [--check]
 apiease upgrade --dry-run
-apiease create <request|widget|variable|function> --file <path> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--auto-update-source-identifier] [--json]
-apiease read request --request-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease read widget --widget-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease read variable --variable-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease read function --function-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease update request --request-handle <handle> --file <path> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease update widget --widget-handle <handle> --file <path> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease update variable --variable-handle <handle> --file <path> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease update function --function-handle <handle> --file <path> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease delete request --request-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease delete widget --widget-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease delete variable --variable-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
-apiease delete function --function-handle <handle> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease create <request|widget|variable|function> --file <path> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--auto-update-source-identifier] [--json]
+apiease read request --request-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease read widget --widget-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease read variable --variable-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease read function --function-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease update request --request-handle <handle> --file <path> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease update widget --widget-handle <handle> --file <path> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease update variable --variable-handle <handle> --file <path> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease update function --function-handle <handle> --file <path> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease delete request --request-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease delete widget --widget-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease delete variable --variable-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
+apiease delete function --function-handle <handle> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]
 ```
 
 ## Initialize a Project
@@ -362,7 +362,7 @@ Checks never install updates. Use `upgrade --check` for a full file comparison.
 
 ## Configure Authentication
 
-When `--api-key`, `--base-url`, or `--shop-domain` are omitted, `apiease` first checks the corresponding process environment variable. For any value still missing, it loads the active APIEase environment from your home directory and resolves the value from the selected env file.
+When `--api-key`, `--base-url`, or `--shop-domain` are omitted, `apiease` first checks the corresponding process environment variable. For any value still missing, it loads the APIEase environment selected by `--environment <name>`, or by `~/.apiease/environment` when the flag is omitted, and resolves the value from the matching env file.
 
 Create the APIEase home directory:
 
@@ -393,11 +393,23 @@ printf 'production\n' > ~/.apiease/environment
 printf 'APIEASE_API_KEY=your-production-api-key\nAPIEASE_BASE_URL=https://your-production-apiease-host.example.com\nAPIEASE_SHOP_DOMAIN=your-production-shop.myshopify.com\n' > ~/.apiease/.env.production
 ```
 
+To select an environment for one command without changing `~/.apiease/environment`:
+
+```bash
+apiease read request --request-handle my-request --environment staging
+apiease validate --environment staging --json
+apiease init my-project --from-existing-resources --environment production
+```
+
+`--environment staging` reads `~/.apiease/.env.staging` directly; the `~/.apiease/environment` declaration is not required or read. The flag is supported by `create`, `read`, `update`, `delete`, `pull`, `design-context`, `validate`, `apply`, and `init --from-existing-resources`. Place it after the command, alongside the other configuration flags. Regular template-only `init`, `upgrade`, and local `rename` do not use API connection settings.
+
+An explicit environment name must start with a letter or digit and contain only letters, digits, dots, underscores, or hyphens (for example, `qa-us_2.1`). Blank names and paths are rejected. The selected file must exist and be readable, even when flags or process variables supply all three values. A missing or unreadable selected file causes a configuration error; the CLI never falls back to another environment.
+
 Configuration precedence is:
 
 1. Command flags: `--api-key`, `--base-url`, and `--shop-domain`
 2. Process environment: `APIEASE_API_KEY`, `APIEASE_BASE_URL`, and `APIEASE_SHOP_DOMAIN`
-3. The same variables in `~/.apiease/.env.<environment>` selected by `~/.apiease/environment`
+3. The same variables in `~/.apiease/.env.<environment>` selected by `--environment <name>`, or by `~/.apiease/environment` when the flag is omitted
 
 Each value is resolved independently at the first non-empty source. Project API requests require all three values, and both `x-apiease-api-key` and `x-shop-myshopify-domain` are sent for authentication. API keys are never included in JSON output or diagnostics.
 

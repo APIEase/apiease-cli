@@ -36,9 +36,9 @@ class ApiEaseHomeConfigurationResolver {
     };
   }
 
-  async resolveEnvironmentVariables() {
+  async resolveEnvironmentVariables({ environment } = {}) {
     const environmentDeclarationFilePath = this.buildEnvironmentDeclarationFilePath();
-    const environmentResult = await this.readEnvironment(environmentDeclarationFilePath);
+    const environmentResult = await this.resolveEnvironment({ environment, environmentDeclarationFilePath });
     if (!environmentResult.ok) {
       return environmentResult;
     }
@@ -59,6 +59,19 @@ class ApiEaseHomeConfigurationResolver {
         [APIEASE_BASE_URL_NAME]: environmentVariablesResult.environmentVariables[APIEASE_BASE_URL_NAME],
         [APIEASE_SHOP_DOMAIN_NAME]: environmentVariablesResult.environmentVariables[APIEASE_SHOP_DOMAIN_NAME],
       },
+    };
+  }
+
+  async resolveEnvironment({ environment, environmentDeclarationFilePath }) {
+    if (environment === undefined) return this.readEnvironment(environmentDeclarationFilePath);
+    if (typeof environment === 'string' && /^[a-z0-9][a-z0-9._-]*$/iu.test(environment)) {
+      return { ok: true, environment };
+    }
+    return {
+      ok: false,
+      errorCode: 'APIEASE_HOME_ENVIRONMENT_INVALID',
+      message: 'Environment must start with a letter or digit and contain only letters, digits, dots, underscores, or hyphens.',
+      fieldErrors: [{ path: 'environment', code: 'INVALID' }],
     };
   }
 

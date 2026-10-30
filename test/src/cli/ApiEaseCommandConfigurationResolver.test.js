@@ -11,6 +11,63 @@ const apiEaseCommandConfigurationResolverModuleUrl = pathToFileURL(
 
 describe('ApiEaseCommandConfigurationResolver', () => {
   describe('resolveConfiguration', () => {
+    it('should select the explicit environment while preserving flag and process precedence', async () => {
+      // Arrange
+      const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);
+      const resolver = new ApiEaseCommandConfigurationResolver({
+        processEnvironment: { APIEASE_BASE_URL: 'https://process.example.com' },
+        apiEaseHomeConfigurationResolver: {
+          async resolveEnvironmentVariables(options) {
+            assert.deepEqual(options, { environment: 'staging' });
+            return { ok: true, environmentVariables: {
+              APIEASE_API_KEY: 'staging-key',
+              APIEASE_BASE_URL: 'https://staging.example.com',
+              APIEASE_SHOP_DOMAIN: 'staging.myshopify.com',
+            } };
+          },
+        },
+      });
+
+      // Act
+      const result = await resolver.resolveConfiguration({
+        explicitEnvironment: 'staging',
+        explicitApiKey: 'flag-key',
+      });
+
+      // Assert
+      assert.deepEqual(result, {
+        ok: true,
+        apiKey: 'flag-key',
+        apiBaseUrl: 'https://process.example.com',
+        shopDomain: 'staging.myshopify.com',
+      });
+    });
+
+    it('should report an explicit environment failure even when other sources supply every value', async () => {
+      // Arrange
+      const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', fieldErrors: [] };
+      const resolver = new ApiEaseCommandConfigurationResolver({
+        processEnvironment: {
+          APIEASE_API_KEY: 'process-key',
+          APIEASE_BASE_URL: 'https://process.example.com',
+          APIEASE_SHOP_DOMAIN: 'process.myshopify.com',
+        },
+        apiEaseHomeConfigurationResolver: {
+          async resolveEnvironmentVariables(options) {
+            assert.deepEqual(options, { environment: 'missing' });
+            return failure;
+          },
+        },
+      });
+
+      // Act
+      const result = await resolver.resolveConfiguration({ explicitEnvironment: 'missing' });
+
+      // Assert
+      assert.equal(result, failure);
+    });
+
     it('should prefer explicit values and skip home configuration resolution when all values are provided', async () => {
       // Arrange
       const { ApiEaseCommandConfigurationResolver } = await import(apiEaseCommandConfigurationResolverModuleUrl);

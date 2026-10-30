@@ -10,6 +10,63 @@ const updateRequestCommandModuleUrl = pathToFileURL(
 ).href;
 
 describe('UpdateRequestCommand', () => {
+  describe('environment selection', () => {
+    it('should forward the selected environment to command configuration', async () => {
+      // Arrange
+      const { UpdateRequestCommand } = await import(updateRequestCommandModuleUrl);
+      const configuration = { ok: true, apiKey: 'selected-key', apiBaseUrl: 'https://selected.example.com', shopDomain: 'selected.myshopify.com' };
+      const calls = [];
+      const command = new UpdateRequestCommand({
+        apiEaseCommandConfigurationResolver: {
+          async resolveConfiguration(options) { calls.push(options); return configuration; },
+        },
+      });
+      const parsed = command.parseCommandArguments([...['update', 'request', '--request-handle', 'example', '--file', 'definition.json'], '--environment', 'staging']);
+
+      // Act
+      const result = await command.resolveCommandConfiguration(parsed);
+
+      // Assert
+      assert.equal(result, configuration);
+      assert.equal(calls[0].explicitEnvironment, 'staging');
+    });
+
+    it('should preserve a missing environment value for validation instead of using the default', async () => {
+      // Arrange
+      const { UpdateRequestCommand } = await import(updateRequestCommandModuleUrl);
+      const command = new UpdateRequestCommand();
+
+      // Act
+      const parsed = command.parseCommandArguments([...['update', 'request', '--request-handle', 'example', '--file', 'definition.json'], '--environment']);
+
+      // Assert
+      assert.equal(parsed.environment, '');
+    });
+
+    it('should report the selected environment failure without running the resource operation', async () => {
+      // Arrange
+      const { UpdateRequestCommand } = await import(updateRequestCommandModuleUrl);
+      const stdoutChunks = [], stderrChunks = [], calls = [];
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', message: 'Selected environment file was not found.', fieldErrors: [] };
+      const command = new UpdateRequestCommand({
+        apiEaseCommandConfigurationResolver: {
+          async resolveConfiguration(options) { calls.push(options); return failure; },
+        },
+        stdout: createWritableStream(stdoutChunks),
+        stderr: createWritableStream(stderrChunks),
+      });
+
+      // Act
+      const exitCode = await command.run([...['update', 'request', '--request-handle', 'example', '--file', 'definition.json'], '--environment', 'missing', '--json']);
+
+      // Assert
+      assert.equal(calls[0].explicitEnvironment, 'missing');
+      assert.equal(exitCode, 1);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')), failure);
+      assert.equal(stderrChunks.join(''), '');
+    });
+  });
+
   describe('run', () => {
     it('should load the request file, call the update client, and return zero for human-readable success output', async () => {
       // Arrange

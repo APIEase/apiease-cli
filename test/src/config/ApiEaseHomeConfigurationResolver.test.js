@@ -289,6 +289,90 @@ describe('ApiEaseHomeConfigurationResolver', () => {
   });
 
   describe('resolveEnvironmentVariables', () => {
+    for (const environment of ['staging', 'qa-us_2.1']) {
+      it(`should read the explicit ${environment} environment without reading the default declaration`, async () => {
+        // Arrange
+        const { ApiEaseHomeConfigurationResolver } = await import(apiEaseHomeConfigurationResolverModuleUrl);
+        const readPaths = [];
+        const homeDirectoryPath = path.join(temporaryDirectoryPath, 'explicit-environment-home');
+        const environmentVariablesFilePath = path.join(homeDirectoryPath, '.apiease', `.env.${environment}`);
+        const resolver = new ApiEaseHomeConfigurationResolver({
+          homeDirectoryPath,
+          fileSystem: {
+            async readFile(filePath) {
+              readPaths.push(filePath);
+              return 'APIEASE_API_KEY=selected-key\nAPIEASE_BASE_URL=https://selected.example.com\nAPIEASE_SHOP_DOMAIN=selected.myshopify.com\n';
+            },
+          },
+        });
+
+        // Act
+        const result = await resolver.resolveEnvironmentVariables({ environment });
+
+        // Assert
+        assert.deepEqual(result, {
+          ok: true,
+          environment,
+          environmentDeclarationFilePath: path.join(homeDirectoryPath, '.apiease', 'environment'),
+          environmentVariablesFilePath,
+          environmentVariables: {
+            APIEASE_API_KEY: 'selected-key',
+            APIEASE_BASE_URL: 'https://selected.example.com',
+            APIEASE_SHOP_DOMAIN: 'selected.myshopify.com',
+          },
+        });
+        assert.deepEqual(readPaths, [environmentVariablesFilePath]);
+      });
+    }
+
+    it('should fail for a missing explicit environment without falling back to the active environment', async () => {
+      // Arrange
+      const { ApiEaseHomeConfigurationResolver } = await import(apiEaseHomeConfigurationResolverModuleUrl);
+      const { apiEaseHomeConfigurationResolver, environmentDeclarationFilePath } =
+        await createResolverWithHomeConfiguration({
+          temporaryDirectoryPath,
+          resolverHomeName: 'missing-explicit-environment-home',
+          environment: 'local',
+          apiKey: 'local-key',
+          ApiEaseHomeConfigurationResolver,
+        });
+      const environmentVariablesFilePath = path.join(path.dirname(environmentDeclarationFilePath), '.env.missing');
+
+      // Act
+      const result = await apiEaseHomeConfigurationResolver.resolveEnvironmentVariables({ environment: 'missing' });
+
+      // Assert
+      assert.deepEqual(result, {
+        ok: false,
+        errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND',
+        message: `APIEASE home environment file was not found: ${environmentVariablesFilePath}`,
+        filePath: environmentVariablesFilePath,
+        fieldErrors: [],
+      });
+      assert.equal(await fs.readFile(environmentDeclarationFilePath, 'utf8'), 'local\n');
+    });
+
+    for (const environment of ['', ' ', '../production', 'qa/production', 'qa\\production', '--json']) {
+      it(`should reject invalid explicit environment ${JSON.stringify(environment)} before reading files`, async () => {
+        // Arrange
+        const { ApiEaseHomeConfigurationResolver } = await import(apiEaseHomeConfigurationResolverModuleUrl);
+        const resolver = new ApiEaseHomeConfigurationResolver({
+          fileSystem: { async readFile() { assert.fail('Invalid environment must not read files.'); } },
+        });
+
+        // Act
+        const result = await resolver.resolveEnvironmentVariables({ environment });
+
+        // Assert
+        assert.deepEqual(result, {
+          ok: false,
+          errorCode: 'APIEASE_HOME_ENVIRONMENT_INVALID',
+          message: 'Environment must start with a letter or digit and contain only letters, digits, dots, underscores, or hyphens.',
+          fieldErrors: [{ path: 'environment', code: 'INVALID' }],
+        });
+      });
+    }
+
     it('should resolve the matching home env variables including APIEASE_BASE_URL and APIEASE_SHOP_DOMAIN', async () => {
       // Arrange
       const { ApiEaseHomeConfigurationResolver } = await import(apiEaseHomeConfigurationResolverModuleUrl);

@@ -12,6 +12,49 @@ const validateProjectCommandModuleUrl = pathToFileURL(
 ).href;
 
 describe('ValidateProjectCommand', () => {
+  describe('environment selection', () => {
+    it('should forward the selected environment through the project configuration boundary', async () => {
+      // Arrange
+      const { ValidateProjectCommand } = await import(validateProjectCommandModuleUrl);
+      const calls = [];
+      const command = new ValidateProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration(options) { calls.push(options); return { ok: true }; },
+        },
+      });
+      const parsed = command.parseCommandArguments([...['validate'], '--environment', 'staging']);
+
+      // Act
+      await command.resolveRequestConfiguration(parsed);
+
+      // Assert
+      assert.equal(parsed.ok, true);
+      assert.equal(calls[0].explicitEnvironment, 'staging');
+    });
+
+    it('should preserve an explicit environment failure in JSON output', async () => {
+      // Arrange
+      const { ValidateProjectCommand } = await import(validateProjectCommandModuleUrl);
+      const stdoutChunks = [], stderrChunks = [];
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', fieldErrors: [] };
+      const command = new ValidateProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration() { return failure; },
+        },
+
+        stdout: { write: chunk => stdoutChunks.push(chunk) },
+        stderr: { write: chunk => stderrChunks.push(chunk) },
+      });
+
+      // Act
+      const exitCode = await command.run([...['validate'], '--environment', 'missing', '--json']);
+
+      // Assert
+      assert.equal(exitCode, 2);
+      assert.equal(JSON.parse(stdoutChunks.join('')).error.code, failure.errorCode);
+    });
+  });
+
   describe('run', () => {
     it('should resolve personal authentication and validate the complete project change set', async () => {
       // Arrange
@@ -47,6 +90,7 @@ describe('ValidateProjectCommand', () => {
           explicitApiBaseUrl: 'https://apiease.example.com',
           explicitApiKey: 'private-api-key',
           explicitShopDomain: 'example.myshopify.com',
+          explicitEnvironment: undefined,
         }],
         ['buildAndValidateProject', {
           projectDirectoryPath: '/checkout/resources/requests',
@@ -220,6 +264,7 @@ describe('ValidateProjectCommand', () => {
         explicitApiBaseUrl: undefined,
         explicitApiKey: undefined,
         explicitShopDomain: undefined,
+        explicitEnvironment: undefined,
       }]]);
       assert.deepEqual(JSON.parse(stdoutChunks.join('')).diagnostics, [{
         code: 'REQUIRED',

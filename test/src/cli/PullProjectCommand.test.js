@@ -12,6 +12,49 @@ const pullProjectCommandModuleUrl = pathToFileURL(
 ).href;
 
 describe('PullProjectCommand', () => {
+  describe('environment selection', () => {
+    it('should forward the selected environment through the project configuration boundary', async () => {
+      // Arrange
+      const { PullProjectCommand } = await import(pullProjectCommandModuleUrl);
+      const calls = [];
+      const command = new PullProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration(options) { calls.push(options); return { ok: true }; },
+        },
+      });
+      const parsed = command.parseCommandArguments([...['pull'], '--environment', 'staging']);
+
+      // Act
+      await command.resolveRequestConfiguration(parsed);
+
+      // Assert
+      assert.equal(parsed.ok, true);
+      assert.equal(calls[0].explicitEnvironment, 'staging');
+    });
+
+    it('should preserve an explicit environment failure in JSON output', async () => {
+      // Arrange
+      const { PullProjectCommand } = await import(pullProjectCommandModuleUrl);
+      const stdoutChunks = [], stderrChunks = [];
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', fieldErrors: [] };
+      const command = new PullProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration() { return failure; },
+        },
+
+        stdout: createWritableStream(stdoutChunks),
+        stderr: createWritableStream(stderrChunks),
+      });
+
+      // Act
+      const exitCode = await command.run([...['pull'], '--environment', 'missing', '--json']);
+
+      // Assert
+      assert.equal(exitCode, 2);
+      assert.equal(JSON.parse(stdoutChunks.join('')).error.code, failure.errorCode);
+    });
+  });
+
   describe('run', () => {
     it('should resolve a nested checkout and deliberately force a verified pull', async () => {
       // Arrange
@@ -51,6 +94,7 @@ describe('PullProjectCommand', () => {
           explicitApiBaseUrl: 'https://apiease.example.com',
           explicitApiKey: 'private-api-key',
           explicitShopDomain: 'example.myshopify.com',
+          explicitEnvironment: undefined,
         }],
         ['validateProjectCheckout', '/checkout/resources/requests'],
         ['pullProject', {
@@ -211,6 +255,7 @@ describe('PullProjectCommand', () => {
         explicitApiBaseUrl: undefined,
         explicitApiKey: undefined,
         explicitShopDomain: undefined,
+        explicitEnvironment: undefined,
       }]]);
       assert.deepEqual(JSON.parse(stdoutChunks.join('')).diagnostics, [{ code: 'REQUIRED', path: 'apiKey' }]);
       assert.equal(stdoutChunks.join('').includes('API key is required.'), false);

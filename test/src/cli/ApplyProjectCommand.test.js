@@ -15,6 +15,49 @@ const applyProjectCommandModuleUrl = pathToFileURL(
 ).href;
 
 describe('ApplyProjectCommand', () => {
+  describe('environment selection', () => {
+    it('should forward the selected environment through the project configuration boundary', async () => {
+      // Arrange
+      const { ApplyProjectCommand } = await import(applyProjectCommandModuleUrl);
+      const calls = [];
+      const command = new ApplyProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration(options) { calls.push(options); return { ok: true }; },
+        },
+      });
+      const parsed = command.parseCommandArguments([...['apply'], '--environment', 'staging']);
+
+      // Act
+      calls.push(command.buildConfigurationOptions(parsed));
+
+      // Assert
+      assert.equal(parsed.ok, true);
+      assert.equal(calls[0].explicitEnvironment, 'staging');
+    });
+
+    it('should preserve an explicit environment failure in JSON output', async () => {
+      // Arrange
+      const { ApplyProjectCommand } = await import(applyProjectCommandModuleUrl);
+      const stdoutChunks = [], stderrChunks = [];
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', fieldErrors: [] };
+      const command = new ApplyProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration() { return failure; },
+        },
+        projectApplyService: { async applyProject() { return { ok: false, state: 'failure', error: { code: failure.errorCode, category: 'configuration' } }; } },
+        stdout: createWritableStream(stdoutChunks),
+        stderr: createWritableStream(stderrChunks),
+      });
+
+      // Act
+      const exitCode = await command.run([...['apply'], '--environment', 'missing', '--json']);
+
+      // Assert
+      assert.equal(exitCode, 2);
+      assert.equal(JSON.parse(stdoutChunks.join('')).error.code, failure.errorCode);
+    });
+  });
+
   describe('run', () => {
     it('should immediately apply with explicit personal configuration and return the exact plan', async () => {
       // Arrange
@@ -52,6 +95,7 @@ describe('ApplyProjectCommand', () => {
           explicitApiBaseUrl: 'https://apiease.example.com',
           explicitApiKey: 'private-api-key',
           explicitShopDomain: 'example.myshopify.com',
+          explicitEnvironment: undefined,
         },
       }]]);
       assert.deepEqual(JSON.parse(stdoutChunks.join('')), {
@@ -131,6 +175,7 @@ describe('ApplyProjectCommand', () => {
         explicitApiBaseUrl: undefined,
         explicitApiKey: undefined,
         explicitShopDomain: undefined,
+        explicitEnvironment: undefined,
       });
       assert.deepEqual(JSON.parse(stdoutChunks.join('')), {
         cliResultVersion: 1,
@@ -172,6 +217,7 @@ describe('ApplyProjectCommand', () => {
         explicitApiBaseUrl: undefined,
         explicitApiKey: 'personal-key-must-be-rejected',
         explicitShopDomain: undefined,
+        explicitEnvironment: undefined,
       });
     });
 

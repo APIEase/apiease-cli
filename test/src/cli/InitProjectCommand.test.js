@@ -12,6 +12,49 @@ const initProjectCommandModuleUrl = pathToFileURL(
 ).href;
 
 describe('InitProjectCommand', () => {
+  describe('environment selection', () => {
+    it('should forward the selected environment through the project configuration boundary', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const calls = [];
+      const command = new InitProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration(options) { calls.push(options); return { ok: true }; },
+        },
+      });
+      const parsed = command.parseCommandArguments([...['init', '--from-existing-resources'], '--environment', 'staging']);
+
+      // Act
+      await command.resolveExistingResourcesConfiguration(parsed);
+
+      // Assert
+      assert.equal(parsed.ok, true);
+      assert.equal(calls[0].explicitEnvironment, 'staging');
+    });
+
+    it('should preserve an explicit environment failure in JSON output', async () => {
+      // Arrange
+      const { InitProjectCommand } = await import(initProjectCommandModuleUrl);
+      const stdoutChunks = [], stderrChunks = [];
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', fieldErrors: [] };
+      const command = new InitProjectCommand({
+        personalProjectAuthenticationAdapter: {
+          async resolveRequestConfiguration() { return failure; },
+        },
+
+        stdout: createWritableStream(stdoutChunks),
+        stderr: createWritableStream(stderrChunks),
+      });
+
+      // Act
+      const exitCode = await command.run([...['init', '--from-existing-resources'], '--environment', 'missing', '--json']);
+
+      // Assert
+      assert.equal(exitCode, 2);
+      assert.equal(JSON.parse(stdoutChunks.join('')).error.code, failure.errorCode);
+    });
+  });
+
   describe('run', () => {
     it('should copy the template into the target project directory while excluding .git, .idea, .codex, and node_modules', async () => {
       // Arrange
@@ -764,6 +807,7 @@ describe('InitProjectCommand', () => {
           explicitApiBaseUrl: 'https://apiease.example.com',
           explicitApiKey: 'private-api-key',
           explicitShopDomain: 'example.myshopify.com',
+          explicitEnvironment: undefined,
         }],
         ['clonePublicTemplate', {
           destinationDirectoryPath: path.resolve(workingDirectoryPath, 'my-project'),
@@ -931,6 +975,7 @@ describe('InitProjectCommand', () => {
         explicitApiBaseUrl: undefined,
         explicitApiKey: undefined,
         explicitShopDomain: undefined,
+        explicitEnvironment: undefined,
       }]]);
       assert.deepEqual(JSON.parse(stdoutChunks.join('')).error, {
         code: 'APIEASE_COMMAND_CONFIGURATION_MISSING',

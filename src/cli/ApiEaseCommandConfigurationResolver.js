@@ -22,6 +22,7 @@ class ApiEaseCommandConfigurationResolver {
     explicitApiBaseUrl,
     explicitApiKey,
     explicitShopDomain,
+    explicitEnvironment,
     requiredConfigurationFieldPaths = REQUIRED_CONFIGURATION_FIELDS.map(({ path }) => path),
   } = {}) {
     const configuration = this.resolveAvailableConfiguration({
@@ -29,11 +30,13 @@ class ApiEaseCommandConfigurationResolver {
       explicitApiKey,
       explicitShopDomain,
     });
-    if (this.hasCompleteConfiguration(configuration)) {
+    if (explicitEnvironment === undefined && this.hasCompleteConfiguration(configuration)) {
       return this.buildSuccessResult(configuration);
     }
 
-    const environmentVariablesResult = await this.apiEaseHomeConfigurationResolver.resolveEnvironmentVariables();
+    const environmentVariablesResult = await this.apiEaseHomeConfigurationResolver.resolveEnvironmentVariables({
+      environment: explicitEnvironment,
+    });
     if (!environmentVariablesResult.ok) {
       return environmentVariablesResult;
     }

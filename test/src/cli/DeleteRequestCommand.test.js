@@ -10,6 +10,63 @@ const deleteRequestCommandModuleUrl = pathToFileURL(
 ).href;
 
 describe('DeleteRequestCommand', () => {
+  describe('environment selection', () => {
+    it('should forward the selected environment to command configuration', async () => {
+      // Arrange
+      const { DeleteRequestCommand } = await import(deleteRequestCommandModuleUrl);
+      const configuration = { ok: true, apiKey: 'selected-key', apiBaseUrl: 'https://selected.example.com', shopDomain: 'selected.myshopify.com' };
+      const calls = [];
+      const command = new DeleteRequestCommand({
+        apiEaseCommandConfigurationResolver: {
+          async resolveConfiguration(options) { calls.push(options); return configuration; },
+        },
+      });
+      const parsed = command.parseCommandArguments([...['delete', 'request', '--request-handle', 'example'], '--environment', 'staging']);
+
+      // Act
+      const result = await command.resolveCommandConfiguration(parsed);
+
+      // Assert
+      assert.equal(result, configuration);
+      assert.equal(calls[0].explicitEnvironment, 'staging');
+    });
+
+    it('should preserve a missing environment value for validation instead of using the default', async () => {
+      // Arrange
+      const { DeleteRequestCommand } = await import(deleteRequestCommandModuleUrl);
+      const command = new DeleteRequestCommand();
+
+      // Act
+      const parsed = command.parseCommandArguments([...['delete', 'request', '--request-handle', 'example'], '--environment']);
+
+      // Assert
+      assert.equal(parsed.environment, '');
+    });
+
+    it('should report the selected environment failure without running the resource operation', async () => {
+      // Arrange
+      const { DeleteRequestCommand } = await import(deleteRequestCommandModuleUrl);
+      const stdoutChunks = [], stderrChunks = [], calls = [];
+      const failure = { ok: false, errorCode: 'APIEASE_HOME_ENV_FILE_NOT_FOUND', message: 'Selected environment file was not found.', fieldErrors: [] };
+      const command = new DeleteRequestCommand({
+        apiEaseCommandConfigurationResolver: {
+          async resolveConfiguration(options) { calls.push(options); return failure; },
+        },
+        stdout: createWritableStream(stdoutChunks),
+        stderr: createWritableStream(stderrChunks),
+      });
+
+      // Act
+      const exitCode = await command.run([...['delete', 'request', '--request-handle', 'example'], '--environment', 'missing', '--json']);
+
+      // Assert
+      assert.equal(calls[0].explicitEnvironment, 'missing');
+      assert.equal(exitCode, 1);
+      assert.deepEqual(JSON.parse(stdoutChunks.join('')), failure);
+      assert.equal(stderrChunks.join(''), '');
+    });
+  });
+
   describe('run', () => {
     it('should call the delete client and return zero for human-readable success output', async () => {
       // Arrange

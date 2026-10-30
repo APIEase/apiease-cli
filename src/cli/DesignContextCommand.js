@@ -12,6 +12,7 @@ const PROJECT_CONFIGURATION_OPTION_FIELDS = Object.freeze({
   '--api-key': 'apiKey',
   '--base-url': 'apiBaseUrl',
   '--shop-domain': 'shopDomain',
+  '--environment': 'environment',
 });
 
 class DesignContextCommand {
@@ -117,6 +118,7 @@ class DesignContextCommand {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
+      explicitEnvironment: parseResult.environment,
     });
   }
 
@@ -233,7 +235,7 @@ class DesignContextCommand {
       'This CLI requires project-status contract version 3. Update the APIEase server and CLI together.',
     ];
     if (commandResult.error?.category === 'usage') return [
-      'Use "apiease design-context [--resource-path <path>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]".',
+      'Use "apiease design-context [--resource-path <path>] [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]".',
       'Instructions are installed by "apiease init" and "apiease upgrade". Read docs/resource-instructions/README.md. The --inline, --output-dir and --project-requirements options are retired; keep intent in the conversation and CUSTOM_* files.',
     ];
     return [];

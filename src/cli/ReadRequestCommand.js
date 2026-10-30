@@ -82,6 +82,7 @@ class ReadRequestCommand {
       apiBaseUrl: optionMap['--base-url'],
       shopDomain: optionMap['--shop-domain'],
       apiKey: optionMap['--api-key'],
+      environment: Object.hasOwn(optionMap, '--environment') ? optionMap['--environment'] ?? '' : undefined,
       json: optionMap[JSON_FLAG] === true,
     };
   }
@@ -91,6 +92,7 @@ class ReadRequestCommand {
       explicitApiBaseUrl: parseResult.apiBaseUrl,
       explicitApiKey: parseResult.apiKey,
       explicitShopDomain: parseResult.shopDomain,
+      explicitEnvironment: parseResult.environment,
       requiredConfigurationFieldPaths: ['apiKey'],
     });
     if (!configurationResult.ok) {
@@ -180,7 +182,7 @@ class ReadRequestCommand {
     const identifierOptionName = crudResourceDefinition?.identifierOptionName || '<resource-identifier>';
     const identifierValueName = crudResourceDefinition?.identifierValueName || 'value';
     const usageLines = [
-      `Usage: apiease read ${resourceToken} ${identifierOptionName} <${identifierValueName}> [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]`,
+      `Usage: apiease read ${resourceToken} ${identifierOptionName} <${identifierValueName}> [--environment <name>] [--base-url <url>] [--shop-domain <shop-domain>] [--api-key <api-key>] [--json]`,
       '',
       'Options:',
     ];
@@ -197,6 +199,7 @@ class ReadRequestCommand {
     }
 
     usageLines.push(
+      '  --environment <name>       Select ~/.apiease/.env.<name> for this command.',
       '  --base-url <url>            APIEase base URL. Defaults to ~/.apiease/.env.<environment>.',
       '  --shop-domain <shop-domain> Shopify shop domain. Defaults to ~/.apiease/.env.<environment>.',
       '  --api-key <api-key>         APIEase API key. Defaults to ~/.apiease home configuration.',

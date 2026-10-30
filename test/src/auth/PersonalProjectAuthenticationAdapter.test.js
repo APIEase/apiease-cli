@@ -20,6 +20,7 @@ describe('PersonalProjectAuthenticationAdapter', () => {
         explicitApiBaseUrl: 'https://apiease.example.com',
         explicitApiKey: 'private-api-key',
         explicitShopDomain: 'cool-shop.myshopify.com',
+        explicitEnvironment: 'staging',
       };
       const expectedResolverArguments = {
         ...resolveConfigurationArguments,

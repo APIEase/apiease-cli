@@ -17,11 +17,12 @@ class PersonalProjectAuthenticationAdapter extends ProjectAuthenticationAdapter 
     this.apiEaseCommandConfigurationResolver = apiEaseCommandConfigurationResolver;
   }
 
-  async resolveRequestConfiguration({ explicitApiBaseUrl, explicitApiKey, explicitShopDomain } = {}) {
+  async resolveRequestConfiguration({ explicitApiBaseUrl, explicitApiKey, explicitShopDomain, explicitEnvironment } = {}) {
     const configuration = await this.apiEaseCommandConfigurationResolver.resolveConfiguration({
       explicitApiBaseUrl,
       explicitApiKey,
       explicitShopDomain,
+      explicitEnvironment,
       requiredConfigurationFieldPaths: PERSONAL_PROJECT_CONFIGURATION_FIELD_PATHS,
     });
     if (!configuration.ok) {
